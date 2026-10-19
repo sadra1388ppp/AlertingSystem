@@ -1,13 +1,55 @@
-﻿using System.Configuration;
-using System.Data;
+using System.IO;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace AlertingSystem;
 
-/// <summary>
-/// Interaction logic for App.xaml
-/// </summary>
 public partial class App : Application
 {
-}
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
 
+        DispatcherUnhandledException += (_, args) =>
+        {
+            ShowApplicationError(args.Exception);
+            args.Handled = true;
+        };
+
+        try
+        {
+            var window = new MainWindow();
+            MainWindow = window;
+            window.Show();
+        }
+        catch (Exception exception)
+        {
+            ShowApplicationError(exception);
+            Shutdown(-1);
+        }
+    }
+
+    private static void ShowApplicationError(Exception exception)
+    {
+        var message = exception.ToString();
+
+        try
+        {
+            var directory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "AlertingSystem");
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(Path.Combine(directory, "startup-error.log"), message);
+        }
+        catch
+        {
+            // Logging must never hide the original application error.
+        }
+
+        MessageBox.Show(
+            message,
+            "AlertingSystem could not start",
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+    }
+}
