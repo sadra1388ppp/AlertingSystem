@@ -1,0 +1,30 @@
+name: Build WPF app
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Restore and build
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore .\AlertingSystem.csproj
+
+      - name: Build in Release mode
+        run: dotnet build .\AlertingSystem.csproj --configuration Release --no-restore
