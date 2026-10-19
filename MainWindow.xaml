@@ -60,6 +60,13 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="ContextMenu">
+                <Setter.Value>
+                    <ContextMenu>
+                        <MenuItem Header="Delete incident" Click="DeleteIncidentMenuItem_Click"/>
+                    </ContextMenu>
+                </Setter.Value>
+            </Setter>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ListBoxItem}">
@@ -391,7 +398,7 @@
             </Border>
         </Grid>
 
-        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,18">
+        <UniformGrid Grid.Row="1" Columns="2" Margin="0,0,0,18">
             <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
                 <StackPanel>
@@ -404,23 +411,12 @@
                 </StackPanel>
             </Border>
             <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
-                <StackPanel>
-                    <TextBlock Text="TOTAL INCIDENTS" FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource MutedBrush}"/>
-                    <TextBlock x:Name="TotalIncidentCountText" Text="0" FontSize="28" FontWeight="Bold"
-                               Foreground="{StaticResource TextBrush}" Margin="0,7,0,0"/>
-                    <TextBlock Text="Saved on this computer" FontSize="11"
-                               Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
-                </StackPanel>
-            </Border>
-            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1" CornerRadius="11" Padding="16">
                 <StackPanel>
                     <TextBlock Text="DONE INCIDENTS" FontSize="10" FontWeight="Bold"
                                Foreground="{StaticResource MutedBrush}"/>
                     <TextBlock x:Name="DoneIncidentCountText" Text="0" FontSize="28"
-                               FontWeight="Bold" Foreground="{StaticResource WarningBrush}" Margin="0,7,0,0"/>
+                               FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" Margin="0,7,0,0"/>
                     <TextBlock Text="Finished incidents" FontSize="11"
                                Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
                 </StackPanel>
@@ -568,6 +564,21 @@
             <Grid>
                 <ListBox x:Name="HistoryEntriesList" Background="Transparent" BorderThickness="0"
                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListBoxItem}">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="ContextMenu">
+                                <Setter.Value>
+                                    <ContextMenu>
+                                        <MenuItem Header="Delete history entry" Click="DeleteHistoryEntryMenuItem_Click"/>
+                                    </ContextMenu>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Border Background="#101A2B" BorderBrush="{StaticResource BorderBrush}"
