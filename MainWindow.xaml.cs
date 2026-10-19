@@ -350,6 +350,7 @@ public partial class MainWindow : Window
         var openCount = _incidents.Count(item => item.Status == IncidentStatus.Open);
         var doneCount = _incidents.Count(item => item.Status == IncidentStatus.Done);
         OpenIncidentCountText.Text = openCount.ToString();
+        TotalIncidentCountText.Text = _incidents.Count.ToString();
         DoneIncidentCountText.Text = doneCount.ToString();
         OverviewOpenIncidentsCountText.Text = $"{openCount} open incident(s)";
 
