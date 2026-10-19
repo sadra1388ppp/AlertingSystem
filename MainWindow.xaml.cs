@@ -1,7 +1,10 @@
 using System.Diagnostics;
 using System.Net.Http;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
+using AlertingSystem.Models;
+using AlertingSystem.Services;
 
 namespace AlertingSystem;
 
@@ -12,11 +15,25 @@ public partial class MainWindow : Window
         Timeout = TimeSpan.FromSeconds(10)
     };
 
+    private readonly LocalDataStore _dataStore = new();
+    private readonly List<Incident> _incidents;
+    private readonly List<CheckHistoryEntry> _checkHistory;
     private int _checksRun;
+    private bool _showAllIncidents;
+    private bool _storageWarningShown;
 
     public MainWindow()
     {
         InitializeComponent();
+
+        _incidents = _dataStore.LoadIncidents();
+        _checkHistory = _dataStore.LoadCheckHistory()
+            .OrderByDescending(entry => entry.Timestamp)
+            .Take(200)
+            .ToList();
+
+        RefreshIncidentUI();
+        RefreshCheckHistoryUI();
     }
 
     private async void CheckEndpoint_Click(object sender, RoutedEventArgs e)
@@ -31,7 +48,9 @@ public partial class MainWindow : Window
             ResponseTimeText.Text = "Response time: —";
             SetStatus("Invalid URL", "DangerBrush");
             LastResultText.Text = "Enter a valid URL beginning with http:// or https://.";
-            AddHistory("Invalid URL entered");
+            RecordCheck(string.IsNullOrWhiteSpace(address) ? "(empty URL)" : address,
+                "Invalid URL", "Enter a valid URL beginning with http:// or https://.", null);
+            IncrementChecksRun();
             return;
         }
 
@@ -52,54 +71,294 @@ public partial class MainWindow : Window
             stopwatch.Stop();
 
             var statusCode = (int)response.StatusCode;
-            var isHealthy = response.IsSuccessStatusCode;
             var elapsed = stopwatch.ElapsedMilliseconds;
 
-            SetStatus(isHealthy ? "Healthy" : $"HTTP {statusCode}",
-                isHealthy ? "SuccessBrush" : "DangerBrush");
+            if (response.IsSuccessStatusCode)
+            {
+                var resolvedIncident = ResolveMatchingIncident(uri,
+                    $"Endpoint returned HTTP {statusCode}.");
 
-            LastResultText.Text =
-                $"{uri.Host} returned HTTP {statusCode} ({response.ReasonPhrase}).";
-            ResponseTimeText.Text = $"Response time: {elapsed} ms";
-            ResponseTimeSummaryText.Text = $"{elapsed} ms";
-            LastResultSummaryText.Text = isHealthy ? "Healthy" : $"HTTP {statusCode}";
+                SetStatus("Healthy", "SuccessBrush");
+                LastResultSummaryText.Text = "Healthy";
+                LastResultText.Text = resolvedIncident is null
+                    ? $"{uri.Host} returned HTTP {statusCode} ({response.ReasonPhrase})."
+                    : $"{uri.Host} recovered. Incident {resolvedIncident} was resolved.";
+                ResponseTimeText.Text = $"Response time: {elapsed} ms";
+                ResponseTimeSummaryText.Text = $"{elapsed} ms";
 
-            AddHistory($"{uri.Host}  •  HTTP {statusCode}  •  {elapsed} ms");
+                RecordCheck(uri.AbsoluteUri, $"HTTP {statusCode}",
+                    resolvedIncident is null
+                        ? $"Successful response ({response.ReasonPhrase})."
+                        : $"Successful response; incident {resolvedIncident} was automatically resolved.",
+                    elapsed);
+            }
+            else
+            {
+                var severity = GetHttpFailureSeverity(statusCode);
+                var title = GetHttpFailureTitle(statusCode);
+                var details = $"Endpoint returned HTTP {statusCode} ({response.ReasonPhrase}).";
+                var incident = UpsertIncident(uri, title, severity, details);
+
+                SetStatus($"HTTP {statusCode}", "DangerBrush");
+                LastResultSummaryText.Text = $"HTTP {statusCode}";
+                LastResultText.Text = $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
+                ResponseTimeText.Text = $"Response time: {elapsed} ms";
+                ResponseTimeSummaryText.Text = $"{elapsed} ms";
+
+                RecordCheck(uri.AbsoluteUri, $"HTTP {statusCode}",
+                    $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).",
+                    elapsed);
+            }
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
             stopwatch.Stop();
+            var details = "The endpoint did not respond within the 10-second timeout.";
+            var incident = UpsertIncident(uri, "Endpoint timed out", IncidentSeverity.High, details);
+
             SetStatus("Timed out", "DangerBrush");
-            LastResultText.Text = $"{uri.Host} did not respond within 10 seconds.";
+            LastResultText.Text = $"{uri.Host} timed out. Incident {incident.IncidentNumber} was created or updated.";
             ResponseTimeText.Text = "Response time: timed out";
             ResponseTimeSummaryText.Text = "Timeout";
             LastResultSummaryText.Text = "Timed out";
-            AddHistory($"{uri.Host}  •  Timed out");
+            RecordCheck(uri.AbsoluteUri, "Timed out",
+                $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).", null);
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException exception)
         {
             stopwatch.Stop();
+            var details = $"Could not connect to the endpoint. {exception.Message}";
+            var incident = UpsertIncident(uri, "Endpoint unreachable", IncidentSeverity.High, details);
+
             SetStatus("Unreachable", "DangerBrush");
-            LastResultText.Text =
-                $"Could not connect to {uri.Host}. Check the URL and your network connection.";
+            LastResultText.Text = $"{uri.Host} is unreachable. Incident {incident.IncidentNumber} was created or updated.";
             ResponseTimeText.Text = "Response time: —";
             ResponseTimeSummaryText.Text = "—";
             LastResultSummaryText.Text = "Unreachable";
-            AddHistory($"{uri.Host}  •  Unreachable");
+            RecordCheck(uri.AbsoluteUri, "Unreachable",
+                $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).", null);
         }
         finally
         {
-            _checksRun++;
-            ChecksRunText.Text = _checksRun.ToString();
-
-            if (HistoryList.Items.Count > 10)
-            {
-                HistoryList.Items.RemoveAt(10);
-            }
-
+            IncrementChecksRun();
             CheckEndpointButton.IsEnabled = true;
             CheckEndpointButton.Content = "Check endpoint";
         }
+    }
+
+    private static IncidentSeverity GetHttpFailureSeverity(int statusCode) =>
+        statusCode == 503 ? IncidentSeverity.Critical
+        : statusCode >= 500 ? IncidentSeverity.High
+        : statusCode >= 400 ? IncidentSeverity.Medium
+        : IncidentSeverity.Low;
+
+    private static string GetHttpFailureTitle(int statusCode) =>
+        statusCode == 503 ? "Service unavailable (HTTP 503)"
+        : statusCode >= 500 ? $"Server error (HTTP {statusCode})"
+        : statusCode >= 400 ? $"Unexpected HTTP response (HTTP {statusCode})"
+        : $"Unexpected HTTP status ({statusCode})";
+
+    private Incident UpsertIncident(Uri uri, string title, IncidentSeverity severity, string details)
+    {
+        var endpointKey = NormalizeEndpoint(uri);
+        var incident = _incidents.FirstOrDefault(item =>
+            item.Status != IncidentStatus.Resolved &&
+            string.Equals(NormalizeEndpoint(item.EndpointUrl), endpointKey,
+                StringComparison.OrdinalIgnoreCase));
+
+        if (incident is null)
+        {
+            incident = new Incident
+            {
+                IncidentNumber = $"INC-{DateTime.Now:yyyyMMdd-HHmmss}-{Guid.NewGuid().ToString("N")[..4].ToUpperInvariant()}",
+                EndpointUrl = uri.AbsoluteUri,
+                Title = title,
+                Severity = severity,
+                Status = IncidentStatus.Open,
+                Details = details,
+                FirstOccurredAt = DateTime.Now,
+                LastOccurredAt = DateTime.Now,
+                OccurrenceCount = 1
+            };
+
+            _incidents.Add(incident);
+        }
+        else
+        {
+            incident.Title = title;
+            incident.Details = details;
+            incident.LastOccurredAt = DateTime.Now;
+            incident.OccurrenceCount++;
+
+            // Escalate severity when a later failure is more serious; do not silently downgrade it.
+            if (severity < incident.Severity)
+            {
+                incident.Severity = severity;
+            }
+        }
+
+        PersistIncidents();
+        RefreshIncidentUI();
+        return incident;
+    }
+
+    private string? ResolveMatchingIncident(Uri uri, string recoveryDetails)
+    {
+        var endpointKey = NormalizeEndpoint(uri);
+        var incident = _incidents.FirstOrDefault(item =>
+            item.Status != IncidentStatus.Resolved &&
+            string.Equals(NormalizeEndpoint(item.EndpointUrl), endpointKey,
+                StringComparison.OrdinalIgnoreCase));
+
+        if (incident is null)
+        {
+            return null;
+        }
+
+        incident.Status = IncidentStatus.Resolved;
+        incident.ResolvedAt = DateTime.Now;
+        incident.ResolutionNote = $"Automatically resolved at {DateTime.Now:yyyy-MM-dd HH:mm:ss}. {recoveryDetails}";
+        PersistIncidents();
+        RefreshIncidentUI();
+        return incident.IncidentNumber;
+    }
+
+    private static string NormalizeEndpoint(string endpoint)
+    {
+        return Uri.TryCreate(endpoint, UriKind.Absolute, out var uri)
+            ? uri.AbsoluteUri.TrimEnd('/')
+            : endpoint.Trim();
+    }
+
+    private void RecordCheck(string endpoint, string result, string details, long? responseTimeMs)
+    {
+        _checkHistory.Insert(0, new CheckHistoryEntry
+        {
+            Timestamp = DateTime.Now,
+            Endpoint = endpoint,
+            Result = result,
+            Details = details,
+            ResponseTimeMs = responseTimeMs
+        });
+
+        if (_checkHistory.Count > 200)
+        {
+            _checkHistory.RemoveRange(200, _checkHistory.Count - 200);
+        }
+
+        PersistCheckHistory();
+        RefreshCheckHistoryUI();
+    }
+
+    private void IncrementChecksRun()
+    {
+        _checksRun++;
+        ChecksRunText.Text = _checksRun.ToString();
+    }
+
+    private void PersistIncidents()
+    {
+        try
+        {
+            _dataStore.SaveIncidents(_incidents);
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            ShowStorageWarning(exception);
+        }
+    }
+
+    private void PersistCheckHistory()
+    {
+        try
+        {
+            _dataStore.SaveCheckHistory(_checkHistory);
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            ShowStorageWarning(exception);
+        }
+    }
+
+    private void ShowStorageWarning(Exception exception)
+    {
+        if (_storageWarningShown)
+        {
+            return;
+        }
+
+        _storageWarningShown = true;
+        MessageBox.Show(this,
+            $"AlertingSystem could not save local monitoring data. The information may not survive an application restart.\n\n{exception.Message}",
+            "Local storage warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+    }
+
+    private void RefreshIncidentUI()
+    {
+        var activeCount = _incidents.Count(item => item.Status != IncidentStatus.Resolved);
+        ActiveIncidentCountText.Text = activeCount.ToString();
+        TotalIncidentCountText.Text = _incidents.Count.ToString();
+        UnacknowledgedIncidentCountText.Text =
+            _incidents.Count(item => item.Status == IncidentStatus.Open).ToString();
+        OverviewActiveIncidentsCountText.Text = $"{activeCount} active incident(s)";
+
+        var visibleIncidents = _incidents
+            .Where(item => _showAllIncidents || item.Status != IncidentStatus.Resolved)
+            .OrderByDescending(item => item.Status != IncidentStatus.Resolved)
+            .ThenByDescending(item => item.LastOccurredAt)
+            .ToList();
+
+        IncidentsListBox.ItemsSource = visibleIncidents;
+        IncidentFilterDescriptionText.Text = _showAllIncidents
+            ? "Showing all incidents, including resolved incidents"
+            : "Showing active incidents";
+        IncidentsEmptyText.Text = _showAllIncidents
+            ? "No incidents have been recorded yet. Run a failing endpoint check to create one."
+            : "No active incidents. Run a failing endpoint check to test incident creation.";
+        IncidentsEmptyText.Visibility = visibleIncidents.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        ActiveIncidentsFilterButton.Background = _showAllIncidents
+            ? (Brush)FindResource("SecondaryButtonBrush")
+            : (Brush)FindResource("SelectedFilterBrush");
+        AllIncidentsFilterButton.Background = _showAllIncidents
+            ? (Brush)FindResource("SelectedFilterBrush")
+            : (Brush)FindResource("SecondaryButtonBrush");
+
+        UpdateIncidentActionButtons();
+    }
+
+    private void RefreshCheckHistoryUI()
+    {
+        HistoryList.Items.Clear();
+        foreach (var entry in _checkHistory.Take(10))
+        {
+            HistoryList.Items.Add(entry.DisplayText);
+        }
+
+        HistoryEntriesList.ItemsSource = _checkHistory
+            .OrderByDescending(entry => entry.Timestamp)
+            .ToList();
+        HistoryCountText.Text = $"{_checkHistory.Count} record(s)";
+        HistoryEmptyText.Visibility = _checkHistory.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private void UpdateIncidentActionButtons()
+    {
+        if (IncidentsListBox.SelectedItem is not Incident selected)
+        {
+            AcknowledgeIncidentButton.IsEnabled = false;
+            ResolveIncidentButton.IsEnabled = false;
+            return;
+        }
+
+        AcknowledgeIncidentButton.IsEnabled = selected.Status == IncidentStatus.Open;
+        ResolveIncidentButton.IsEnabled = selected.Status != IncidentStatus.Resolved;
     }
 
     private void SetStatus(string message, string brushKey)
@@ -108,13 +367,87 @@ public partial class MainWindow : Window
         StatusIndicator.Fill = (Brush)FindResource(brushKey);
     }
 
-    private void AddHistory(string message)
+    private void OverviewNavButton_Click(object sender, RoutedEventArgs e)
     {
-        HistoryList.Items.Insert(0, $"{DateTime.Now:HH:mm:ss}  •  {message}");
+        ShowPage(OverviewPage, OverviewNavButton);
+    }
 
-        if (HistoryList.Items.Count > 10)
+    private void IncidentsNavButton_Click(object sender, RoutedEventArgs e)
+    {
+        _showAllIncidents = false;
+        RefreshIncidentUI();
+        ShowPage(IncidentsPage, IncidentsNavButton);
+    }
+
+    private void AlertHistoryNavButton_Click(object sender, RoutedEventArgs e)
+    {
+        RefreshCheckHistoryUI();
+        ShowPage(AlertHistoryPage, AlertHistoryNavButton);
+    }
+
+    private void ShowPage(Grid selectedPage, Button selectedButton)
+    {
+        OverviewPage.Visibility = Visibility.Collapsed;
+        IncidentsPage.Visibility = Visibility.Collapsed;
+        AlertHistoryPage.Visibility = Visibility.Collapsed;
+        selectedPage.Visibility = Visibility.Visible;
+
+        foreach (var button in new[] { OverviewNavButton, IncidentsNavButton, AlertHistoryNavButton })
         {
-            HistoryList.Items.RemoveAt(10);
+            button.Background = Brushes.Transparent;
+            button.Foreground = (Brush)FindResource("MutedBrush");
+            button.FontWeight = FontWeights.Normal;
         }
+
+        selectedButton.Background = new SolidColorBrush(Color.FromRgb(29, 49, 82));
+        selectedButton.Foreground = new SolidColorBrush(Color.FromRgb(234, 242, 255));
+        selectedButton.FontWeight = FontWeights.SemiBold;
+    }
+
+    private void ActiveIncidentsFilterButton_Click(object sender, RoutedEventArgs e)
+    {
+        _showAllIncidents = false;
+        RefreshIncidentUI();
+    }
+
+    private void AllIncidentsFilterButton_Click(object sender, RoutedEventArgs e)
+    {
+        _showAllIncidents = true;
+        RefreshIncidentUI();
+    }
+
+    private void IncidentsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdateIncidentActionButtons();
+    }
+
+    private void AcknowledgeIncidentButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (IncidentsListBox.SelectedItem is not Incident selected ||
+            selected.Status != IncidentStatus.Open)
+        {
+            return;
+        }
+
+        selected.Status = IncidentStatus.Acknowledged;
+        selected.AcknowledgedAt = DateTime.Now;
+        selected.ResolutionNote = string.Empty;
+        PersistIncidents();
+        RefreshIncidentUI();
+    }
+
+    private void ResolveIncidentButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (IncidentsListBox.SelectedItem is not Incident selected ||
+            selected.Status == IncidentStatus.Resolved)
+        {
+            return;
+        }
+
+        selected.Status = IncidentStatus.Resolved;
+        selected.ResolvedAt = DateTime.Now;
+        selected.ResolutionNote = $"Manually resolved at {DateTime.Now:yyyy-MM-dd HH:mm:ss}.";
+        PersistIncidents();
+        RefreshIncidentUI();
     }
 }
