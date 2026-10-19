@@ -319,7 +319,6 @@ public partial class MainWindow : Window
         var openCount = _incidents.Count(item => item.Status == IncidentStatus.Open);
         var doneCount = _incidents.Count(item => item.Status == IncidentStatus.Done);
         OpenIncidentCountText.Text = openCount.ToString();
-        TotalIncidentCountText.Text = _incidents.Count.ToString();
         DoneIncidentCountText.Text = doneCount.ToString();
         OverviewOpenIncidentsCountText.Text = $"{openCount} open incident(s)";
 
@@ -447,5 +446,59 @@ public partial class MainWindow : Window
         selected.ResolutionNote = $"Marked Done manually at {DateTime.Now:yyyy-MM-dd HH:mm:ss}.";
         PersistIncidents();
         RefreshIncidentUI();
+    }
+
+    private void DeleteIncidentMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem menuItem ||
+            menuItem.Parent is not ContextMenu contextMenu ||
+            contextMenu.PlacementTarget is not ListBoxItem row ||
+            row.DataContext is not Incident incident)
+        {
+            return;
+        }
+
+        var answer = MessageBox.Show(
+            this,
+            $"Permanently delete incident {incident.IncidentNumber}?\n\n{incident.Title}",
+            "Delete incident",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (answer != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        _incidents.Remove(incident);
+        PersistIncidents();
+        RefreshIncidentUI();
+    }
+
+    private void DeleteHistoryEntryMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem menuItem ||
+            menuItem.Parent is not ContextMenu contextMenu ||
+            contextMenu.PlacementTarget is not ListBoxItem row ||
+            row.DataContext is not CheckHistoryEntry entry)
+        {
+            return;
+        }
+
+        var answer = MessageBox.Show(
+            this,
+            $"Permanently delete this alert-history entry?\n\n{entry.TimestampDisplay}\n{entry.Endpoint}\n{entry.Result}",
+            "Delete history entry",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (answer != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        _checkHistory.Remove(entry);
+        PersistCheckHistory();
+        RefreshCheckHistoryUI();
     }
 }
