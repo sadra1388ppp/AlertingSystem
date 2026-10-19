@@ -166,14 +166,11 @@ public sealed class MariaDbDataStore
 
         if (!File.Exists(_settingsPath))
         {
+            // Use the documented local-development defaults. Settings are saved
+            // under LocalAppData, never in the Git repository.
             File.WriteAllText(
                 _settingsPath,
                 JsonSerializer.Serialize(new DatabaseSettings(), JsonOptions));
-
-            throw new InvalidOperationException(
-                "A MariaDB settings file has been created at:\n" +
-                _settingsPath +
-                "\n\nSet its Password value, save the file, and launch AlertingSystem again.");
         }
 
         DatabaseSettings settings;
