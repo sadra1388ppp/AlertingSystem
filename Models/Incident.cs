@@ -16,8 +16,7 @@ public enum IncidentSeverity
 public enum IncidentStatus
 {
     Open = 0,
-    Acknowledged = 1,
-    Resolved = 2
+    Done = 2
 }
 
 public sealed class Incident : INotifyPropertyChanged
@@ -31,7 +30,6 @@ public sealed class Incident : INotifyPropertyChanged
     private IncidentStatus _status = IncidentStatus.Open;
     private DateTime _firstOccurredAt = DateTime.Now;
     private DateTime _lastOccurredAt = DateTime.Now;
-    private DateTime? _acknowledgedAt;
     private DateTime? _resolvedAt;
     private int _occurrenceCount = 1;
 
@@ -115,12 +113,6 @@ public sealed class Incident : INotifyPropertyChanged
         }
     }
 
-    public DateTime? AcknowledgedAt
-    {
-        get => _acknowledgedAt;
-        set => SetField(ref _acknowledgedAt, value);
-    }
-
     public DateTime? ResolvedAt
     {
         get => _resolvedAt;
@@ -143,11 +135,7 @@ public sealed class Incident : INotifyPropertyChanged
     public string SeverityDisplay => Severity.ToString();
 
     [JsonIgnore]
-    public string StatusDisplay => Status switch
-    {
-        IncidentStatus.Acknowledged => "Seen",
-        _ => Status.ToString()
-    };
+    public string StatusDisplay => Status == IncidentStatus.Done ? "Done" : "Open";
 
     [JsonIgnore]
     public Brush SeverityBrush => Severity switch
@@ -159,12 +147,9 @@ public sealed class Incident : INotifyPropertyChanged
     };
 
     [JsonIgnore]
-    public Brush StatusBrush => Status switch
-    {
-        IncidentStatus.Resolved => Brushes.MediumAquamarine,
-        IncidentStatus.Acknowledged => Brushes.Gold,
-        _ => Brushes.LightCoral
-    };
+    public Brush StatusBrush => Status == IncidentStatus.Done
+        ? Brushes.MediumAquamarine
+        : Brushes.LightCoral;
 
     [JsonIgnore]
     public string ActivityDisplay =>

@@ -28,6 +28,22 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         _incidents = _dataStore.LoadIncidents();
+
+        var migratedLegacyStatuses = false;
+        foreach (var incident in _incidents)
+        {
+            if (incident.Status != IncidentStatus.Open && incident.Status != IncidentStatus.Done)
+            {
+                incident.Status = IncidentStatus.Open;
+                migratedLegacyStatuses = true;
+            }
+        }
+
+        if (migratedLegacyStatuses)
+        {
+            _dataStore.SaveIncidents(_incidents);
+        }
+
         _checkHistory = _dataStore.LoadCheckHistory()
             .OrderByDescending(entry => entry.Timestamp)
             .Take(200)
@@ -76,21 +92,21 @@ public partial class MainWindow : Window
 
             if (response.IsSuccessStatusCode)
             {
-                var resolvedIncident = ResolveMatchingIncident(uri,
+                var resolvedIncident = MarkMatchingIncidentDone(uri,
                     $"Endpoint returned HTTP {statusCode}.");
 
                 SetStatus("Healthy", "SuccessBrush");
                 LastResultSummaryText.Text = "Healthy";
                 LastResultText.Text = resolvedIncident is null
                     ? $"{uri.Host} returned HTTP {statusCode} ({response.ReasonPhrase})."
-                    : $"{uri.Host} recovered. Incident {resolvedIncident} was resolved.";
+                    : $"{uri.Host} recovered. Incident {resolvedIncident} was marked Done.";
                 ResponseTimeText.Text = $"Response time: {elapsed} ms";
                 ResponseTimeSummaryText.Text = $"{elapsed} ms";
 
                 RecordCheck(uri.AbsoluteUri, $"HTTP {statusCode}",
                     resolvedIncident is null
                         ? $"Successful response ({response.ReasonPhrase})."
-                        : $"Successful response; incident {resolvedIncident} was automatically resolved.",
+                        : $"Successful response; incident {resolvedIncident} was automatically marked Done.",
                     elapsed);
             }
             else
@@ -163,7 +179,7 @@ public partial class MainWindow : Window
     {
         var endpointKey = NormalizeEndpoint(uri);
         var incident = _incidents.FirstOrDefault(item =>
-            item.Status != IncidentStatus.Resolved &&
+            item.Status != IncidentStatus.Done &&
             string.Equals(NormalizeEndpoint(item.EndpointUrl), endpointKey,
                 StringComparison.OrdinalIgnoreCase));
 
@@ -203,11 +219,11 @@ public partial class MainWindow : Window
         return incident;
     }
 
-    private string? ResolveMatchingIncident(Uri uri, string recoveryDetails)
+    private string? MarkMatchingIncidentDone(Uri uri, string recoveryDetails)
     {
         var endpointKey = NormalizeEndpoint(uri);
         var incident = _incidents.FirstOrDefault(item =>
-            item.Status != IncidentStatus.Resolved &&
+            item.Status != IncidentStatus.Done &&
             string.Equals(NormalizeEndpoint(item.EndpointUrl), endpointKey,
                 StringComparison.OrdinalIgnoreCase));
 
@@ -216,9 +232,9 @@ public partial class MainWindow : Window
             return null;
         }
 
-        incident.Status = IncidentStatus.Resolved;
+        incident.Status = IncidentStatus.Done;
         incident.ResolvedAt = DateTime.Now;
-        incident.ResolutionNote = $"Automatically resolved at {DateTime.Now:yyyy-MM-dd HH:mm:ss}. {recoveryDetails}";
+        incident.ResolutionNote = $"Automatically marked Done at {DateTime.Now:yyyy-MM-dd HH:mm:ss}. {recoveryDetails}";
         PersistIncidents();
         RefreshIncidentUI();
         return incident.IncidentNumber;
@@ -300,22 +316,22 @@ public partial class MainWindow : Window
 
     private void RefreshIncidentUI()
     {
-        var unresolvedCount = _incidents.Count(item => item.Status != IncidentStatus.Resolved);
-        OpenIncidentCountText.Text = unresolvedCount.ToString();
+        var openCount = _incidents.Count(item => item.Status == IncidentStatus.Open);
+        var doneCount = _incidents.Count(item => item.Status == IncidentStatus.Done);
+        OpenIncidentCountText.Text = openCount.ToString();
         TotalIncidentCountText.Text = _incidents.Count.ToString();
-        UnseenIncidentCountText.Text =
-            _incidents.Count(item => item.Status == IncidentStatus.Open).ToString();
-        OverviewOpenIncidentsCountText.Text = $"{unresolvedCount} open incident(s)";
+        DoneIncidentCountText.Text = doneCount.ToString();
+        OverviewOpenIncidentsCountText.Text = $"{openCount} open incident(s)";
 
         var visibleIncidents = _incidents
-            .Where(item => _showAllIncidents || item.Status != IncidentStatus.Resolved)
-            .OrderByDescending(item => item.Status != IncidentStatus.Resolved)
+            .Where(item => _showAllIncidents || item.Status != IncidentStatus.Done)
+            .OrderByDescending(item => item.Status != IncidentStatus.Done)
             .ThenByDescending(item => item.LastOccurredAt)
             .ToList();
 
         IncidentsListBox.ItemsSource = visibleIncidents;
         IncidentFilterDescriptionText.Text = _showAllIncidents
-            ? "Showing all incidents, including resolved incidents"
+            ? "Showing all incidents, including done incidents"
             : "Showing open incidents";
         IncidentsEmptyText.Text = _showAllIncidents
             ? "No incidents have been recorded yet. Run a failing endpoint check to create one."
@@ -353,15 +369,9 @@ public partial class MainWindow : Window
 
     private void UpdateIncidentActionButtons()
     {
-        if (IncidentsListBox.SelectedItem is not Incident selected)
-        {
-            MarkSeenIncidentButton.IsEnabled = false;
-            ResolveIncidentButton.IsEnabled = false;
-            return;
-        }
-
-        MarkSeenIncidentButton.IsEnabled = selected.Status == IncidentStatus.Open;
-        ResolveIncidentButton.IsEnabled = selected.Status != IncidentStatus.Resolved;
+        MarkDoneIncidentButton.IsEnabled =
+            IncidentsListBox.SelectedItem is Incident selected &&
+            selected.Status != IncidentStatus.Done;
     }
 
     private void SetStatus(string message, string brushKey)
@@ -424,32 +434,17 @@ public partial class MainWindow : Window
         UpdateIncidentActionButtons();
     }
 
-    private void MarkSeenIncidentButton_Click(object sender, RoutedEventArgs e)
+    private void MarkDoneIncidentButton_Click(object sender, RoutedEventArgs e)
     {
         if (IncidentsListBox.SelectedItem is not Incident selected ||
-            selected.Status != IncidentStatus.Open)
+            selected.Status == IncidentStatus.Done)
         {
             return;
         }
 
-        selected.Status = IncidentStatus.Acknowledged;
-        selected.AcknowledgedAt = DateTime.Now;
-        selected.ResolutionNote = string.Empty;
-        PersistIncidents();
-        RefreshIncidentUI();
-    }
-
-    private void ResolveIncidentButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (IncidentsListBox.SelectedItem is not Incident selected ||
-            selected.Status == IncidentStatus.Resolved)
-        {
-            return;
-        }
-
-        selected.Status = IncidentStatus.Resolved;
+        selected.Status = IncidentStatus.Done;
         selected.ResolvedAt = DateTime.Now;
-        selected.ResolutionNote = $"Manually resolved at {DateTime.Now:yyyy-MM-dd HH:mm:ss}.";
+        selected.ResolutionNote = $"Marked Done manually at {DateTime.Now:yyyy-MM-dd HH:mm:ss}.";
         PersistIncidents();
         RefreshIncidentUI();
     }
