@@ -193,12 +193,19 @@ public sealed class MariaDbDataStore
 
         if (string.IsNullOrWhiteSpace(settings.Server) ||
             string.IsNullOrWhiteSpace(settings.Database) ||
-            string.IsNullOrWhiteSpace(settings.UserId) ||
-            string.IsNullOrWhiteSpace(settings.Password))
+            string.IsNullOrWhiteSpace(settings.UserId))
         {
             throw new InvalidOperationException(
-                "Open the MariaDB settings file and fill in Server, Database, UserId, and Password:\n" +
+                "Open the MariaDB settings file and fill in Server, Database, and UserId:\n" +
                 _settingsPath);
+        }
+
+        // Simple local-development default requested for this project. Do not use it
+        // on a shared or internet-accessible machine.
+        if (string.IsNullOrWhiteSpace(settings.Password))
+        {
+            settings.Password = "123";
+            File.WriteAllText(_settingsPath, JsonSerializer.Serialize(settings, JsonOptions));
         }
 
         var builder = new MySqlConnectionStringBuilder
@@ -548,6 +555,6 @@ public sealed class MariaDbDataStore
         public uint Port { get; set; } = 3306;
         public string Database { get; set; } = "alertingsystem";
         public string UserId { get; set; } = "alertingsystem_app";
-        public string Password { get; set; } = string.Empty;
+        public string Password { get; set; } = "123";
     }
 }
