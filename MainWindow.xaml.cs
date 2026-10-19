@@ -305,7 +305,7 @@ public partial class MainWindow : Window
         TotalIncidentCountText.Text = _incidents.Count.ToString();
         UnseenIncidentCountText.Text =
             _incidents.Count(item => item.Status == IncidentStatus.Open).ToString();
-        OverviewOpenIncidentsCountText.Text = $"{unresolvedCount} active incident(s)";
+        OverviewOpenIncidentsCountText.Text = $"{unresolvedCount} open incident(s)";
 
         var visibleIncidents = _incidents
             .Where(item => _showAllIncidents || item.Status != IncidentStatus.Resolved)
@@ -316,10 +316,10 @@ public partial class MainWindow : Window
         IncidentsListBox.ItemsSource = visibleIncidents;
         IncidentFilterDescriptionText.Text = _showAllIncidents
             ? "Showing all incidents, including resolved incidents"
-            : "Showing active incidents";
+            : "Showing open incidents";
         IncidentsEmptyText.Text = _showAllIncidents
             ? "No incidents have been recorded yet. Run a failing endpoint check to create one."
-            : "No active incidents. Run a failing endpoint check to test incident creation.";
+            : "No open incidents. Run a failing endpoint check to test incident creation.";
         IncidentsEmptyText.Visibility = visibleIncidents.Count == 0
             ? Visibility.Visible
             : Visibility.Collapsed;
