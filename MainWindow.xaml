@@ -398,7 +398,7 @@
             </Border>
         </Grid>
 
-        <UniformGrid Grid.Row="1" Columns="2" Margin="0,0,0,18">
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,18">
             <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
                 <StackPanel>
@@ -407,6 +407,17 @@
                     <TextBlock x:Name="OpenIncidentCountText" Text="0" FontSize="28" FontWeight="Bold"
                                Foreground="{StaticResource DangerBrush}" Margin="0,7,0,0"/>
                     <TextBlock Text="Not yet resolved" FontSize="11"
+                               Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Border>
+            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
+                <StackPanel>
+                    <TextBlock Text="TOTAL INCIDENTS" FontSize="10" FontWeight="Bold"
+                               Foreground="{StaticResource MutedBrush}"/>
+                    <TextBlock x:Name="TotalIncidentCountText" Text="0" FontSize="28"
+                               FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,7,0,0"/>
+                    <TextBlock Text="All recorded incidents" FontSize="11"
                                Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
                 </StackPanel>
             </Border>
