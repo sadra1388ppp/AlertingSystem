@@ -27,6 +27,15 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        // Wire context-menu actions in code-behind. Keeping Click handlers out of
+        // resource XAML avoids the WPF component-connection ID mismatch at startup.
+        AttachContextMenuHandler(
+            FindResource("IncidentListBoxItemStyle") as Style,
+            DeleteIncidentMenuItem_Click);
+        AttachContextMenuHandler(
+            HistoryEntriesList.ItemContainerStyle,
+            DeleteHistoryEntryMenuItem_Click);
+
         _incidents = _dataStore.LoadIncidents();
 
         var migratedLegacyStatuses = false;
@@ -51,6 +60,28 @@ public partial class MainWindow : Window
 
         RefreshIncidentUI();
         RefreshCheckHistoryUI();
+    }
+
+    private static void AttachContextMenuHandler(Style? style, RoutedEventHandler handler)
+    {
+        if (style is null)
+        {
+            return;
+        }
+
+        var contextMenuSetter = style.Setters
+            .OfType<Setter>()
+            .FirstOrDefault(setter => setter.Property == FrameworkElement.ContextMenuProperty);
+
+        if (contextMenuSetter?.Value is not ContextMenu contextMenu)
+        {
+            return;
+        }
+
+        foreach (var menuItem in contextMenu.Items.OfType<MenuItem>())
+        {
+            menuItem.Click += handler;
+        }
     }
 
     private async void CheckEndpoint_Click(object sender, RoutedEventArgs e)
