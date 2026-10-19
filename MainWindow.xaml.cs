@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
@@ -222,6 +223,8 @@ public partial class MainWindow : Window
         RefreshIncidentUI();
         return incident.IncidentNumber;
     }
+
+    private static string NormalizeEndpoint(Uri uri) => NormalizeEndpoint(uri.AbsoluteUri);
 
     private static string NormalizeEndpoint(string endpoint)
     {
