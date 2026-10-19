@@ -191,7 +191,7 @@ public partial class MainWindow : Window
             incident.OccurrenceCount++;
 
             // Escalate severity when a later failure is more serious; do not silently downgrade it.
-            if (severity < incident.Severity)
+            if ((int)severity < (int)incident.Severity)
             {
                 incident.Severity = severity;
             }
