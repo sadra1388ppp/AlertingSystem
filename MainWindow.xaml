@@ -348,7 +348,7 @@
                             <TextBlock Text="Failed checks create incidents, and successful checks can resolve them."
                                        FontSize="12" Foreground="{StaticResource MutedBrush}"
                                        Margin="0,8,0,0" TextWrapping="Wrap"/>
-                            <TextBlock x:Name="OverviewActiveIncidentsCountText" Text="0 active incidents"
+                            <TextBlock x:Name="OverviewOpenIncidentsCountText" Text="0 open incidents"
                                        FontSize="13" FontWeight="SemiBold"
                                        Foreground="{StaticResource TextBrush}" Margin="0,14,0,0"/>
                             <Button Content="Open incidents" Style="{StaticResource SecondaryButton}"
@@ -395,11 +395,11 @@
             <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
                 <StackPanel>
-                    <TextBlock Text="ACTIVE INCIDENTS" FontSize="10" FontWeight="Bold"
+                    <TextBlock Text="OPEN INCIDENTS" FontSize="10" FontWeight="Bold"
                                Foreground="{StaticResource MutedBrush}"/>
-                    <TextBlock x:Name="ActiveIncidentCountText" Text="0" FontSize="28" FontWeight="Bold"
+                    <TextBlock x:Name="OpenIncidentCountText" Text="0" FontSize="28" FontWeight="Bold"
                                Foreground="{StaticResource DangerBrush}" Margin="0,7,0,0"/>
-                    <TextBlock Text="Open or acknowledged" FontSize="11"
+                    <TextBlock Text="Not yet resolved" FontSize="11"
                                Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
                 </StackPanel>
             </Border>
@@ -417,11 +417,11 @@
             <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1" CornerRadius="11" Padding="16">
                 <StackPanel>
-                    <TextBlock Text="NEEDS ACKNOWLEDGEMENT" FontSize="10" FontWeight="Bold"
+                    <TextBlock Text="UNSEEN INCIDENTS" FontSize="10" FontWeight="Bold"
                                Foreground="{StaticResource MutedBrush}"/>
-                    <TextBlock x:Name="UnacknowledgedIncidentCountText" Text="0" FontSize="28"
+                    <TextBlock x:Name="UnseenIncidentCountText" Text="0" FontSize="28"
                                FontWeight="Bold" Foreground="{StaticResource WarningBrush}" Margin="0,7,0,0"/>
-                    <TextBlock Text="Open incidents" FontSize="11"
+                    <TextBlock Text="Not marked as seen" FontSize="11"
                                Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
                 </StackPanel>
             </Border>
@@ -440,12 +440,12 @@
                         <StackPanel>
                             <TextBlock Text="Incident list" FontSize="16" FontWeight="SemiBold"
                                        Foreground="{StaticResource TextBrush}"/>
-                            <TextBlock x:Name="IncidentFilterDescriptionText" Text="Showing active incidents"
+                            <TextBlock x:Name="IncidentFilterDescriptionText" Text="Showing open incidents"
                                        FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button x:Name="ActiveIncidentsFilterButton" Content="Active"
-                                    Style="{StaticResource SecondaryButton}" Click="ActiveIncidentsFilterButton_Click"
+                            <Button x:Name="OpenIncidentsFilterButton" Content="Active"
+                                    Style="{StaticResource SecondaryButton}" Click="OpenIncidentsFilterButton_Click"
                                     Margin="0,0,7,0" Padding="12,8"/>
                             <Button x:Name="AllIncidentsFilterButton" Content="All"
                                     Style="{StaticResource SecondaryButton}" Click="AllIncidentsFilterButton_Click"
@@ -453,9 +453,9 @@
                         </StackPanel>
                     </Grid>
                     <StackPanel Orientation="Horizontal" Margin="0,13,0,0">
-                        <Button x:Name="AcknowledgeIncidentButton" Content="Acknowledge selected"
+                        <Button x:Name="MarkSeenIncidentButton" Content="Mark as seen"
                                 Style="{StaticResource SecondaryButton}"
-                                Click="AcknowledgeIncidentButton_Click" IsEnabled="False"
+                                Click="MarkSeenIncidentButton_Click" IsEnabled="False"
                                 Margin="0,0,8,0" Padding="12,9"/>
                         <Button x:Name="ResolveIncidentButton" Content="Resolve selected"
                                 Click="ResolveIncidentButton_Click" IsEnabled="False"
@@ -522,7 +522,7 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <TextBlock x:Name="IncidentsEmptyText" Text="No active incidents. Run a failing endpoint check to test incident creation."
+                    <TextBlock x:Name="IncidentsEmptyText" Text="No open incidents. Run a failing endpoint check to test incident creation."
                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                TextAlignment="Center" TextWrapping="Wrap" MaxWidth="400"
                                FontSize="13" Foreground="{StaticResource MutedBrush}"

@@ -143,7 +143,11 @@ public sealed class Incident : INotifyPropertyChanged
     public string SeverityDisplay => Severity.ToString();
 
     [JsonIgnore]
-    public string StatusDisplay => Status.ToString();
+    public string StatusDisplay => Status switch
+    {
+        IncidentStatus.Acknowledged => "Seen",
+        _ => Status.ToString()
+    };
 
     [JsonIgnore]
     public Brush SeverityBrush => Severity switch

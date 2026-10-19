@@ -300,12 +300,12 @@ public partial class MainWindow : Window
 
     private void RefreshIncidentUI()
     {
-        var activeCount = _incidents.Count(item => item.Status != IncidentStatus.Resolved);
-        ActiveIncidentCountText.Text = activeCount.ToString();
+        var unresolvedCount = _incidents.Count(item => item.Status != IncidentStatus.Resolved);
+        OpenIncidentCountText.Text = unresolvedCount.ToString();
         TotalIncidentCountText.Text = _incidents.Count.ToString();
-        UnacknowledgedIncidentCountText.Text =
+        UnseenIncidentCountText.Text =
             _incidents.Count(item => item.Status == IncidentStatus.Open).ToString();
-        OverviewActiveIncidentsCountText.Text = $"{activeCount} active incident(s)";
+        OverviewOpenIncidentsCountText.Text = $"{unresolvedCount} active incident(s)";
 
         var visibleIncidents = _incidents
             .Where(item => _showAllIncidents || item.Status != IncidentStatus.Resolved)
@@ -324,7 +324,7 @@ public partial class MainWindow : Window
             ? Visibility.Visible
             : Visibility.Collapsed;
 
-        ActiveIncidentsFilterButton.Background = _showAllIncidents
+        OpenIncidentsFilterButton.Background = _showAllIncidents
             ? (Brush)FindResource("SecondaryButtonBrush")
             : (Brush)FindResource("SelectedFilterBrush");
         AllIncidentsFilterButton.Background = _showAllIncidents
@@ -355,12 +355,12 @@ public partial class MainWindow : Window
     {
         if (IncidentsListBox.SelectedItem is not Incident selected)
         {
-            AcknowledgeIncidentButton.IsEnabled = false;
+            MarkSeenIncidentButton.IsEnabled = false;
             ResolveIncidentButton.IsEnabled = false;
             return;
         }
 
-        AcknowledgeIncidentButton.IsEnabled = selected.Status == IncidentStatus.Open;
+        MarkSeenIncidentButton.IsEnabled = selected.Status == IncidentStatus.Open;
         ResolveIncidentButton.IsEnabled = selected.Status != IncidentStatus.Resolved;
     }
 
@@ -407,7 +407,7 @@ public partial class MainWindow : Window
         selectedButton.FontWeight = FontWeights.SemiBold;
     }
 
-    private void ActiveIncidentsFilterButton_Click(object sender, RoutedEventArgs e)
+    private void OpenIncidentsFilterButton_Click(object sender, RoutedEventArgs e)
     {
         _showAllIncidents = false;
         RefreshIncidentUI();
@@ -424,7 +424,7 @@ public partial class MainWindow : Window
         UpdateIncidentActionButtons();
     }
 
-    private void AcknowledgeIncidentButton_Click(object sender, RoutedEventArgs e)
+    private void MarkSeenIncidentButton_Click(object sender, RoutedEventArgs e)
     {
         if (IncidentsListBox.SelectedItem is not Incident selected ||
             selected.Status != IncidentStatus.Open)
