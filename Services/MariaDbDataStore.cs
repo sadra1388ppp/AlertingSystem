@@ -481,7 +481,7 @@ public sealed class MariaDbDataStore
         command.Parameters.AddWithValue("@status", 0);
         command.Parameters.AddWithValue("@firstOccurredAt", string.Empty);
         command.Parameters.AddWithValue("@lastOccurredAt", string.Empty);
-        command.Parameters.AddWithValue("@resolvedAt", DBNull.Value);
+        command.Parameters.AddWithValue("@resolvedAt", string.Empty);
         command.Parameters.AddWithValue("@occurrenceCount", 1);
 
         foreach (var incident in incidents)
@@ -521,7 +521,7 @@ public sealed class MariaDbDataStore
         command.Parameters.AddWithValue("@endpoint", string.Empty);
         command.Parameters.AddWithValue("@result", string.Empty);
         command.Parameters.AddWithValue("@details", string.Empty);
-        command.Parameters.AddWithValue("@responseTimeMs", DBNull.Value);
+        command.Parameters.AddWithValue("@responseTimeMs", 0L);
 
         foreach (var entry in history)
         {
