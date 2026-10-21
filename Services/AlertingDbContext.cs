@@ -12,12 +12,10 @@ public sealed class AlertingDbContext : DbContext
         value => DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
 
     private readonly string _connectionString;
-    private readonly bool _useLegacyTableNames;
 
-    public AlertingDbContext(string connectionString, bool useLegacyTableNames = false)
+    public AlertingDbContext(string connectionString)
     {
         _connectionString = connectionString;
-        _useLegacyTableNames = useLegacyTableNames;
     }
 
     public DbSet<Incident> Incidents => Set<Incident>();
@@ -38,7 +36,7 @@ public sealed class AlertingDbContext : DbContext
     {
         modelBuilder.Entity<Incident>(entity =>
         {
-            entity.ToTable(_useLegacyTableNames ? "Incidents" : "incident_records");
+            entity.ToTable("Incidents");
             entity.HasKey(item => item.IncidentNumber);
             entity.Property(item => item.IncidentNumber).HasMaxLength(100).HasColumnType("varchar(100)");
             entity.Property(item => item.EndpointUrl).HasColumnType("text");
@@ -69,7 +67,7 @@ public sealed class AlertingDbContext : DbContext
 
         modelBuilder.Entity<CheckHistoryEntry>(entity =>
         {
-            entity.ToTable(_useLegacyTableNames ? "AlertHistory" : "checks");
+            entity.ToTable("AlertHistory");
             entity.HasKey(item => item.Id);
             entity.Property(item => item.Id).ValueGeneratedOnAdd();
             entity.Property(item => item.Timestamp)
@@ -90,7 +88,7 @@ public sealed class AlertingDbContext : DbContext
 
         modelBuilder.Entity<AppMetadata>(entity =>
         {
-            entity.ToTable(_useLegacyTableNames ? "AppMetadata" : "settings");
+            entity.ToTable("AppMetadata");
             entity.HasKey(item => item.MetadataKey);
             entity.Property(item => item.MetadataKey).HasMaxLength(100).HasColumnType("varchar(100)");
             entity.Property(item => item.MetadataValue).HasMaxLength(100).HasColumnType("varchar(100)");
