@@ -5,6 +5,7 @@ namespace AlertingSystem.Models;
 
 public sealed class CheckHistoryEntry
 {
+    public long Id { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.Now;
     public string Endpoint { get; set; } = string.Empty;
     public string Result { get; set; } = string.Empty;
