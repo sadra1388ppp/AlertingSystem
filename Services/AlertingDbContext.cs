@@ -1,6 +1,7 @@
 using System.Globalization;
 using AlertingSystem.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AlertingSystem.Services;
@@ -12,11 +13,25 @@ public sealed class AlertingDbContext : DbContext
         value => DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
 
     private readonly string _connectionString;
+    private readonly bool _useSimplifiedIncidentTable;
+    private readonly bool _useSimplifiedHistoryTable;
+    private readonly bool _useSimplifiedMetadataTable;
 
-    public AlertingDbContext(string connectionString)
+    public AlertingDbContext(
+        string connectionString,
+        bool useSimplifiedIncidentTable = false,
+        bool useSimplifiedHistoryTable = false,
+        bool useSimplifiedMetadataTable = false)
     {
         _connectionString = connectionString;
+        _useSimplifiedIncidentTable = useSimplifiedIncidentTable;
+        _useSimplifiedHistoryTable = useSimplifiedHistoryTable;
+        _useSimplifiedMetadataTable = useSimplifiedMetadataTable;
     }
+
+    internal bool UsesSimplifiedIncidentTable => _useSimplifiedIncidentTable;
+    internal bool UsesSimplifiedHistoryTable => _useSimplifiedHistoryTable;
+    internal bool UsesSimplifiedMetadataTable => _useSimplifiedMetadataTable;
 
     public DbSet<Incident> Incidents => Set<Incident>();
     public DbSet<CheckHistoryEntry> CheckHistory => Set<CheckHistoryEntry>();
@@ -26,9 +41,11 @@ public sealed class AlertingDbContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseMySql(
-                _connectionString,
-                new MariaDbServerVersion(new Version(10, 11, 0)));
+            optionsBuilder
+                .UseMySql(
+                    _connectionString,
+                    new MariaDbServerVersion(new Version(10, 11, 0)))
+                .ReplaceService<IModelCacheKeyFactory, AlertingDbContextModelCacheKeyFactory>();
         }
     }
 
@@ -36,7 +53,7 @@ public sealed class AlertingDbContext : DbContext
     {
         modelBuilder.Entity<Incident>(entity =>
         {
-            entity.ToTable("Incidents");
+            entity.ToTable(_useSimplifiedIncidentTable ? "incident_records" : "Incidents");
             entity.HasKey(item => item.IncidentNumber);
             entity.Property(item => item.IncidentNumber).HasMaxLength(100).HasColumnType("varchar(100)");
             entity.Property(item => item.EndpointUrl).HasColumnType("text");
@@ -67,7 +84,7 @@ public sealed class AlertingDbContext : DbContext
 
         modelBuilder.Entity<CheckHistoryEntry>(entity =>
         {
-            entity.ToTable("AlertHistory");
+            entity.ToTable(_useSimplifiedHistoryTable ? "checks" : "AlertHistory");
             entity.HasKey(item => item.Id);
             entity.Property(item => item.Id).ValueGeneratedOnAdd();
             entity.Property(item => item.Timestamp)
@@ -88,11 +105,29 @@ public sealed class AlertingDbContext : DbContext
 
         modelBuilder.Entity<AppMetadata>(entity =>
         {
-            entity.ToTable("AppMetadata");
+            entity.ToTable(_useSimplifiedMetadataTable ? "settings" : "AppMetadata");
             entity.HasKey(item => item.MetadataKey);
             entity.Property(item => item.MetadataKey).HasMaxLength(100).HasColumnType("varchar(100)");
             entity.Property(item => item.MetadataValue).HasMaxLength(100).HasColumnType("varchar(100)");
         });
+    }
+}
+
+public sealed class AlertingDbContextModelCacheKeyFactory : IModelCacheKeyFactory
+{
+    public object Create(DbContext context, bool designTime)
+    {
+        if (context is AlertingDbContext alertingContext)
+        {
+            return (
+                context.GetType(),
+                alertingContext.UsesSimplifiedIncidentTable,
+                alertingContext.UsesSimplifiedHistoryTable,
+                alertingContext.UsesSimplifiedMetadataTable,
+                designTime);
+        }
+
+        return (context.GetType(), designTime);
     }
 }
 

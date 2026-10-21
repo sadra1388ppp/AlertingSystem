@@ -1,7 +1,9 @@
+using System.Data;
 using System.IO;
 using System.Text.Json;
 using AlertingSystem.Models;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 
 namespace AlertingSystem.Services;
 
@@ -17,6 +19,10 @@ public sealed class MariaDbDataStore
 
     private readonly string _directory;
     private readonly string _connectionString;
+    private readonly bool _useSimplifiedIncidentTable;
+    private readonly bool _useSimplifiedHistoryTable;
+    private readonly bool _useSimplifiedMetadataTable;
+    private bool _hasMetadataTable;
 
     public MariaDbDataStore()
     {
@@ -27,8 +33,26 @@ public sealed class MariaDbDataStore
         Directory.CreateDirectory(_directory);
         _connectionString = DatabaseSettings.LoadConnectionString(_directory);
 
+        // The app may have been rolled back while the MariaDB schema was left on the
+        // newer table names. Detect each table separately so even a partial rename is safe.
+        var existingTables = ReadTableNames(_connectionString);
+        _useSimplifiedIncidentTable = ChooseSimplifiedTable(
+            existingTables, "incident_records", "Incidents");
+        _useSimplifiedHistoryTable = ChooseSimplifiedTable(
+            existingTables, "checks", "AlertHistory");
+        _useSimplifiedMetadataTable = ChooseSimplifiedTable(
+            existingTables, "settings", "AppMetadata");
+        _hasMetadataTable = existingTables.Contains("AppMetadata") || existingTables.Contains("settings");
+
         using var db = CreateContext();
-        db.Database.EnsureCreated();
+        var databaseCreated = db.Database.EnsureCreated();
+
+        if (databaseCreated)
+        {
+            // A fresh database is created using the original schema, which includes metadata.
+            _hasMetadataTable = true;
+        }
+
         ImportLegacyJsonOnce(db);
     }
 
@@ -110,10 +134,57 @@ public sealed class MariaDbDataStore
         db.SaveChanges();
     }
 
-    private AlertingDbContext CreateContext() => new(_connectionString);
+    private AlertingDbContext CreateContext() => new(
+        _connectionString,
+        _useSimplifiedIncidentTable,
+        _useSimplifiedHistoryTable,
+        _useSimplifiedMetadataTable);
+
+    private static bool ChooseSimplifiedTable(
+        HashSet<string> existingTables,
+        string simplifiedName,
+        string originalName)
+    {
+        return existingTables.Contains(simplifiedName) && !existingTables.Contains(originalName);
+    }
+
+    private static HashSet<string> ReadTableNames(string connectionString)
+    {
+        var builder = new MySqlConnectionStringBuilder(connectionString);
+        using var connection = new MySqlConnection(connectionString);
+        connection.Open();
+
+        var schema = connection.GetSchema("Tables");
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (DataRow row in schema.Rows)
+        {
+            var schemaName = row["TABLE_SCHEMA"]?.ToString();
+            if (!string.Equals(schemaName, builder.Database, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var tableName = row["TABLE_NAME"]?.ToString();
+            if (!string.IsNullOrWhiteSpace(tableName))
+            {
+                names.Add(tableName);
+            }
+        }
+
+        return names;
+    }
 
     private void ImportLegacyJsonOnce(AlertingDbContext db)
     {
+        // AppMetadata only stores the legacy-import marker. Some older or partially
+        // migrated databases never had this table; don't let that optional marker
+        // stop the main incident/history screens from opening or risk duplicate imports.
+        if (!_hasMetadataTable)
+        {
+            return;
+        }
+
         if (db.AppMetadata.Any(item => item.MetadataKey == ImportMarker))
         {
             return;
