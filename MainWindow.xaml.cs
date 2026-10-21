@@ -33,6 +33,7 @@ public partial class MainWindow : Window
     private bool _isLightTheme;
     private bool _isUpdatingThemeOptions;
     private string _selectedTheme = "Dark";
+    private string _currentStatusBrushKey = "NeutralBrush";
     private Grid? _activePage;
     private Button? _activeNavButton;
 
@@ -608,6 +609,7 @@ public partial class MainWindow : Window
     private void SetStatus(string message, string brushKey)
     {
         CheckStatusText.Text = message;
+        _currentStatusBrushKey = brushKey;
         StatusIndicator.Fill = (Brush)FindResource(brushKey);
     }
 
@@ -700,6 +702,14 @@ public partial class MainWindow : Window
             var key = "Hex" + darkColor.TrimStart('#') + "Brush";
             Resources[key] = new SolidColorBrush(ParseThemeColor(color));
         }
+
+        StatusIndicator.Fill = (Brush)FindResource(_currentStatusBrushKey);
+        OpenIncidentsFilterButton.Background = _showAllIncidents
+            ? (Brush)FindResource("SecondaryButtonBrush")
+            : (Brush)FindResource("SelectedFilterBrush");
+        AllIncidentsFilterButton.Background = _showAllIncidents
+            ? (Brush)FindResource("SelectedFilterBrush")
+            : (Brush)FindResource("SecondaryButtonBrush");
 
         ThemeDescriptionText.Text = _isLightTheme
             ? "Light theme is active. Your preference is saved locally on this computer."
