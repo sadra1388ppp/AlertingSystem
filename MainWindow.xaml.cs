@@ -30,10 +30,87 @@ public partial class MainWindow : Window
     private int _checksRun;
     private bool _showAllIncidents;
     private bool _storageWarningShown;
+    private bool _isLightTheme;
+    private bool _isUpdatingThemeOptions;
+    private string _selectedTheme = "Dark";
+    private Grid? _activePage;
+    private Button? _activeNavButton;
+
+    private static readonly Dictionary<string, (string Dark, string Light)> ThemeRoleColors = new()
+    {
+        ["AppBackgroundBrush"] = ("#0A1020", "#F4F7FB"),
+        ["SidebarBrush"] = ("#0D1628", "#EFF3F9"),
+        ["CardBrush"] = ("#121E33", "#FFFFFF"),
+        ["BorderBrush"] = ("#263650", "#DCE4EF"),
+        ["TextBrush"] = ("#F1F5FC", "#182338"),
+        ["MutedBrush"] = ("#9AAAC2", "#68758C"),
+        ["SuccessBrush"] = ("#3DD9A0", "#16845D"),
+        ["WarningBrush"] = ("#F6C65B", "#9A6700"),
+        ["DangerBrush"] = ("#FF718B", "#C52F4B"),
+        ["NeutralBrush"] = ("#72A7FF", "#2F65D5"),
+        ["SecondaryButtonBrush"] = ("#1B2A44", "#E8EDF6"),
+        ["SelectedFilterBrush"] = ("#477DFA", "#2F63E0")
+    };
+
+    private static readonly string[] ThemeLiteralColors =
+    {
+        "#0A1020",
+        "#0B1120",
+        "#0B1425",
+        "#101A2B",
+        "#101B2F",
+        "#14233A",
+        "#162743",
+        "#18253B",
+        "#1A2942",
+        "#20385F",
+        "#294568",
+        "#302713",
+        "#3B82F6",
+        "#477DFA",
+        "#5C8CFF",
+        "#64748B",
+        "#71829C",
+        "#75602A",
+        "#91A2BB",
+        "#D8E4F5",
+        "#EAF2FF",
+        "#EEF3FA",
+        "#FDE68A"
+    };
+
+    private static readonly Dictionary<string, string> LightLiteralColorOverrides = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["#0A1020"] = "#F4F7FB",
+        ["#477DFA"] = "#2F63E0",
+        ["#5C8CFF"] = "#2F63E0",
+        ["#91A2BB"] = "#68758C",
+        ["#18253B"] = "#E7ECF5",
+        ["#EEF3FA"] = "#182338",
+        ["#1A2942"] = "#E8EDF6",
+        ["#D8E4F5"] = "#2D3B53",
+        ["#14233A"] = "#E5EDFC",
+        ["#3B82F6"] = "#2F63E0",
+        ["#0B1425"] = "#F7F9FC",
+        ["#71829C"] = "#748198",
+        ["#20385F"] = "#DDE8FF",
+        ["#EAF2FF"] = "#244A9B",
+        ["#64748B"] = "#69778D",
+        ["#75602A"] = "#D6C17D",
+        ["#302713"] = "#FFF5D8",
+        ["#FDE68A"] = "#845A00",
+        ["#162743"] = "#E9F1FF",
+        ["#294568"] = "#C7D7F0",
+        ["#101B2F"] = "#FFFFFF",
+        ["#0B1120"] = "#182338",
+        ["#101A2B"] = "#FFFFFF"
+    };
 
     public MainWindow()
     {
         InitializeComponent();
+        LoadThemePreference();
+        ShowPage(OverviewPage, OverviewNavButton);
 
         // Wire context-menu actions in code-behind. Keeping Click handlers out of
         // resource XAML avoids the WPF component-connection ID mismatch at startup.
@@ -552,23 +629,148 @@ public partial class MainWindow : Window
         ShowPage(AlertHistoryPage, AlertHistoryNavButton);
     }
 
+    private sealed class UiPreferences
+    {
+        public string Theme { get; set; } = "Dark";
+    }
+
+    private string UiPreferencesPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "AlertingSystem",
+        "ui-settings.json");
+
+    private void LoadThemePreference()
+    {
+        var theme = "Dark";
+        try
+        {
+            if (File.Exists(UiPreferencesPath))
+            {
+                var preferences = System.Text.Json.JsonSerializer.Deserialize<UiPreferences>(File.ReadAllText(UiPreferencesPath));
+                if (string.Equals(preferences?.Theme, "Light", StringComparison.OrdinalIgnoreCase))
+                {
+                    theme = "Light";
+                }
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            // Missing or unreadable theme preferences must never prevent monitoring from starting.
+            theme = "Dark";
+        }
+
+        ApplyTheme(theme);
+    }
+
+    private void SaveThemePreference()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(UiPreferencesPath)!);
+            var preferences = new UiPreferences { Theme = _selectedTheme };
+            var json = System.Text.Json.JsonSerializer.Serialize(preferences, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(UiPreferencesPath, json);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            MessageBox.Show(this, $"The theme changed for this session, but the preference could not be saved.\n\n{exception.Message}",
+                "Theme preference warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void ApplyTheme(string theme)
+    {
+        _isLightTheme = string.Equals(theme, "Light", StringComparison.OrdinalIgnoreCase);
+        _selectedTheme = _isLightTheme ? "Light" : "Dark";
+
+        foreach (var entry in ThemeRoleColors)
+        {
+            var color = _isLightTheme ? entry.Value.Light : entry.Value.Dark;
+            Resources[entry.Key] = new SolidColorBrush(ParseThemeColor(color));
+        }
+
+        foreach (var darkColor in ThemeLiteralColors)
+        {
+            var color = darkColor;
+            if (_isLightTheme && LightLiteralColorOverrides.TryGetValue(darkColor, out var lightColor))
+            {
+                color = lightColor;
+            }
+
+            var key = "Hex" + darkColor.TrimStart('#') + "Brush";
+            Resources[key] = new SolidColorBrush(ParseThemeColor(color));
+        }
+
+        ThemeDescriptionText.Text = _isLightTheme
+            ? "Light theme is active. Your preference is saved locally on this computer."
+            : "Dark theme is active. Your preference is saved locally on this computer.";
+
+        SyncThemeOptionSelection();
+        if (_activePage is not null && _activeNavButton is not null)
+        {
+            UpdateNavigationSelection();
+        }
+    }
+
+    private static Color ParseThemeColor(string value) =>
+        (Color)System.Windows.Media.ColorConverter.ConvertFromString(value)!;
+
+    private void SyncThemeOptionSelection()
+    {
+        _isUpdatingThemeOptions = true;
+        DarkThemeOption.IsChecked = !_isLightTheme;
+        LightThemeOption.IsChecked = _isLightTheme;
+        _isUpdatingThemeOptions = false;
+    }
+
+    private void DarkThemeOption_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_isUpdatingThemeOptions || _selectedTheme == "Dark") return;
+        ApplyTheme("Dark");
+        SaveThemePreference();
+    }
+
+    private void LightThemeOption_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_isUpdatingThemeOptions || _selectedTheme == "Light") return;
+        ApplyTheme("Light");
+        SaveThemePreference();
+    }
+    private void SettingsNavButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowPage(SettingsPage, SettingsNavButton);
+    }
+
     private void ShowPage(Grid selectedPage, Button selectedButton)
     {
         OverviewPage.Visibility = Visibility.Collapsed;
         IncidentsPage.Visibility = Visibility.Collapsed;
         AlertHistoryPage.Visibility = Visibility.Collapsed;
+        SettingsPage.Visibility = Visibility.Collapsed;
         selectedPage.Visibility = Visibility.Visible;
 
-        foreach (var button in new[] { OverviewNavButton, IncidentsNavButton, AlertHistoryNavButton })
+        _activePage = selectedPage;
+        _activeNavButton = selectedButton;
+        UpdateNavigationSelection();
+    }
+
+    private void UpdateNavigationSelection()
+    {
+        if (_activeNavButton is null)
+        {
+            return;
+        }
+
+        foreach (var button in new[] { OverviewNavButton, IncidentsNavButton, AlertHistoryNavButton, SettingsNavButton })
         {
             button.Background = Brushes.Transparent;
             button.Foreground = (Brush)FindResource("MutedBrush");
             button.FontWeight = FontWeights.Normal;
         }
 
-        selectedButton.Background = new SolidColorBrush(Color.FromRgb(29, 49, 82));
-        selectedButton.Foreground = new SolidColorBrush(Color.FromRgb(234, 242, 255));
-        selectedButton.FontWeight = FontWeights.SemiBold;
+        _activeNavButton.Background = (Brush)FindResource("Hex20385FBrush");
+        _activeNavButton.Foreground = (Brush)FindResource("HexEAF2FFBrush");
+        _activeNavButton.FontWeight = FontWeights.SemiBold;
     }
 
     private void OpenIncidentsFilterButton_Click(object sender, RoutedEventArgs e)

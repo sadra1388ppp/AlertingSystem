@@ -5,7 +5,7 @@
         Width="1360" Height="840"
         MinWidth="1080" MinHeight="700"
         WindowStartupLocation="CenterScreen"
-        Background="#0A1020"
+        Background="{DynamicResource Hex0A1020Brush}"
         FontFamily="Segoe UI">
 
     <Window.Resources>
@@ -22,10 +22,35 @@
         <SolidColorBrush x:Key="SecondaryButtonBrush" Color="#1B2A44"/>
         <SolidColorBrush x:Key="SelectedFilterBrush" Color="#477DFA"/>
 
+        <!-- Runtime-switchable literal colors for Dark and Light themes. -->
+        <SolidColorBrush x:Key="Hex0A1020Brush" Color="#0A1020"/>
+        <SolidColorBrush x:Key="Hex0B1120Brush" Color="#0B1120"/>
+        <SolidColorBrush x:Key="Hex0B1425Brush" Color="#0B1425"/>
+        <SolidColorBrush x:Key="Hex101A2BBrush" Color="#101A2B"/>
+        <SolidColorBrush x:Key="Hex101B2FBrush" Color="#101B2F"/>
+        <SolidColorBrush x:Key="Hex14233ABrush" Color="#14233A"/>
+        <SolidColorBrush x:Key="Hex162743Brush" Color="#162743"/>
+        <SolidColorBrush x:Key="Hex18253BBrush" Color="#18253B"/>
+        <SolidColorBrush x:Key="Hex1A2942Brush" Color="#1A2942"/>
+        <SolidColorBrush x:Key="Hex20385FBrush" Color="#20385F"/>
+        <SolidColorBrush x:Key="Hex294568Brush" Color="#294568"/>
+        <SolidColorBrush x:Key="Hex302713Brush" Color="#302713"/>
+        <SolidColorBrush x:Key="Hex3B82F6Brush" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="Hex477DFABrush" Color="#477DFA"/>
+        <SolidColorBrush x:Key="Hex5C8CFFBrush" Color="#5C8CFF"/>
+        <SolidColorBrush x:Key="Hex64748BBrush" Color="#64748B"/>
+        <SolidColorBrush x:Key="Hex71829CBrush" Color="#71829C"/>
+        <SolidColorBrush x:Key="Hex75602ABrush" Color="#75602A"/>
+        <SolidColorBrush x:Key="Hex91A2BBBrush" Color="#91A2BB"/>
+        <SolidColorBrush x:Key="HexD8E4F5Brush" Color="#D8E4F5"/>
+        <SolidColorBrush x:Key="HexEAF2FFBrush" Color="#EAF2FF"/>
+        <SolidColorBrush x:Key="HexEEF3FABrush" Color="#EEF3FA"/>
+        <SolidColorBrush x:Key="HexFDE68ABrush" Color="#FDE68A"/>
+
         <Style TargetType="Button">
-            <Setter Property="Background" Value="#477DFA"/>
+            <Setter Property="Background" Value="{DynamicResource Hex477DFABrush}"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#5C8CFF"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Hex5C8CFFBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="16,11"/>
             <Setter Property="FontSize" Value="13"/>
@@ -65,7 +90,7 @@
 
         <Style x:Key="SidebarNavButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#91A2BB"/>
+            <Setter Property="Foreground" Value="{DynamicResource Hex91A2BBBrush}"/>
             <Setter Property="Padding" Value="11,10"/>
             <Setter Property="Margin" Value="0,3"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -74,15 +99,15 @@
             <Setter Property="Margin" Value="0,3,0,3"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#18253B"/>
-                    <Setter Property="Foreground" Value="#EEF3FA"/>
+                    <Setter Property="Background" Value="{DynamicResource Hex18253BBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource HexEEF3FABrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="#1A2942"/>
-            <Setter Property="Foreground" Value="#D8E4F5"/>
+            <Setter Property="Background" Value="{DynamicResource Hex1A2942Brush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource HexD8E4F5Brush}"/>
         </Style>
 
         <Style x:Key="IncidentListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
@@ -113,21 +138,21 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#14233A"/>
-                    <Setter Property="BorderBrush" Value="#3B82F6"/>
+                    <Setter Property="Background" Value="{DynamicResource Hex14233ABrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource Hex3B82F6Brush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style TargetType="TextBox">
-            <Setter Property="Background" Value="#0B1425"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource Hex0B1425Brush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="12,10"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="CaretBrush" Value="White"/>
-            <Setter Property="SelectionBrush" Value="#477DFA"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource Hex477DFABrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
@@ -143,10 +168,46 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="TextBoxBorder" Property="BorderBrush" Value="#477DFA"/>
+                                <Setter TargetName="TextBoxBorder" Property="BorderBrush" Value="{DynamicResource Hex477DFABrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="TextBoxBorder" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ThemeOptionRadioButton" TargetType="{x:Type RadioButton}">
+            <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="18"/>
+            <Setter Property="Margin" Value="0,0,14,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
+                        <Border x:Name="ThemeOptionBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Content"
+                                              HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ThemeOptionBorder" Property="BorderBrush" Value="{DynamicResource Hex477DFABrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ThemeOptionBorder" Property="Background" Value="{DynamicResource Hex20385FBrush}"/>
+                                <Setter TargetName="ThemeOptionBorder" Property="BorderBrush" Value="{DynamicResource Hex477DFABrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ThemeOptionBorder" Property="Opacity" Value="0.5"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -163,8 +224,8 @@
 
         <!-- Sidebar -->
         <Border Grid.Column="0"
-                Background="{StaticResource SidebarBrush}"
-                BorderBrush="{StaticResource BorderBrush}"
+                Background="{DynamicResource SidebarBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="0,0,1,0">
             <Grid Margin="18,22">
                 <Grid.RowDefinitions>
@@ -174,45 +235,43 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,34">
-                    <Border Width="38" Height="38" CornerRadius="10" Background="#477DFA">
+                    <Border Width="38" Height="38" CornerRadius="10" Background="{DynamicResource Hex477DFABrush}">
                         <TextBlock Text="A" FontSize="24" FontWeight="Bold"
                                    Foreground="White" HorizontalAlignment="Center"
                                    VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="AlertingSystem" FontSize="16" FontWeight="Bold"
-                                   Foreground="{StaticResource TextBrush}"/>
+                                   Foreground="{DynamicResource TextBrush}"/>
                         <TextBlock Text="MONITORING" FontSize="9" Margin="0,3,0,0"
-                                   FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}"/>
+                                   FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/>
                     </StackPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Row="1">
-                    <TextBlock Text="WORKSPACE" Foreground="#71829C"
+                    <TextBlock Text="WORKSPACE" Foreground="{DynamicResource Hex71829CBrush}"
                                FontSize="10" FontWeight="Bold" Margin="4,0,0,12"/>
                     <Button x:Name="OverviewNavButton" Style="{StaticResource SidebarNavButton}"
                             Content="▦   Endpoint checker" Click="OverviewNavButton_Click"
-                            Background="#20385F" Foreground="#EAF2FF" FontWeight="SemiBold"/>
+                            Background="{DynamicResource Hex20385FBrush}" Foreground="{DynamicResource HexEAF2FFBrush}" FontWeight="SemiBold"/>
                     <Button x:Name="IncidentsNavButton" Style="{StaticResource SidebarNavButton}"
                             Content="◉   Incidents" Click="IncidentsNavButton_Click"/>
                     <Button x:Name="AlertHistoryNavButton" Style="{StaticResource SidebarNavButton}"
                             Content="◷   Alert history" Click="AlertHistoryNavButton_Click"/>
-                    <TextBlock Text="⚙   Settings (coming later)" Margin="11,19,0,0"
-                               FontSize="12" Foreground="{StaticResource MutedBrush}"/>
-                    <TextBlock Text="COMING NEXT" Margin="4,31,0,0" FontSize="9"
-                               FontWeight="Bold" Foreground="#64748B"/>
+                    <Button x:Name="SettingsNavButton" Style="{StaticResource SidebarNavButton}"
+                            Content="⚙   Settings" Click="SettingsNavButton_Click"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2">
-                    <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,0,0,14"/>
+                    <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,0,0,14"/>
                     <StackPanel Orientation="Horizontal" Margin="3,0,0,0">
-                        <Ellipse Width="8" Height="8" Fill="{StaticResource WarningBrush}"
+                        <Ellipse Width="8" Height="8" Fill="{DynamicResource WarningBrush}"
                                  VerticalAlignment="Center"/>
                         <TextBlock Text=" Local test mode" FontSize="11"
-                                   Foreground="{StaticResource MutedBrush}" Margin="7,0,0,0"/>
+                                   Foreground="{DynamicResource MutedBrush}" Margin="7,0,0,0"/>
                     </StackPanel>
                     <TextBlock Text="v0.1 • First build" FontSize="10"
-                               Foreground="#64748B" Margin="3,10,0,0"/>
+                               Foreground="{DynamicResource Hex64748BBrush}" Margin="3,10,0,0"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -234,59 +293,59 @@
 
                 <StackPanel>
                     <TextBlock Text="Endpoint monitor" FontSize="27" FontWeight="Bold"
-                               Foreground="{StaticResource TextBrush}"/>
+                               Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock Text="Run a real HTTP check and see whether a service responds."
-                               FontSize="13" Foreground="{StaticResource MutedBrush}"
+                               FontSize="13" Foreground="{DynamicResource MutedBrush}"
                                Margin="0,7,0,0"/>
                 </StackPanel>
 
-                <Border Grid.Column="1" BorderBrush="#75602A" Background="#302713"
+                <Border Grid.Column="1" BorderBrush="{DynamicResource Hex75602ABrush}" Background="{DynamicResource Hex302713Brush}"
                         BorderThickness="1" CornerRadius="8" Padding="12,9"
                         VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
-                        <Ellipse Width="7" Height="7" Fill="{StaticResource WarningBrush}"
+                        <Ellipse Width="7" Height="7" Fill="{DynamicResource WarningBrush}"
                                  VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBlock Text="MANUAL CHECKS" FontSize="10" FontWeight="Bold"
-                                   Foreground="#FDE68A"/>
+                                   Foreground="{DynamicResource HexFDE68ABrush}"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
             <!-- Summary cards -->
             <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,18">
-                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
+                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
                     <StackPanel>
                         <TextBlock Text="CHECKS RUN" FontSize="10" FontWeight="Bold"
-                                   Foreground="{StaticResource MutedBrush}"/>
+                                   Foreground="{DynamicResource MutedBrush}"/>
                         <TextBlock x:Name="ChecksRunText" Text="0" FontSize="28" FontWeight="Bold"
-                                   Foreground="{StaticResource TextBrush}" Margin="0,7,0,0"/>
+                                   Foreground="{DynamicResource TextBrush}" Margin="0,7,0,0"/>
                         <TextBlock Text="This session" FontSize="11"
-                                   Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
+                                   Foreground="{DynamicResource MutedBrush}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
-                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
+                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
                     <StackPanel>
                         <TextBlock Text="LATEST RESULT" FontSize="10" FontWeight="Bold"
-                                   Foreground="{StaticResource MutedBrush}"/>
+                                   Foreground="{DynamicResource MutedBrush}"/>
                         <TextBlock x:Name="LastResultSummaryText" Text="Not checked" FontSize="22"
-                                   FontWeight="Bold" Foreground="{StaticResource TextBrush}"
+                                   FontWeight="Bold" Foreground="{DynamicResource TextBrush}"
                                    Margin="0,10,0,3"/>
                         <TextBlock Text="Updates after each check" FontSize="11"
-                                   Foreground="{StaticResource MutedBrush}"/>
+                                   Foreground="{DynamicResource MutedBrush}"/>
                     </StackPanel>
                 </Border>
-                <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
+                <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1" CornerRadius="11" Padding="16">
                     <StackPanel>
                         <TextBlock Text="RESPONSE TIME" FontSize="10" FontWeight="Bold"
-                                   Foreground="{StaticResource MutedBrush}"/>
+                                   Foreground="{DynamicResource MutedBrush}"/>
                         <TextBlock x:Name="ResponseTimeSummaryText" Text="—" FontSize="28"
-                                   FontWeight="Bold" Foreground="{StaticResource TextBrush}"
+                                   FontWeight="Bold" Foreground="{DynamicResource TextBrush}"
                                    Margin="0,7,0,0"/>
                         <TextBlock Text="Time to receive response headers" FontSize="11"
-                                   Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
+                                   Foreground="{DynamicResource MutedBrush}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
             </UniformGrid>
@@ -299,8 +358,8 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Endpoint check -->
-                <Border Grid.Column="0" Background="{StaticResource CardBrush}"
-                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                <Border Grid.Column="0" Background="{DynamicResource CardBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                         CornerRadius="12" Padding="20" Margin="0,0,12,0">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -314,15 +373,15 @@
 
                         <StackPanel Grid.Row="0">
                             <TextBlock Text="Check a service" FontSize="17" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextBrush}"/>
+                                       Foreground="{DynamicResource TextBrush}"/>
                             <TextBlock Text="Enter a public website or API endpoint to test its HTTP response."
-                                       FontSize="12" Foreground="{StaticResource MutedBrush}"
+                                       FontSize="12" Foreground="{DynamicResource MutedBrush}"
                                        Margin="0,6,0,0" TextWrapping="Wrap"/>
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Margin="0,22,0,0">
                             <TextBlock Text="ENDPOINT URL" FontSize="10" FontWeight="Bold"
-                                       Foreground="{StaticResource MutedBrush}" Margin="0,0,0,8"/>
+                                       Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,8"/>
                             <TextBox x:Name="EndpointTextBox" Text="https://example.com"
                                      AutomationProperties.Name="Endpoint URL"/>
                         </StackPanel>
@@ -331,39 +390,39 @@
                                 Content="Check endpoint" Click="CheckEndpoint_Click"
                                 HorizontalAlignment="Left" Margin="0,12,0,0"/>
 
-                        <Border Grid.Row="3" Background="#0B1425" CornerRadius="9"
+                        <Border Grid.Row="3" Background="{DynamicResource Hex0B1425Brush}" CornerRadius="9"
                                 Padding="14" Margin="0,22,0,0"
-                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal">
                                     <Ellipse x:Name="StatusIndicator" Width="9" Height="9"
-                                             Fill="{StaticResource NeutralBrush}"
+                                             Fill="{DynamicResource NeutralBrush}"
                                              VerticalAlignment="Center" Margin="0,0,9,0"/>
                                     <TextBlock x:Name="CheckStatusText" Text="Ready to check"
                                                FontSize="14" FontWeight="SemiBold"
-                                               Foreground="{StaticResource TextBrush}"/>
+                                               Foreground="{DynamicResource TextBrush}"/>
                                 </StackPanel>
                                 <TextBlock x:Name="LastResultText"
                                            Text="No request has been sent yet."
-                                           FontSize="12" Foreground="{StaticResource MutedBrush}"
+                                           FontSize="12" Foreground="{DynamicResource MutedBrush}"
                                            TextWrapping="Wrap" Margin="0,9,0,0"/>
                                 <TextBlock x:Name="ResponseTimeText" Text="Response time: —"
-                                           FontSize="11" Foreground="{StaticResource MutedBrush}"
+                                           FontSize="11" Foreground="{DynamicResource MutedBrush}"
                                            Margin="0,10,0,0"/>
                             </StackPanel>
                         </Border>
 
                         <StackPanel Grid.Row="4" Margin="0,22,0,10">
                             <TextBlock Text="Recent checks" FontSize="14" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextBrush}"/>
+                                       Foreground="{DynamicResource TextBrush}"/>
                             <TextBlock Text="The latest 10 attempts appear here."
-                                       FontSize="11" Foreground="{StaticResource MutedBrush}"
+                                       FontSize="11" Foreground="{DynamicResource MutedBrush}"
                                        Margin="0,5,0,0"/>
                         </StackPanel>
 
                         <ListBox x:Name="HistoryList" Grid.Row="5"
                                  Background="Transparent" BorderThickness="0"
-                                 Foreground="{StaticResource MutedBrush}"
+                                 Foreground="{DynamicResource MutedBrush}"
                                  FontSize="11" Padding="0"
                                  ScrollViewer.VerticalScrollBarVisibility="Auto"/>
                     </Grid>
@@ -371,50 +430,50 @@
 
                 <!-- Scope and next steps -->
                 <StackPanel Grid.Column="1">
-                    <Border Background="{StaticResource CardBrush}"
-                            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                    <Border Background="{DynamicResource CardBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                             CornerRadius="12" Padding="18">
                         <StackPanel>
                             <TextBlock Text="What this test tells you" FontSize="16"
-                                       FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                                       FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
                             <TextBlock Text="Healthy means the endpoint returned a 2xx HTTP status. Other HTTP responses, connection failures, and timeouts are shown separately."
                                        FontSize="12" LineHeight="19"
-                                       Foreground="{StaticResource MutedBrush}"
+                                       Foreground="{DynamicResource MutedBrush}"
                                        TextWrapping="Wrap" Margin="0,10,0,0"/>
-                            <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,16,0,14"/>
+                            <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,16,0,14"/>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,11">
-                                <Ellipse Width="8" Height="8" Fill="{StaticResource SuccessBrush}"
+                                <Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}"
                                          VerticalAlignment="Center" Margin="0,0,9,0"/>
                                 <TextBlock Text="2xx — successful HTTP response" FontSize="12"
-                                           Foreground="{StaticResource TextBrush}"/>
+                                           Foreground="{DynamicResource TextBrush}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,11">
-                                <Ellipse Width="8" Height="8" Fill="{StaticResource DangerBrush}"
+                                <Ellipse Width="8" Height="8" Fill="{DynamicResource DangerBrush}"
                                          VerticalAlignment="Center" Margin="0,0,9,0"/>
                                 <TextBlock Text="4xx / 5xx — HTTP error response" FontSize="12"
-                                           Foreground="{StaticResource TextBrush}"/>
+                                           Foreground="{DynamicResource TextBrush}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="8" Height="8" Fill="{StaticResource WarningBrush}"
+                                <Ellipse Width="8" Height="8" Fill="{DynamicResource WarningBrush}"
                                          VerticalAlignment="Center" Margin="0,0,9,0"/>
                                 <TextBlock Text="Timeout / unreachable — no usable response" FontSize="12"
-                                           Foreground="{StaticResource TextBrush}"
+                                           Foreground="{DynamicResource TextBrush}"
                                            TextWrapping="Wrap"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
 
-                    <Border Background="#162743" BorderBrush="#294568" BorderThickness="1"
+                    <Border Background="{DynamicResource Hex162743Brush}" BorderBrush="{DynamicResource Hex294568Brush}" BorderThickness="1"
                             CornerRadius="12" Padding="18" Margin="0,14,0,0">
                         <StackPanel>
                             <TextBlock Text="Incident overview" FontSize="16" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextBrush}"/>
+                                       Foreground="{DynamicResource TextBrush}"/>
                             <TextBlock Text="Failed checks create incidents, and successful checks can resolve them."
-                                       FontSize="12" Foreground="{StaticResource MutedBrush}"
+                                       FontSize="12" Foreground="{DynamicResource MutedBrush}"
                                        Margin="0,8,0,0" TextWrapping="Wrap"/>
                             <TextBlock x:Name="OverviewOpenIncidentsCountText" Text="0 open incidents"
                                        FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextBrush}" Margin="0,14,0,0"/>
+                                       Foreground="{DynamicResource TextBrush}" Margin="0,14,0,0"/>
                             <Button Content="Open incidents" Style="{StaticResource SecondaryButton}"
                                     Click="IncidentsNavButton_Click" HorizontalAlignment="Left"
                                     Margin="0,14,0,0"/>
@@ -422,7 +481,7 @@
                     </Border>
 
                     <TextBlock Text="Prototype • Checks run only when you click the button."
-                               FontSize="10" Foreground="#64748B" TextWrapping="Wrap"
+                               FontSize="10" Foreground="{DynamicResource Hex64748BBrush}" TextWrapping="Wrap"
                                Margin="4,14,4,0"/>
                 </StackPanel>
             </Grid>
@@ -442,57 +501,57 @@
             </Grid.ColumnDefinitions>
             <StackPanel>
                 <TextBlock Text="Incident management" FontSize="27" FontWeight="Bold"
-                           Foreground="{StaticResource TextBrush}"/>
+                           Foreground="{DynamicResource TextBrush}"/>
                 <TextBlock Text="Failures from endpoint checks are tracked here until they recover or you resolve them."
-                           FontSize="13" Foreground="{StaticResource MutedBrush}"
+                           FontSize="13" Foreground="{DynamicResource MutedBrush}"
                            Margin="0,7,0,0" TextWrapping="Wrap"/>
             </StackPanel>
-            <Border Grid.Column="1" BorderBrush="{StaticResource BorderBrush}"
-                    Background="{StaticResource CardBrush}" BorderThickness="1"
+            <Border Grid.Column="1" BorderBrush="{DynamicResource BorderBrush}"
+                    Background="{DynamicResource CardBrush}" BorderThickness="1"
                     CornerRadius="8" Padding="12,9" VerticalAlignment="Center">
                 <TextBlock Text="INCIDENTS" FontSize="10" FontWeight="Bold"
-                           Foreground="{StaticResource MutedBrush}"/>
+                           Foreground="{DynamicResource MutedBrush}"/>
             </Border>
         </Grid>
 
         <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,18">
-            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
                 <StackPanel>
                     <TextBlock Text="OPEN INCIDENTS" FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource MutedBrush}"/>
+                               Foreground="{DynamicResource MutedBrush}"/>
                     <TextBlock x:Name="OpenIncidentCountText" Text="0" FontSize="28" FontWeight="Bold"
-                               Foreground="{StaticResource DangerBrush}" Margin="0,7,0,0"/>
+                               Foreground="{DynamicResource DangerBrush}" Margin="0,7,0,0"/>
                     <TextBlock Text="Not yet resolved" FontSize="11"
-                               Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
+                               Foreground="{DynamicResource MutedBrush}" Margin="0,2,0,0"/>
                 </StackPanel>
             </Border>
-            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
                 <StackPanel>
                     <TextBlock Text="TOTAL INCIDENTS" FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource MutedBrush}"/>
+                               Foreground="{DynamicResource MutedBrush}"/>
                     <TextBlock x:Name="TotalIncidentCountText" Text="0" FontSize="28"
-                               FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,7,0,0"/>
+                               FontWeight="Bold" Foreground="{DynamicResource TextBrush}" Margin="0,7,0,0"/>
                     <TextBlock Text="All recorded incidents" FontSize="11"
-                               Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
+                               Foreground="{DynamicResource MutedBrush}" Margin="0,2,0,0"/>
                 </StackPanel>
             </Border>
-            <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush}"
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1" CornerRadius="11" Padding="16">
                 <StackPanel>
                     <TextBlock Text="DONE INCIDENTS" FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource MutedBrush}"/>
+                               Foreground="{DynamicResource MutedBrush}"/>
                     <TextBlock x:Name="DoneIncidentCountText" Text="0" FontSize="28"
-                               FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" Margin="0,7,0,0"/>
+                               FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" Margin="0,7,0,0"/>
                     <TextBlock Text="Finished incidents" FontSize="11"
-                               Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
+                               Foreground="{DynamicResource MutedBrush}" Margin="0,2,0,0"/>
                 </StackPanel>
             </Border>
         </UniformGrid>
 
-        <Border Grid.Row="2" Background="{StaticResource CardBrush}"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+        <Border Grid.Row="2" Background="{DynamicResource CardBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                 CornerRadius="12" Padding="18">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
@@ -503,9 +562,9 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel>
                             <TextBlock Text="Incident list" FontSize="16" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextBrush}"/>
+                                       Foreground="{DynamicResource TextBrush}"/>
                             <TextBlock x:Name="IncidentFilterDescriptionText" Text="Showing open incidents"
-                                       FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"/>
+                                       FontSize="11" Foreground="{DynamicResource MutedBrush}" Margin="0,5,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
                             <Button x:Name="OpenIncidentsFilterButton" Content="Open"
@@ -530,7 +589,7 @@
                              ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#101B2F" BorderBrush="{StaticResource BorderBrush}"
+                                <Border Background="{DynamicResource Hex101B2FBrush}" BorderBrush="{DynamicResource BorderBrush}"
                                         BorderThickness="1" CornerRadius="9" Padding="14">
                                     <Grid>
                                         <Grid.RowDefinitions>
@@ -549,11 +608,11 @@
                                             <Border Background="{Binding SeverityBrush}" CornerRadius="5"
                                                     Padding="7,3" Margin="0,0,9,0">
                                                 <TextBlock Text="{Binding SeverityDisplay}" FontSize="10"
-                                                           FontWeight="Bold" Foreground="#0B1120"/>
+                                                           FontWeight="Bold" Foreground="{DynamicResource Hex0B1120Brush}"/>
                                             </Border>
                                             <TextBlock Text="{Binding IncidentNumber}" FontSize="11"
                                                        VerticalAlignment="Center"
-                                                       Foreground="{StaticResource MutedBrush}"/>
+                                                       Foreground="{DynamicResource MutedBrush}"/>
                                         </StackPanel>
                                         <TextBlock Grid.Row="0" Grid.Column="1"
                                                    Text="{Binding StatusDisplay}" FontSize="11"
@@ -561,21 +620,21 @@
                                                    Foreground="{Binding StatusBrush}"/>
                                         <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Title}"
                                                    FontSize="14" FontWeight="SemiBold" Margin="0,11,0,0"
-                                                   Foreground="{StaticResource TextBrush}"/>
+                                                   Foreground="{DynamicResource TextBrush}"/>
                                         <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding EndpointUrl}"
                                                    FontSize="11" Margin="0,6,0,0"
-                                                   Foreground="{StaticResource NeutralBrush}"
+                                                   Foreground="{DynamicResource NeutralBrush}"
                                                    TextTrimming="CharacterEllipsis"/>
                                         <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Text="{Binding Details}"
                                                    FontSize="12" Margin="0,8,0,0"
-                                                   Foreground="{StaticResource MutedBrush}"
+                                                   Foreground="{DynamicResource MutedBrush}"
                                                    TextWrapping="Wrap"/>
                                         <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="{Binding ActivityDisplay}"
                                                    FontSize="10" Margin="0,10,0,0"
-                                                   Foreground="#71829C" TextWrapping="Wrap"/>
+                                                   Foreground="{DynamicResource Hex71829CBrush}" TextWrapping="Wrap"/>
                                         <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="{Binding ResolutionNote}"
                                                    FontSize="11" Margin="0,5,0,0"
-                                                   Foreground="{StaticResource SuccessBrush}"
+                                                   Foreground="{DynamicResource SuccessBrush}"
                                                    TextWrapping="Wrap"/>
                                     </Grid>
                                 </Border>
@@ -585,7 +644,7 @@
                     <TextBlock x:Name="IncidentsEmptyText" Text="No open incidents. Run a failing endpoint check to test incident creation."
                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                TextAlignment="Center" TextWrapping="Wrap" MaxWidth="400"
-                               FontSize="13" Foreground="{StaticResource MutedBrush}"
+                               FontSize="13" Foreground="{DynamicResource MutedBrush}"
                                Margin="20" IsHitTestVisible="False"/>
                 </Grid>
             </DockPanel>
@@ -601,13 +660,13 @@
 
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="Alert history" FontSize="27" FontWeight="Bold"
-                       Foreground="{StaticResource TextBrush}"/>
+                       Foreground="{DynamicResource TextBrush}"/>
             <TextBlock Text="A local record of endpoint checks and their outcomes."
-                       FontSize="13" Foreground="{StaticResource MutedBrush}" Margin="0,7,0,0"/>
+                       FontSize="13" Foreground="{DynamicResource MutedBrush}" Margin="0,7,0,0"/>
         </StackPanel>
 
-        <Border Grid.Row="1" Background="{StaticResource CardBrush}"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+        <Border Grid.Row="1" Background="{DynamicResource CardBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                 CornerRadius="10" Padding="15" Margin="0,0,0,14">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -616,18 +675,18 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Text="Recent check events" FontSize="15" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextBrush}"/>
+                               Foreground="{DynamicResource TextBrush}"/>
                     <TextBlock Text="Up to 200 entries are kept on this computer."
-                               FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"/>
+                               FontSize="11" Foreground="{DynamicResource MutedBrush}" Margin="0,5,0,0"/>
                 </StackPanel>
                 <TextBlock x:Name="HistoryCountText" Grid.Column="1" Text="0 records"
                            VerticalAlignment="Center" FontSize="12"
-                           Foreground="{StaticResource MutedBrush}"/>
+                           Foreground="{DynamicResource MutedBrush}"/>
             </Grid>
         </Border>
 
-        <Border Grid.Row="2" Background="{StaticResource CardBrush}"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+        <Border Grid.Row="2" Background="{DynamicResource CardBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                 CornerRadius="12" Padding="18">
             <Grid>
                 <ListBox x:Name="HistoryEntriesList" Background="Transparent" BorderThickness="0"
@@ -649,7 +708,7 @@
                     </ListBox.ItemContainerStyle>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="#101A2B" BorderBrush="{StaticResource BorderBrush}"
+                            <Border Background="{DynamicResource Hex101A2BBrush}" BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1" CornerRadius="8" Padding="13" Margin="0,0,0,8">
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -662,13 +721,13 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.RowSpan="2" Text="{Binding TimestampDisplay}"
-                                               Foreground="{StaticResource MutedBrush}" FontSize="11"
+                                               Foreground="{DynamicResource MutedBrush}" FontSize="11"
                                                VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <TextBlock Grid.Column="1" Text="{Binding Endpoint}"
-                                               Foreground="{StaticResource TextBrush}" FontSize="12"
+                                               Foreground="{DynamicResource TextBrush}" FontSize="12"
                                                TextTrimming="CharacterEllipsis"/>
                                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Details}"
-                                               Foreground="{StaticResource MutedBrush}" FontSize="11"
+                                               Foreground="{DynamicResource MutedBrush}" FontSize="11"
                                                TextWrapping="Wrap" Margin="0,5,0,0"/>
                                     <StackPanel Grid.Column="2" Grid.RowSpan="2" VerticalAlignment="Center"
                                                 Margin="10,0,0,0">
@@ -676,7 +735,7 @@
                                                    Foreground="{Binding ResultBrush}"
                                                    HorizontalAlignment="Right"/>
                                         <TextBlock Text="{Binding ResponseTimeDisplay}" FontSize="10"
-                                                   Foreground="{StaticResource MutedBrush}"
+                                                   Foreground="{DynamicResource MutedBrush}"
                                                    HorizontalAlignment="Right" Margin="0,5,0,0"/>
                                     </StackPanel>
                                 </Grid>
@@ -687,9 +746,58 @@
                 <TextBlock x:Name="HistoryEmptyText" Text="No checks yet. Run a check from Endpoint checker."
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextAlignment="Center" FontSize="13"
-                           Foreground="{StaticResource MutedBrush}"
+                           Foreground="{DynamicResource MutedBrush}"
                            IsHitTestVisible="False"/>
             </Grid>
+        </Border>
+    </Grid>
+    <Grid x:Name="SettingsPage" Grid.Column="1" Margin="32,28,32,28" Visibility="Collapsed">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Text="Settings" FontSize="27" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
+            <TextBlock Text="Personalize the AlertingSystem workspace." FontSize="13" Foreground="{DynamicResource MutedBrush}" Margin="0,7,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Row="1" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1" CornerRadius="12" Padding="24" VerticalAlignment="Top">
+            <StackPanel>
+                <TextBlock Text="Appearance" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                <TextBlock x:Name="ThemeDescriptionText" Text="Choose a theme for the application." FontSize="12"
+                           Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,7,0,0"/>
+
+                <Grid Margin="0,20,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <RadioButton x:Name="DarkThemeOption" Grid.Column="0" Style="{StaticResource ThemeOptionRadioButton}"
+                                 GroupName="ApplicationTheme" IsChecked="True" Checked="DarkThemeOption_Checked">
+                        <StackPanel>
+                            <TextBlock Text="Dark" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                            <TextBlock Text="A focused, low-light workspace." FontSize="12" Margin="0,7,0,0"
+                                       Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="LightThemeOption" Grid.Column="1" Style="{StaticResource ThemeOptionRadioButton}"
+                                 GroupName="ApplicationTheme" IsChecked="False" Checked="LightThemeOption_Checked">
+                        <StackPanel>
+                            <TextBlock Text="Light" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                            <TextBlock Text="A bright, clean workspace." FontSize="12" Margin="0,7,0,0"
+                                       Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </RadioButton>
+                </Grid>
+
+                <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,22,0,16"/>
+                <StackPanel Orientation="Horizontal">
+                    <Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}" VerticalAlignment="Center" Margin="0,0,9,0"/>
+                    <TextBlock Text="Your preference is saved on this computer." FontSize="11" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
         </Border>
     </Grid>
     </Grid>
