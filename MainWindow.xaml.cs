@@ -183,6 +183,23 @@ public partial class MainWindow : Window
         }
     }
 
+    private void EndpointTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key != System.Windows.Input.Key.Enter)
+        {
+            return;
+        }
+
+        e.Handled = true;
+
+        // Reuse the exact same validation and check flow as the button.
+        // Ignore further Enter presses while a check is already running.
+        if (CheckEndpointButton.IsEnabled)
+        {
+            CheckEndpoint_Click(CheckEndpointButton, new RoutedEventArgs());
+        }
+    }
+
     private async void CheckEndpoint_Click(object sender, RoutedEventArgs e)
     {
         var address = EndpointTextBox.Text.Trim();

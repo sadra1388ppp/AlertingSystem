@@ -383,7 +383,8 @@
                             <TextBlock Text="ENDPOINT URL" FontSize="10" FontWeight="Bold"
                                        Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,8"/>
                             <TextBox x:Name="EndpointTextBox" Text="https://example.com"
-                                     AutomationProperties.Name="Endpoint URL"/>
+                                     AutomationProperties.Name="Endpoint URL"
+                                     KeyDown="EndpointTextBox_KeyDown"/>
                         </StackPanel>
 
                         <Button x:Name="CheckEndpointButton" Grid.Row="2"
