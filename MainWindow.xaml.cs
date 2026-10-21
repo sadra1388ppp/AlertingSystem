@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Data.Common;
 using System.IO;
 using System.Net.Http;
 using System.Windows;
@@ -17,7 +16,7 @@ public partial class MainWindow : Window
         Timeout = TimeSpan.FromSeconds(10)
     };
 
-    private readonly MariaDbDataStore _dataStore = new();
+    private readonly LocalDataStore _dataStore = new();
     private readonly List<Incident> _incidents;
     private readonly List<CheckHistoryEntry> _checkHistory;
     private int _checksRun;
@@ -314,7 +313,7 @@ public partial class MainWindow : Window
             _dataStore.SaveIncidents(_incidents);
         }
         catch (Exception exception) when (
-            exception is DbException or IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+            exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
             ShowStorageWarning(exception);
         }
@@ -327,7 +326,7 @@ public partial class MainWindow : Window
             _dataStore.SaveCheckHistory(_checkHistory);
         }
         catch (Exception exception) when (
-            exception is DbException or IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+            exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
             ShowStorageWarning(exception);
         }
@@ -342,8 +341,8 @@ public partial class MainWindow : Window
 
         _storageWarningShown = true;
         MessageBox.Show(this,
-            $"AlertingSystem could not save monitoring data to MariaDB. The latest change may not survive an application restart.\n\n{exception.Message}",
-            "MariaDB storage warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            $"AlertingSystem could not save local monitoring data. The information may not survive an application restart.\n\n{exception.Message}",
+            "Local storage warning", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     private void RefreshIncidentUI()
