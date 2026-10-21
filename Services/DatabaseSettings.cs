@@ -17,6 +17,11 @@ public sealed class DatabaseSettings
         WriteIndented = true
     };
 
+    private static bool IsLocalServer(string server) =>
+        string.Equals(server, "localhost", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(server, "127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(server, "::1", StringComparison.OrdinalIgnoreCase);
+
     public static string LoadConnectionString(string settingsDirectory)
     {
         var environmentConnectionString =
@@ -29,6 +34,14 @@ public sealed class DatabaseSettings
                 ConnectionTimeout = 5,
                 DefaultCommandTimeout = 30
             };
+
+            // Local MariaDB instances commonly do not support the optional TLS
+            // negotiation expected by MySqlConnector's default SSL mode.
+            // Keep explicitly remote connections' SSL settings unchanged.
+            if (IsLocalServer(environmentBuilder.Server))
+            {
+                environmentBuilder.SslMode = MySqlSslMode.None;
+            }
 
             return environmentBuilder.ConnectionString;
         }
