@@ -38,7 +38,7 @@ public sealed class AlertingDbContext : DbContext
     {
         modelBuilder.Entity<Incident>(entity =>
         {
-            entity.ToTable(_useLegacyTableNames ? "Incidents" : "incidents");
+            entity.ToTable(_useLegacyTableNames ? "Incidents" : "incident_records");
             entity.HasKey(item => item.IncidentNumber);
             entity.Property(item => item.IncidentNumber).HasMaxLength(100).HasColumnType("varchar(100)");
             entity.Property(item => item.EndpointUrl).HasColumnType("text");

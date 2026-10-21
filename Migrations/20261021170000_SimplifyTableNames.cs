@@ -9,7 +9,7 @@ public sealed class SimplifyTableNames : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.RenameTable(name: "Incidents", newName: "incidents");
+        migrationBuilder.RenameTable(name: "Incidents", newName: "incident_records");
         migrationBuilder.RenameTable(name: "AlertHistory", newName: "checks");
         migrationBuilder.RenameTable(name: "AppMetadata", newName: "settings");
     }
@@ -18,6 +18,6 @@ public sealed class SimplifyTableNames : Migration
     {
         migrationBuilder.RenameTable(name: "settings", newName: "AppMetadata");
         migrationBuilder.RenameTable(name: "checks", newName: "AlertHistory");
-        migrationBuilder.RenameTable(name: "incidents", newName: "Incidents");
+        migrationBuilder.RenameTable(name: "incident_records", newName: "Incidents");
     }
 }

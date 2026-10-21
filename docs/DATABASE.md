@@ -10,7 +10,7 @@ The table names are simplified automatically:
 
 | Table | Contents |
 |---|---|
-| `incidents` | Incident records and status |
+| `incident_records` | Incident records and status |
 | `checks` | Endpoint check history |
 | `settings` | Internal app metadata |
 
