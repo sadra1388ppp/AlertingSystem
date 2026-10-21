@@ -8,6 +8,7 @@ using System.Windows.Media;
 using AlertingSystem.Models;
 using AlertingSystem.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Windows.Threading;
 
 namespace AlertingSystem;
 
@@ -21,6 +22,11 @@ public partial class MainWindow : Window
     private readonly MariaDbDataStore _dataStore = new();
     private readonly List<Incident> _incidents;
     private readonly List<CheckHistoryEntry> _checkHistory;
+    private readonly HiddenItemsStore _hiddenItems = new();
+    private readonly DispatcherTimer _databaseSyncTimer = new()
+    {
+        Interval = TimeSpan.FromSeconds(3)
+    };
     private int _checksRun;
     private bool _showAllIncidents;
     private bool _storageWarningShown;
@@ -38,10 +44,16 @@ public partial class MainWindow : Window
             HistoryEntriesList.ItemContainerStyle,
             DeleteHistoryEntryMenuItem_Click);
 
-        _incidents = _dataStore.LoadIncidents();
+        var databaseIncidents = _dataStore.LoadIncidents();
+        var databaseHistory = _dataStore.LoadCheckHistory()
+            .OrderByDescending(entry => entry.Timestamp)
+            .Take(200)
+            .ToList();
+
+        _hiddenItems.Reconcile(databaseIncidents, _dataStore.LoadCheckHistoryIds());
 
         var migratedLegacyStatuses = false;
-        foreach (var incident in _incidents)
+        foreach (var incident in databaseIncidents)
         {
             if (incident.Status != IncidentStatus.Open && incident.Status != IncidentStatus.Done)
             {
@@ -52,16 +64,23 @@ public partial class MainWindow : Window
 
         if (migratedLegacyStatuses)
         {
-            _dataStore.SaveIncidents(_incidents);
+            _dataStore.SaveIncidents(databaseIncidents);
         }
 
-        _checkHistory = _dataStore.LoadCheckHistory()
-            .OrderByDescending(entry => entry.Timestamp)
-            .Take(200)
+        _incidents = databaseIncidents
+            .Where(incident => !_hiddenItems.IsIncidentHidden(incident.IncidentNumber))
+            .ToList();
+
+        _checkHistory = databaseHistory
+            .Where(entry => !_hiddenItems.IsHistoryEntryHidden(entry.Id))
             .ToList();
 
         RefreshIncidentUI();
         RefreshCheckHistoryUI();
+
+        _databaseSyncTimer.Tick += (_, _) => SyncFromDatabase();
+        _databaseSyncTimer.Start();
+        Closed += (_, _) => _databaseSyncTimer.Stop();
     }
 
     private static void AttachContextMenuHandler(Style? style, RoutedEventHandler handler)
@@ -216,7 +235,8 @@ public partial class MainWindow : Window
             string.Equals(NormalizeEndpoint(item.EndpointUrl), endpointKey,
                 StringComparison.OrdinalIgnoreCase));
 
-        if (incident is null)
+        var created = incident is null;
+        if (created)
         {
             incident = new Incident
             {
@@ -247,7 +267,7 @@ public partial class MainWindow : Window
             }
         }
 
-        PersistIncidents();
+        PersistIncident(incident, allowInsert: created);
         RefreshIncidentUI();
         return incident;
     }
@@ -268,7 +288,7 @@ public partial class MainWindow : Window
         incident.Status = IncidentStatus.Done;
         incident.ResolvedAt = DateTime.Now;
         incident.ResolutionNote = $"Automatically marked Done at {DateTime.Now:yyyy-MM-dd HH:mm:ss}. {recoveryDetails}";
-        PersistIncidents();
+        PersistIncident(incident);
         RefreshIncidentUI();
         return incident.IncidentNumber;
     }
@@ -284,21 +304,22 @@ public partial class MainWindow : Window
 
     private void RecordCheck(string endpoint, string result, string details, long? responseTimeMs)
     {
-        _checkHistory.Insert(0, new CheckHistoryEntry
+        var entry = new CheckHistoryEntry
         {
             Timestamp = DateTime.Now,
             Endpoint = endpoint,
             Result = result,
             Details = details,
             ResponseTimeMs = responseTimeMs
-        });
+        };
+        _checkHistory.Insert(0, entry);
 
         if (_checkHistory.Count > 200)
         {
             _checkHistory.RemoveRange(200, _checkHistory.Count - 200);
         }
 
-        PersistCheckHistory();
+        PersistCheckHistory(entry);
         RefreshCheckHistoryUI();
     }
 
@@ -308,11 +329,11 @@ public partial class MainWindow : Window
         ChecksRunText.Text = _checksRun.ToString();
     }
 
-    private void PersistIncidents()
+    private void PersistIncident(Incident incident, bool allowInsert = false)
     {
         try
         {
-            _dataStore.SaveIncidents(_incidents);
+            _dataStore.SaveIncident(incident, allowInsert);
         }
         catch (Exception exception) when (
             exception is DbException or DbUpdateException or IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
@@ -321,11 +342,11 @@ public partial class MainWindow : Window
         }
     }
 
-    private void PersistCheckHistory()
+    private void PersistCheckHistory(CheckHistoryEntry entry)
     {
         try
         {
-            _dataStore.SaveCheckHistory(_checkHistory);
+            _dataStore.SaveCheckHistoryEntry(entry);
         }
         catch (Exception exception) when (
             exception is DbException or DbUpdateException or IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
@@ -345,6 +366,106 @@ public partial class MainWindow : Window
         MessageBox.Show(this,
             $"AlertingSystem could not save monitoring data to MariaDB. The latest change may not survive an application restart.\n\n{exception.Message}",
             "MariaDB storage warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+    }
+
+    private void SyncFromDatabase()
+    {
+        try
+        {
+            var databaseIncidents = _dataStore.LoadIncidents();
+            var databaseHistory = _dataStore.LoadCheckHistory()
+                .OrderByDescending(entry => entry.Timestamp)
+                .Take(200)
+                .ToList();
+
+            _hiddenItems.Reconcile(databaseIncidents, _dataStore.LoadCheckHistoryIds());
+
+            var visibleIncidents = databaseIncidents
+                .Where(incident => !_hiddenItems.IsIncidentHidden(incident.IncidentNumber))
+                .ToList();
+            var visibleHistory = databaseHistory
+                .Where(entry => !_hiddenItems.IsHistoryEntryHidden(entry.Id))
+                .ToList();
+
+            if (!IncidentListsEqual(_incidents, visibleIncidents))
+            {
+                _incidents.Clear();
+                _incidents.AddRange(visibleIncidents);
+                RefreshIncidentUI();
+            }
+
+            if (!HistoryListsEqual(_checkHistory, visibleHistory))
+            {
+                _checkHistory.Clear();
+                _checkHistory.AddRange(visibleHistory);
+                RefreshCheckHistoryUI();
+            }
+        }
+        catch (Exception exception)
+        {
+            ShowStorageWarning(exception);
+        }
+    }
+
+    private static bool IncidentListsEqual(
+        IReadOnlyCollection<Incident> current,
+        IReadOnlyCollection<Incident> incoming)
+    {
+        if (current.Count != incoming.Count)
+        {
+            return false;
+        }
+
+        var currentByNumber = current.ToDictionary(
+            incident => incident.IncidentNumber,
+            StringComparer.OrdinalIgnoreCase);
+
+        foreach (var item in incoming)
+        {
+            if (!currentByNumber.TryGetValue(item.IncidentNumber, out var existing) ||
+                existing.EndpointUrl != item.EndpointUrl ||
+                existing.Title != item.Title ||
+                existing.Details != item.Details ||
+                existing.ResolutionNote != item.ResolutionNote ||
+                existing.Severity != item.Severity ||
+                existing.Status != item.Status ||
+                existing.FirstOccurredAt != item.FirstOccurredAt ||
+                existing.LastOccurredAt != item.LastOccurredAt ||
+                existing.ResolvedAt != item.ResolvedAt ||
+                existing.OccurrenceCount != item.OccurrenceCount)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool HistoryListsEqual(
+        IReadOnlyCollection<CheckHistoryEntry> current,
+        IReadOnlyCollection<CheckHistoryEntry> incoming)
+    {
+        if (current.Count != incoming.Count)
+        {
+            return false;
+        }
+
+        var currentById = current.ToDictionary(entry => entry.Id);
+
+        foreach (var item in incoming)
+        {
+            if (!currentById.TryGetValue(item.Id, out var existing) ||
+                existing.Timestamp != item.Timestamp ||
+                existing.Endpoint != item.Endpoint ||
+                existing.Result != item.Result ||
+                existing.Details != item.Details ||
+                existing.ResponseTimeMs != item.ResponseTimeMs)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void RefreshIncidentUI()
@@ -478,7 +599,7 @@ public partial class MainWindow : Window
         selected.Status = IncidentStatus.Done;
         selected.ResolvedAt = DateTime.Now;
         selected.ResolutionNote = $"Marked Done manually at {DateTime.Now:yyyy-MM-dd HH:mm:ss}.";
-        PersistIncidents();
+        PersistIncident(selected);
         RefreshIncidentUI();
     }
 
@@ -494,8 +615,8 @@ public partial class MainWindow : Window
 
         var answer = MessageBox.Show(
             this,
-            $"Permanently delete incident {incident.IncidentNumber}?\n\n{incident.Title}",
-            "Delete incident",
+            $"Hide incident {incident.IncidentNumber} from this app?\n\nIts record will remain in MariaDB.\n\n{incident.Title}",
+            "Hide incident",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 
@@ -504,8 +625,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        _hiddenItems.HideIncident(incident.IncidentNumber);
         _incidents.Remove(incident);
-        PersistIncidents();
         RefreshIncidentUI();
     }
 
@@ -521,8 +642,8 @@ public partial class MainWindow : Window
 
         var answer = MessageBox.Show(
             this,
-            $"Permanently delete this alert-history entry?\n\n{entry.TimestampDisplay}\n{entry.Endpoint}\n{entry.Result}",
-            "Delete history entry",
+            $"Hide this history entry from the app?\n\nIts record will remain in MariaDB.\n\n{entry.TimestampDisplay}\n{entry.Endpoint}\n{entry.Result}",
+            "Hide history entry",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 
@@ -531,8 +652,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        _hiddenItems.HideHistoryEntry(entry.Id);
         _checkHistory.Remove(entry);
-        PersistCheckHistory();
         RefreshCheckHistoryUI();
     }
 }

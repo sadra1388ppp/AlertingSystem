@@ -29,3 +29,8 @@ If the MariaDB tables are empty and this app has old `incidents.json` or `check-
 ## Dependency compatibility
 
 The app targets .NET 10 and uses the stable Pomelo 9 provider with EF Core 9. The released Pomelo 9 provider targets EF Core 9; it is not pinned to the unsupported assumption that Pomelo 9 is an EF Core 10 provider.
+
+
+## Deleting items in the app
+
+Deleting an incident or an AlertHistory entry in the UI only hides it from this app. It does not delete its MariaDB row. Hidden identifiers are stored locally in `%LOCALAPPDATA%\\AlertingSystem\\hidden-items.json`. If a row is independently deleted in MariaDB, the app's three-second refresh removes it from the visible list and cleans up the obsolete local hide marker. Save operations only update existing rows or insert new records; they never delete database rows.
