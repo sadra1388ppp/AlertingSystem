@@ -74,6 +74,11 @@ public sealed class DatabaseSettings
             UserID = settings.UserId,
             Password = settings.Password ?? string.Empty,
             CharacterSet = "utf8mb4",
+            // This branch is for local development against 127.0.0.1.
+            // Avoid TLS negotiation with a local MariaDB installation that closes the
+            // connection during the optional SSL handshake. Environment-provided
+            // connection strings keep their own SSL settings above.
+            SslMode = MySqlSslMode.None,
             ConnectionTimeout = 5,
             DefaultCommandTimeout = 30
         };
