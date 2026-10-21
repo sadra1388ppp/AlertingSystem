@@ -1,6 +1,20 @@
-# MariaDB storage (EF Core)
+# AlertingSystem database
 
-AlertingSystem stores incidents and endpoint-check history in MariaDB through Entity Framework Core. The app contains no handwritten SQL queries or table-creation scripts; EF Core sends the database commands.
+AlertingSystem uses MariaDB with Entity Framework Core. Ordinary reads and writes use C# and EF Core; table creation and the one-time legacy table rename are managed automatically.
+
+## Database and table names
+
+The existing database is kept as `alertingsystem` so the app preserves its data and current user grants. Its name is already short and lowercase; moving the database itself would require a separate data-and-permissions migration.
+
+The table names are simplified automatically:
+
+| Table | Contents |
+|---|---|
+| `incident_records` | Incident records and status |
+| `checks` | Endpoint check history |
+| `settings` | Internal app metadata |
+
+On startup the app applies the EF Core migration that renames the previous tables (`Incidents`, `AlertHistory`, `AppMetadata`) without deleting their rows. A new database is bootstrapped through the same migration.
 
 ## Local settings
 
@@ -8,24 +22,19 @@ On first launch the app creates this settings file if it does not exist:
 
 `%LOCALAPPDATA%\AlertingSystem\database-settings.json`
 
-Default local-development settings:
-
 - Server: `127.0.0.1`
 - Port: `3306`
 - Database: `alertingsystem`
 - User ID: `alertingsystem_app`
 - Password: `123`
 
-These defaults match the local development account used by the earlier AlertingSystem setup. They are for local development only. Do not use the example password on any shared or internet-accessible machine. Credentials are kept outside the repository.
+These are local-development defaults only. Do not use the example password on a shared or internet-accessible machine. Credentials remain outside the repository. You can override the connection string with the `ALERTINGSYSTEM_DB_CONNECTION_STRING` environment variable.
 
-You can override the connection string with the `ALERTINGSYSTEM_DB_CONNECTION_STRING` environment variable.
+## Deletion and synchronization rules
 
-The MariaDB server and the configured database account must already exist and be allowed to create tables. At startup, EF Core creates the mapped tables automatically when the database has no tables. The model deliberately maps to the existing `Incidents`, `AlertHistory`, and `AppMetadata` table layout, including the existing text-formatted timestamp columns.
+- The app reloads database records every 3 seconds while it is open. A row deleted directly from MariaDB disappears from the app at the next refresh.
+- Deleting an incident or check-history item in the app only hides it from the app. The row stays in MariaDB.
+- App-hidden identifiers are stored in `%LOCALAPPDATA%\AlertingSystem\hidden-items.json`. If the corresponding database row is deleted directly, its local hidden marker is removed.
+- Saving a new check or updating an incident never deletes database rows. Old history can remain in MariaDB even when the app only displays the latest 200 entries.
 
-## Existing local data
-
-If the MariaDB tables are empty and this app has old `incidents.json` or `check-history.json` files under LocalAppData, AlertingSystem imports those records once. If MariaDB already has records, it does not merge stale JSON into the database. The original JSON files are not deleted.
-
-## Dependency compatibility
-
-The app targets .NET 10 and uses the stable Pomelo 9 provider with EF Core 9. The released Pomelo 9 provider targets EF Core 9; it is not pinned to the unsupported assumption that Pomelo 9 is an EF Core 10 provider.
+The local app account needs permission to read and write records and to apply this one-time table rename migration.
