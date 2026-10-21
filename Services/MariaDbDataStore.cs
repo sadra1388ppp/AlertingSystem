@@ -57,6 +57,15 @@ public sealed class MariaDbDataStore
             .ToList();
     }
 
+    public HashSet<long> LoadCheckHistoryIds()
+    {
+        using var db = CreateContext();
+        return db.CheckHistory
+            .AsNoTracking()
+            .Select(entry => entry.Id)
+            .ToHashSet();
+    }
+
     // Updates existing incidents only. Missing rows are not recreated because they
     // may have been deleted directly from MariaDB while the app was open.
     public void SaveIncidents(IEnumerable<Incident> incidents)

@@ -50,7 +50,7 @@ public partial class MainWindow : Window
             .Take(200)
             .ToList();
 
-        _hiddenItems.Reconcile(databaseIncidents, databaseHistory);
+        _hiddenItems.Reconcile(databaseIncidents, _dataStore.LoadCheckHistoryIds());
 
         var migratedLegacyStatuses = false;
         foreach (var incident in databaseIncidents)
@@ -378,7 +378,7 @@ public partial class MainWindow : Window
                 .Take(200)
                 .ToList();
 
-            _hiddenItems.Reconcile(databaseIncidents, databaseHistory);
+            _hiddenItems.Reconcile(databaseIncidents, _dataStore.LoadCheckHistoryIds());
 
             var visibleIncidents = databaseIncidents
                 .Where(incident => !_hiddenItems.IsIncidentHidden(incident.IncidentNumber))

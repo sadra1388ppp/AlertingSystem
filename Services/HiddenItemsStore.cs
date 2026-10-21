@@ -46,15 +46,12 @@ public sealed class HiddenItemsStore
 
     public void Reconcile(
         IEnumerable<Incident> databaseIncidents,
-        IEnumerable<CheckHistoryEntry> databaseHistory)
+        IEnumerable<long> databaseHistoryIds)
     {
         var incidentNumbers = databaseIncidents
             .Select(item => item.IncidentNumber)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var historyIds = databaseHistory
-            .Where(item => item.Id > 0)
-            .Select(item => item.Id)
-            .ToHashSet();
+        var historyIds = databaseHistoryIds.ToHashSet();
 
         var removedIncidents = _incidentNumbers.RemoveWhere(
             incidentNumber => !incidentNumbers.Contains(incidentNumber));
