@@ -33,9 +33,23 @@ public sealed class MariaDbDataStore
         Directory.CreateDirectory(_directory);
         _connectionString = DatabaseSettings.LoadConnectionString(_directory);
 
-        // The app may have been rolled back while the MariaDB schema was left on the
-        // newer table names. Detect each table separately so even a partial rename is safe.
+        // The app may have been rolled back while MariaDB retained newer table names.
+        // If the check-history table is still named "checks", rename it through an EF Core
+        // migration so existing rows and indexes remain intact.
         var existingTables = ReadTableNames(_connectionString);
+        if (existingTables.Contains("checks") && !existingTables.Contains("AlertHistory"))
+        {
+            using var migrationContext = new AlertingDbContext(
+                _connectionString,
+                useSimplifiedIncidentTable: ChooseSimplifiedTable(
+                    existingTables, "incident_records", "Incidents"),
+                useSimplifiedHistoryTable: true,
+                useSimplifiedMetadataTable: ChooseSimplifiedTable(
+                    existingTables, "settings", "AppMetadata"));
+            migrationContext.Database.Migrate();
+            existingTables = ReadTableNames(_connectionString);
+        }
+
         _useSimplifiedIncidentTable = ChooseSimplifiedTable(
             existingTables, "incident_records", "Incidents");
         _useSimplifiedHistoryTable = ChooseSimplifiedTable(
