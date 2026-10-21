@@ -27,8 +27,15 @@ public sealed class MariaDbDataStore
         Directory.CreateDirectory(_directory);
         _connectionString = DatabaseSettings.LoadConnectionString(_directory);
 
+        // Bootstrap a new database using the old model first. The EF Core migration
+        // below renames those tables. Existing databases are left untouched by EnsureCreated.
+        using (var bootstrap = new AlertingDbContext(_connectionString, useLegacyTableNames: true))
+        {
+            bootstrap.Database.EnsureCreated();
+        }
+
         using var db = CreateContext();
-        db.Database.EnsureCreated();
+        db.Database.Migrate();
         ImportLegacyJsonOnce(db);
     }
 
@@ -50,55 +57,64 @@ public sealed class MariaDbDataStore
             .ToList();
     }
 
+    // Updates existing incidents only. Missing rows are not recreated because they
+    // may have been deleted directly from MariaDB while the app was open.
     public void SaveIncidents(IEnumerable<Incident> incidents)
     {
-        var snapshot = incidents.ToList();
-
         using var db = CreateContext();
-        var existing = db.Incidents.ToList();
-        var existingByNumber = existing.ToDictionary(
-            item => item.IncidentNumber,
-            StringComparer.OrdinalIgnoreCase);
-        var retainedNumbers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var item in snapshot)
+        foreach (var item in incidents)
         {
-            retainedNumbers.Add(item.IncidentNumber);
+            var stored = db.Incidents.FirstOrDefault(
+                existing => existing.IncidentNumber == item.IncidentNumber);
 
-            if (existingByNumber.TryGetValue(item.IncidentNumber, out var stored))
+            if (stored is not null)
             {
                 db.Entry(stored).CurrentValues.SetValues(item);
             }
-            else
-            {
-                db.Incidents.Add(item);
-            }
         }
-
-        db.Incidents.RemoveRange(
-            existing.Where(item => !retainedNumbers.Contains(item.IncidentNumber)));
 
         db.SaveChanges();
     }
 
+    public void SaveIncident(Incident incident, bool allowInsert = false)
+    {
+        using var db = CreateContext();
+        var stored = db.Incidents.FirstOrDefault(
+            existing => existing.IncidentNumber == incident.IncidentNumber);
+
+        if (stored is null)
+        {
+            if (!allowInsert)
+            {
+                return;
+            }
+
+            db.Incidents.Add(incident);
+        }
+        else
+        {
+            db.Entry(stored).CurrentValues.SetValues(incident);
+        }
+
+        db.SaveChanges();
+    }
+
+    // Non-destructive bulk upsert. It never deletes rows omitted from the list.
     public void SaveCheckHistory(IEnumerable<CheckHistoryEntry> history)
     {
-        var snapshot = history
-            .OrderByDescending(entry => entry.Timestamp)
-            .Take(MaximumHistoryEntries)
-            .ToList();
-
         using var db = CreateContext();
-        var existing = db.CheckHistory.ToList();
-        var existingById = existing.ToDictionary(item => item.Id);
-        var retainedIds = new HashSet<long>();
 
-        foreach (var item in snapshot)
+        foreach (var item in history.OrderByDescending(entry => entry.Timestamp)
+                     .Take(MaximumHistoryEntries))
         {
-            if (item.Id > 0 && existingById.TryGetValue(item.Id, out var stored))
+            if (item.Id > 0)
             {
-                retainedIds.Add(item.Id);
-                db.Entry(stored).CurrentValues.SetValues(item);
+                var stored = db.CheckHistory.Find(item.Id);
+                if (stored is not null)
+                {
+                    db.Entry(stored).CurrentValues.SetValues(item);
+                }
             }
             else
             {
@@ -106,7 +122,30 @@ public sealed class MariaDbDataStore
             }
         }
 
-        db.CheckHistory.RemoveRange(existing.Where(item => !retainedIds.Contains(item.Id)));
+        db.SaveChanges();
+    }
+
+    public void SaveCheckHistoryEntry(CheckHistoryEntry entry)
+    {
+        using var db = CreateContext();
+
+        if (entry.Id > 0)
+        {
+            var stored = db.CheckHistory.Find(entry.Id);
+
+            // Do not resurrect an entry that was deleted directly in MariaDB.
+            if (stored is null)
+            {
+                return;
+            }
+
+            db.Entry(stored).CurrentValues.SetValues(entry);
+        }
+        else
+        {
+            db.CheckHistory.Add(entry);
+        }
+
         db.SaveChanges();
     }
 
