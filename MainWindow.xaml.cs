@@ -518,15 +518,37 @@ public partial class MainWindow : Window
     private void RebuildScheduledEndpointStatuses(IEnumerable<string> endpoints)
     {
         var previousStatuses = _scheduledEndpointStatuses.ToDictionary(
-            item => item.Endpoint, StringComparer.OrdinalIgnoreCase);
+            item => item.Endpoint, StringComparer.Ordinal);
+        var recentHistory = _checkHistory
+            .OrderByDescending(entry => entry.Timestamp)
+            .ToList();
 
         _scheduledEndpointStatuses.Clear();
-        foreach (var endpoint in endpoints.Distinct(StringComparer.OrdinalIgnoreCase))
+        foreach (var endpoint in endpoints.Distinct(StringComparer.Ordinal))
         {
-            _scheduledEndpointStatuses.Add(
-                previousStatuses.TryGetValue(endpoint, out var previous)
-                    ? previous
-                    : new ScheduledEndpointStatus(endpoint));
+            if (previousStatuses.TryGetValue(endpoint, out var previous))
+            {
+                _scheduledEndpointStatuses.Add(previous);
+                continue;
+            }
+
+            var status = new ScheduledEndpointStatus(endpoint);
+            var latestCheck = recentHistory.FirstOrDefault(entry =>
+                string.Equals(
+                    NormalizeEndpoint(entry.Endpoint),
+                    NormalizeEndpoint(endpoint),
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (latestCheck is not null)
+            {
+                status.LastResult = latestCheck.Result.StartsWith("HTTP 2", StringComparison.OrdinalIgnoreCase)
+                    ? "Healthy"
+                    : latestCheck.Result;
+                status.LastCheckedAt = latestCheck.Timestamp;
+                status.ResponseTimeMs = latestCheck.ResponseTimeMs;
+            }
+
+            _scheduledEndpointStatuses.Add(status);
         }
 
         ScheduledEndpointCountText.Text = $"{_scheduledEndpointStatuses.Count} endpoint(s)";
