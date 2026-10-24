@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Data.Common;
 using System.IO;
+using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,6 +24,15 @@ public partial class MainWindow : Window
     private readonly List<Incident> _incidents;
     private readonly List<CheckHistoryEntry> _checkHistory;
     private readonly HiddenItemsStore _hiddenItems = new();
+    private readonly ScheduledEndpointStore _scheduledEndpointStore = new();
+    private readonly ObservableCollection<ScheduledEndpointStatus> _scheduledEndpointStatuses = [];
+    private ScheduleConfiguration _scheduleConfiguration = new();
+    private readonly DispatcherTimer _scheduledCheckTimer = new()
+    {
+        Interval = TimeSpan.FromSeconds(1)
+    };
+    private bool _scheduledBatchRunning;
+    private string _lastScheduledScanSummary = string.Empty;
     private readonly DispatcherTimer _databaseSyncTimer = new()
     {
         Interval = TimeSpan.FromSeconds(3)
@@ -158,7 +168,13 @@ public partial class MainWindow : Window
 
         _databaseSyncTimer.Tick += (_, _) => SyncFromDatabase();
         _databaseSyncTimer.Start();
-        Closed += (_, _) => _databaseSyncTimer.Stop();
+        _scheduledCheckTimer.Tick += ScheduledCheckTimer_Tick;
+        InitializeScheduledChecks();
+        Closed += (_, _) =>
+        {
+            _databaseSyncTimer.Stop();
+            _scheduledCheckTimer.Stop();
+        };
     }
 
     private static void AttachContextMenuHandler(Style? style, RoutedEventHandler handler)
@@ -202,27 +218,61 @@ public partial class MainWindow : Window
 
     private async void CheckEndpoint_Click(object sender, RoutedEventArgs e)
     {
-        var address = EndpointTextBox.Text.Trim();
-
-        if (!Uri.TryCreate(address, UriKind.Absolute, out var uri) ||
-            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        if (!CheckEndpointButton.IsEnabled)
         {
-            LastResultSummaryText.Text = "Invalid URL";
-            ResponseTimeSummaryText.Text = "—";
-            ResponseTimeText.Text = "Response time: —";
-            SetStatus("Invalid URL", "DangerBrush");
-            LastResultText.Text = "Enter a valid URL beginning with http:// or https://.";
-            RecordCheck(string.IsNullOrWhiteSpace(address) ? "(empty URL)" : address,
-                "Invalid URL", "Enter a valid URL beginning with http:// or https://.", null);
-            IncrementChecksRun();
             return;
         }
 
         CheckEndpointButton.IsEnabled = false;
         CheckEndpointButton.Content = "Checking…";
-        SetStatus("Checking…", "NeutralBrush");
-        LastResultText.Text = $"Sending a request to {uri.Host}…";
-        ResponseTimeText.Text = "Response time: checking…";
+
+        try
+        {
+            await PerformEndpointCheckAsync(EndpointTextBox.Text.Trim(), updateManualUi: true);
+        }
+        finally
+        {
+            CheckEndpointButton.IsEnabled = true;
+            CheckEndpointButton.Content = "Check endpoint";
+        }
+    }
+
+    /// <summary>
+    /// Shared check pipeline for manual and scheduled checks. Both paths create history entries,
+    /// update incidents, and use the same HTTP status/timeout rules; only manual checks alter
+    /// the large result panel on the Endpoint checker page.
+    /// </summary>
+    private async Task<(string Status, long? ResponseTimeMs)> PerformEndpointCheckAsync(
+        string address,
+        bool updateManualUi)
+    {
+        if (!Uri.TryCreate(address, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            const string details = "Enter a valid URL beginning with http:// or https://.";
+            if (updateManualUi)
+            {
+                SetStatus("Invalid URL", "DangerBrush");
+                LastResultSummaryText.Text = "Invalid URL";
+                LastResultText.Text = details;
+                ResponseTimeText.Text = "Response time: —";
+                ResponseTimeSummaryText.Text = "—";
+            }
+
+            RecordCheck(string.IsNullOrWhiteSpace(address) ? "(empty URL)" : address,
+                "Invalid URL", details, null);
+            IncrementChecksRun();
+            return ("Invalid URL", null);
+        }
+
+        if (updateManualUi)
+        {
+            SetStatus("Checking…", "NeutralBrush");
+            LastResultSummaryText.Text = "Checking…";
+            LastResultText.Text = $"Sending a request to {uri.Host}…";
+            ResponseTimeText.Text = "Response time: checking…";
+            ResponseTimeSummaryText.Text = "Checking…";
+        }
 
         var stopwatch = Stopwatch.StartNew();
 
@@ -241,72 +291,440 @@ public partial class MainWindow : Window
             {
                 var resolvedIncident = MarkMatchingIncidentDone(uri,
                     $"Endpoint returned HTTP {statusCode}.");
+                var details = resolvedIncident is null
+                    ? $"Successful response ({response.ReasonPhrase})."
+                    : $"Successful response; incident {resolvedIncident} was automatically marked Done.";
 
-                SetStatus("Healthy", "SuccessBrush");
-                LastResultSummaryText.Text = "Healthy";
-                LastResultText.Text = resolvedIncident is null
-                    ? $"{uri.Host} returned HTTP {statusCode} ({response.ReasonPhrase})."
-                    : $"{uri.Host} recovered. Incident {resolvedIncident} was marked Done.";
-                ResponseTimeText.Text = $"Response time: {elapsed} ms";
-                ResponseTimeSummaryText.Text = $"{elapsed} ms";
+                if (updateManualUi)
+                {
+                    SetStatus("Healthy", "SuccessBrush");
+                    LastResultSummaryText.Text = "Healthy";
+                    LastResultText.Text = resolvedIncident is null
+                        ? $"{uri.Host} returned HTTP {statusCode} ({response.ReasonPhrase})."
+                        : $"{uri.Host} recovered. Incident {resolvedIncident} was marked Done.";
+                    ResponseTimeText.Text = $"Response time: {elapsed} ms";
+                    ResponseTimeSummaryText.Text = $"{elapsed} ms";
+                }
 
-                RecordCheck(uri.AbsoluteUri, $"HTTP {statusCode}",
-                    resolvedIncident is null
-                        ? $"Successful response ({response.ReasonPhrase})."
-                        : $"Successful response; incident {resolvedIncident} was automatically marked Done.",
-                    elapsed);
+                RecordCheck(uri.AbsoluteUri, $"HTTP {statusCode}", details, elapsed);
+                return ("Healthy", elapsed);
             }
-            else
-            {
-                var severity = GetHttpFailureSeverity(statusCode);
-                var title = GetHttpFailureTitle(statusCode);
-                var details = $"Endpoint returned HTTP {statusCode} ({response.ReasonPhrase}).";
-                var incident = UpsertIncident(uri, title, severity, details);
 
+            var severity = GetHttpFailureSeverity(statusCode);
+            var title = GetHttpFailureTitle(statusCode);
+            var responseDetails = $"Endpoint returned HTTP {statusCode} ({response.ReasonPhrase}).";
+            var incident = UpsertIncident(uri, title, severity, responseDetails);
+            var historyDetails = $"{responseDetails} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
+
+            if (updateManualUi)
+            {
                 SetStatus($"HTTP {statusCode}", "DangerBrush");
                 LastResultSummaryText.Text = $"HTTP {statusCode}";
-                LastResultText.Text = $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
+                LastResultText.Text = $"{responseDetails} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
                 ResponseTimeText.Text = $"Response time: {elapsed} ms";
                 ResponseTimeSummaryText.Text = $"{elapsed} ms";
-
-                RecordCheck(uri.AbsoluteUri, $"HTTP {statusCode}",
-                    $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).",
-                    elapsed);
             }
+
+            RecordCheck(uri.AbsoluteUri, $"HTTP {statusCode}", historyDetails, elapsed);
+            return ($"HTTP {statusCode}", elapsed);
         }
         catch (OperationCanceledException)
         {
             stopwatch.Stop();
-            var details = "The endpoint did not respond within the 10-second timeout.";
+            const string details = "The endpoint did not respond within the 10-second timeout.";
             var incident = UpsertIncident(uri, "Endpoint timed out", IncidentSeverity.High, details);
+            var historyDetails = $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
 
-            SetStatus("Timed out", "DangerBrush");
-            LastResultText.Text = $"{uri.Host} timed out. Incident {incident.IncidentNumber} was created or updated.";
-            ResponseTimeText.Text = "Response time: timed out";
-            ResponseTimeSummaryText.Text = "Timeout";
-            LastResultSummaryText.Text = "Timed out";
-            RecordCheck(uri.AbsoluteUri, "Timed out",
-                $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).", null);
+            if (updateManualUi)
+            {
+                SetStatus("Timed out", "DangerBrush");
+                LastResultText.Text = $"{uri.Host} timed out. Incident {incident.IncidentNumber} was created or updated.";
+                ResponseTimeText.Text = "Response time: timed out";
+                ResponseTimeSummaryText.Text = "Timeout";
+                LastResultSummaryText.Text = "Timed out";
+            }
+
+            RecordCheck(uri.AbsoluteUri, "Timed out", historyDetails, null);
+            return ("Timed out", null);
         }
         catch (HttpRequestException exception)
         {
             stopwatch.Stop();
             var details = $"Could not connect to the endpoint. {exception.Message}";
             var incident = UpsertIncident(uri, "Endpoint unreachable", IncidentSeverity.High, details);
+            var historyDetails = $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
 
-            SetStatus("Unreachable", "DangerBrush");
-            LastResultText.Text = $"{uri.Host} is unreachable. Incident {incident.IncidentNumber} was created or updated.";
-            ResponseTimeText.Text = "Response time: —";
-            ResponseTimeSummaryText.Text = "—";
-            LastResultSummaryText.Text = "Unreachable";
-            RecordCheck(uri.AbsoluteUri, "Unreachable",
-                $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).", null);
+            if (updateManualUi)
+            {
+                SetStatus("Unreachable", "DangerBrush");
+                LastResultText.Text = $"{uri.Host} is unreachable. Incident {incident.IncidentNumber} was created or updated.";
+                ResponseTimeText.Text = "Response time: —";
+                ResponseTimeSummaryText.Text = "—";
+                LastResultSummaryText.Text = "Unreachable";
+            }
+
+            RecordCheck(uri.AbsoluteUri, "Unreachable", historyDetails, null);
+            return ("Unreachable", null);
+        }
+        catch (Exception exception)
+        {
+            stopwatch.Stop();
+            var details = $"The check could not be completed. {exception.Message}";
+
+            if (updateManualUi)
+            {
+                SetStatus("Check failed", "DangerBrush");
+                LastResultSummaryText.Text = "Check failed";
+                LastResultText.Text = details;
+                ResponseTimeText.Text = "Response time: —";
+                ResponseTimeSummaryText.Text = "—";
+            }
+
+            RecordCheck(uri.AbsoluteUri, "Check failed", details, null);
+            return ("Check failed", null);
         }
         finally
         {
             IncrementChecksRun();
-            CheckEndpointButton.IsEnabled = true;
-            CheckEndpointButton.Content = "Check endpoint";
+        }
+    }
+
+    private void InitializeScheduledChecks()
+    {
+        _scheduleConfiguration = _scheduledEndpointStore.Load();
+        ScheduleEndpointsTextBox.Text = string.Join(Environment.NewLine, _scheduleConfiguration.Endpoints);
+        ScheduleIntervalTextBox.Text = _scheduleConfiguration.IntervalMinutes.ToString();
+        ScheduledEndpointsList.ItemsSource = _scheduledEndpointStatuses;
+        RebuildScheduledEndpointStatuses(_scheduleConfiguration.Endpoints);
+
+        if (_scheduleConfiguration.IsEnabled && _scheduleConfiguration.Endpoints.Count > 0)
+        {
+            _scheduleConfiguration.NextRunAt ??= DateTime.Now.AddMinutes(_scheduleConfiguration.IntervalMinutes);
+            _scheduledCheckTimer.Start();
+        }
+        else if (_scheduleConfiguration.IsEnabled)
+        {
+            _scheduleConfiguration.IsEnabled = false;
+            _scheduleConfiguration.NextRunAt = null;
+            SaveScheduleConfigurationSafely();
+        }
+
+        UpdateScheduledChecksUI();
+    }
+
+    private void SaveScheduleButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (SaveScheduleInputs())
+        {
+            MessageBox.Show(this,
+                "Your endpoint list and interval have been saved on this computer.",
+                "Schedule saved", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private bool SaveScheduleInputs()
+    {
+        var rawEndpoints = ScheduleEndpointsTextBox.Text
+            .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .ToList();
+
+        if (rawEndpoints.Count == 0)
+        {
+            MessageBox.Show(this, "Add at least one URL or domain, with one endpoint per line.",
+                "No endpoints", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        var endpoints = new List<string>();
+        var invalidEndpoints = new List<string>();
+        foreach (var raw in rawEndpoints)
+        {
+            if (!TryNormalizeScheduledEndpoint(raw, out var normalized))
+            {
+                invalidEndpoints.Add(raw);
+                continue;
+            }
+
+            if (!endpoints.Contains(normalized, StringComparer.OrdinalIgnoreCase))
+            {
+                endpoints.Add(normalized);
+            }
+        }
+
+        if (invalidEndpoints.Count > 0)
+        {
+            MessageBox.Show(this,
+                "These entries are not valid HTTP/HTTPS URLs or domains:\n\n" +
+                string.Join(Environment.NewLine, invalidEndpoints.Take(10)) +
+                (invalidEndpoints.Count > 10 ? "\n…" : string.Empty),
+                "Check endpoint list", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (!int.TryParse(ScheduleIntervalTextBox.Text.Trim(), out var intervalMinutes) ||
+            intervalMinutes < 1 || intervalMinutes > 1440)
+        {
+            MessageBox.Show(this, "Choose an interval between 1 and 1440 minutes.",
+                "Invalid interval", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        _scheduleConfiguration.Endpoints = endpoints;
+        _scheduleConfiguration.IntervalMinutes = intervalMinutes;
+        if (_scheduleConfiguration.IsEnabled)
+        {
+            _scheduleConfiguration.NextRunAt = DateTime.Now.AddMinutes(intervalMinutes);
+        }
+
+        ScheduleEndpointsTextBox.Text = string.Join(Environment.NewLine, endpoints);
+        ScheduleIntervalTextBox.Text = intervalMinutes.ToString();
+        RebuildScheduledEndpointStatuses(endpoints);
+
+        if (!SaveScheduleConfigurationSafely())
+        {
+            return false;
+        }
+
+        UpdateScheduledChecksUI();
+        return true;
+    }
+
+    private static bool TryNormalizeScheduledEndpoint(string endpoint, out string normalized)
+    {
+        normalized = string.Empty;
+        var candidate = endpoint.Trim();
+        if (string.IsNullOrWhiteSpace(candidate))
+        {
+            return false;
+        }
+
+        if (!candidate.Contains("://", StringComparison.Ordinal))
+        {
+            candidate = $"https://{candidate}";
+        }
+
+        if (!Uri.TryCreate(candidate, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) ||
+            string.IsNullOrWhiteSpace(uri.Host))
+        {
+            return false;
+        }
+
+        normalized = uri.AbsoluteUri;
+        return true;
+    }
+
+    private void RebuildScheduledEndpointStatuses(IEnumerable<string> endpoints)
+    {
+        var previousStatuses = _scheduledEndpointStatuses.ToDictionary(
+            item => item.Endpoint, StringComparer.OrdinalIgnoreCase);
+
+        _scheduledEndpointStatuses.Clear();
+        foreach (var endpoint in endpoints.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            _scheduledEndpointStatuses.Add(
+                previousStatuses.TryGetValue(endpoint, out var previous)
+                    ? previous
+                    : new ScheduledEndpointStatus(endpoint));
+        }
+
+        ScheduledEndpointCountText.Text = $"{_scheduledEndpointStatuses.Count} endpoint(s)";
+        ScheduledEndpointsEmptyText.Visibility = _scheduledEndpointStatuses.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private void StartScheduleButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_scheduledBatchRunning || !SaveScheduleInputs())
+        {
+            return;
+        }
+
+        _scheduleConfiguration.IsEnabled = true;
+        _scheduleConfiguration.NextRunAt = DateTime.Now.AddMinutes(_scheduleConfiguration.IntervalMinutes);
+        if (!SaveScheduleConfigurationSafely())
+        {
+            _scheduleConfiguration.IsEnabled = false;
+            _scheduleConfiguration.NextRunAt = null;
+            UpdateScheduledChecksUI();
+            return;
+        }
+
+        _lastScheduledScanSummary = string.Empty;
+        _scheduledCheckTimer.Start();
+        UpdateScheduledChecksUI();
+    }
+
+    private void PauseScheduleButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_scheduledBatchRunning)
+        {
+            return;
+        }
+
+        _scheduleConfiguration.IsEnabled = false;
+        _scheduleConfiguration.NextRunAt = null;
+        _scheduledCheckTimer.Stop();
+        SaveScheduleConfigurationSafely();
+        UpdateScheduledChecksUI();
+    }
+
+    private async void RunScheduledNowButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_scheduledBatchRunning || !SaveScheduleInputs())
+        {
+            return;
+        }
+
+        await RunScheduledBatchAsync();
+    }
+
+    private async void ScheduledCheckTimer_Tick(object? sender, EventArgs e)
+    {
+        if (!_scheduleConfiguration.IsEnabled || _scheduledBatchRunning)
+        {
+            return;
+        }
+
+        if (_scheduledEndpointStatuses.Count == 0)
+        {
+            _scheduleConfiguration.IsEnabled = false;
+            _scheduleConfiguration.NextRunAt = null;
+            _scheduledCheckTimer.Stop();
+            SaveScheduleConfigurationSafely();
+            UpdateScheduledChecksUI();
+            return;
+        }
+
+        if (_scheduleConfiguration.NextRunAt is null)
+        {
+            _scheduleConfiguration.NextRunAt = DateTime.Now.AddMinutes(_scheduleConfiguration.IntervalMinutes);
+            SaveScheduleConfigurationSafely();
+            UpdateScheduledChecksUI();
+            return;
+        }
+
+        if (DateTime.Now >= _scheduleConfiguration.NextRunAt.Value)
+        {
+            await RunScheduledBatchAsync();
+        }
+    }
+
+    private async Task RunScheduledBatchAsync()
+    {
+        if (_scheduledBatchRunning)
+        {
+            return;
+        }
+
+        var endpoints = _scheduledEndpointStatuses.ToList();
+        if (endpoints.Count == 0)
+        {
+            MessageBox.Show(this, "Save at least one endpoint before running a scan.",
+                "No endpoints", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        _scheduledBatchRunning = true;
+        UpdateScheduledChecksUI();
+
+        try
+        {
+            for (var index = 0; index < endpoints.Count; index++)
+            {
+                var endpoint = endpoints[index];
+                ScheduleStatusText.Text = $"Checking {index + 1} of {endpoints.Count}: {endpoint.Endpoint}";
+                endpoint.LastResult = "Checking…";
+
+                var outcome = await PerformEndpointCheckAsync(endpoint.Endpoint, updateManualUi: false);
+                endpoint.LastResult = outcome.Status;
+                endpoint.LastCheckedAt = DateTime.Now;
+                endpoint.ResponseTimeMs = outcome.ResponseTimeMs;
+            }
+
+            _lastScheduledScanSummary = $"Last scan completed at {DateTime.Now:HH:mm:ss} ({endpoints.Count} endpoints checked).";
+        }
+        catch (Exception exception)
+        {
+            _lastScheduledScanSummary = $"Scan stopped after an unexpected error: {exception.Message}";
+        }
+        finally
+        {
+            _scheduledBatchRunning = false;
+
+            if (_scheduleConfiguration.IsEnabled)
+            {
+                _scheduleConfiguration.NextRunAt = DateTime.Now.AddMinutes(_scheduleConfiguration.IntervalMinutes);
+            }
+
+            SaveScheduleConfigurationSafely();
+            UpdateScheduledChecksUI();
+        }
+    }
+
+    private bool SaveScheduleConfigurationSafely()
+    {
+        try
+        {
+            _scheduledEndpointStore.Save(_scheduleConfiguration);
+            return true;
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            MessageBox.Show(this,
+                $"The schedule could not be saved locally. Your current session can continue, but this change may not survive an app restart.\n\n{exception.Message}",
+                "Schedule storage warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+    }
+
+    private void UpdateScheduledChecksUI()
+    {
+        ScheduledEndpointCountText.Text = $"{_scheduledEndpointStatuses.Count} endpoint(s)";
+        ScheduledEndpointsEmptyText.Visibility = _scheduledEndpointStatuses.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        SaveScheduleButton.IsEnabled = !_scheduledBatchRunning;
+        ScheduleEndpointsTextBox.IsEnabled = !_scheduledBatchRunning;
+        ScheduleIntervalTextBox.IsEnabled = !_scheduledBatchRunning;
+        RunScheduledNowButton.IsEnabled = !_scheduledBatchRunning && _scheduledEndpointStatuses.Count > 0;
+        StartScheduleButton.IsEnabled = !_scheduledBatchRunning && !_scheduleConfiguration.IsEnabled;
+        PauseScheduleButton.IsEnabled = !_scheduledBatchRunning && _scheduleConfiguration.IsEnabled;
+
+        if (_scheduledBatchRunning)
+        {
+            ScheduleStatusBadgeText.Text = "SCANNING";
+            ScheduleStatusBadgeText.Foreground = (Brush)FindResource("HexEAF2FFBrush");
+            ScheduleStatusIndicator.Fill = (Brush)FindResource("NeutralBrush");
+            ScheduleNextRunText.Text = "Scan in progress";
+            return;
+        }
+
+        if (_scheduleConfiguration.IsEnabled)
+        {
+            ScheduleStatusBadgeText.Text = "ACTIVE";
+            ScheduleStatusBadgeText.Foreground = (Brush)FindResource("SuccessBrush");
+            ScheduleStatusIndicator.Fill = (Brush)FindResource("SuccessBrush");
+            ScheduleNextRunText.Text = _scheduleConfiguration.NextRunAt is DateTime nextRun
+                ? nextRun.ToString("ddd, dd MMM yyyy • HH:mm:ss")
+                : "Calculating…";
+            ScheduleStatusText.Text = string.IsNullOrWhiteSpace(_lastScheduledScanSummary)
+                ? $"Automatic checks are active. A new cycle starts every {_scheduleConfiguration.IntervalMinutes} minute(s) after the previous scan finishes."
+                : _lastScheduledScanSummary;
+        }
+        else
+        {
+            ScheduleStatusBadgeText.Text = "PAUSED";
+            ScheduleStatusBadgeText.Foreground = (Brush)FindResource("MutedBrush");
+            ScheduleStatusIndicator.Fill = (Brush)FindResource("WarningBrush");
+            ScheduleNextRunText.Text = "Not scheduled";
+            ScheduleStatusText.Text = _scheduledEndpointStatuses.Count == 0
+                ? "Add endpoints and save the list to configure monitoring."
+                : "Schedule paused. Use Run all now to run a one-time scan.";
         }
     }
 
@@ -635,6 +1053,12 @@ public partial class MainWindow : Window
         ShowPage(OverviewPage, OverviewNavButton);
     }
 
+    private void ScheduledChecksNavButton_Click(object sender, RoutedEventArgs e)
+    {
+        UpdateScheduledChecksUI();
+        ShowPage(ScheduledChecksPage, ScheduledChecksNavButton);
+    }
+
     private void IncidentsNavButton_Click(object sender, RoutedEventArgs e)
     {
         _showAllIncidents = false;
@@ -771,6 +1195,7 @@ public partial class MainWindow : Window
     private void ShowPage(Grid selectedPage, Button selectedButton)
     {
         OverviewPage.Visibility = Visibility.Collapsed;
+        ScheduledChecksPage.Visibility = Visibility.Collapsed;
         IncidentsPage.Visibility = Visibility.Collapsed;
         AlertHistoryPage.Visibility = Visibility.Collapsed;
         SettingsPage.Visibility = Visibility.Collapsed;
@@ -788,7 +1213,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        foreach (var button in new[] { OverviewNavButton, IncidentsNavButton, AlertHistoryNavButton, SettingsNavButton })
+        foreach (var button in new[] { OverviewNavButton, ScheduledChecksNavButton, IncidentsNavButton, AlertHistoryNavButton, SettingsNavButton })
         {
             button.Background = Brushes.Transparent;
             button.Foreground = (Brush)FindResource("MutedBrush");
