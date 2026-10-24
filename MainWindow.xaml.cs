@@ -32,6 +32,7 @@ public partial class MainWindow : Window
         Interval = TimeSpan.FromSeconds(1)
     };
     private bool _scheduledBatchRunning;
+    private bool _scheduleIntervalIsMinutes = true;
     private string _lastScheduledScanSummary = string.Empty;
     private readonly DispatcherTimer _databaseSyncTimer = new()
     {
@@ -414,9 +415,67 @@ public partial class MainWindow : Window
 
     private void SetScheduleIntervalControls(int intervalSeconds)
     {
-        var useMinutes = intervalSeconds >= 60 && intervalSeconds % 60 == 0;
-        ScheduleIntervalUnitComboBox.SelectedIndex = useMinutes ? 1 : 0;
-        ScheduleIntervalTextBox.Text = (useMinutes ? intervalSeconds / 60 : intervalSeconds).ToString();
+        _scheduleIntervalIsMinutes = intervalSeconds >= 60 && intervalSeconds % 60 == 0;
+        ScheduleIntervalTextBox.Text = (_scheduleIntervalIsMinutes
+            ? intervalSeconds / 60
+            : intervalSeconds).ToString();
+        UpdateScheduleUnitSelector();
+    }
+
+    private void ScheduleSecondsUnitButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_scheduledBatchRunning)
+        {
+            return;
+        }
+
+        _scheduleIntervalIsMinutes = false;
+        UpdateScheduleUnitSelector();
+    }
+
+    private void ScheduleMinutesUnitButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_scheduledBatchRunning)
+        {
+            return;
+        }
+
+        _scheduleIntervalIsMinutes = true;
+        UpdateScheduleUnitSelector();
+    }
+
+    private void UpdateScheduleUnitSelector()
+    {
+        var selectedBackground = (Brush)FindResource("Hex20385FBrush");
+        var selectedBorder = (Brush)FindResource("Hex477DFABrush");
+        var selectedForeground = (Brush)FindResource("HexEAF2FFBrush");
+        var idleForeground = (Brush)FindResource("MutedBrush");
+
+        ScheduleSecondsUnitButton.Background = _scheduleIntervalIsMinutes
+            ? Brushes.Transparent
+            : selectedBackground;
+        ScheduleSecondsUnitButton.BorderBrush = _scheduleIntervalIsMinutes
+            ? Brushes.Transparent
+            : selectedBorder;
+        ScheduleSecondsUnitButton.Foreground = _scheduleIntervalIsMinutes
+            ? idleForeground
+            : selectedForeground;
+        ScheduleSecondsUnitButton.FontWeight = _scheduleIntervalIsMinutes
+            ? FontWeights.Medium
+            : FontWeights.SemiBold;
+
+        ScheduleMinutesUnitButton.Background = _scheduleIntervalIsMinutes
+            ? selectedBackground
+            : Brushes.Transparent;
+        ScheduleMinutesUnitButton.BorderBrush = _scheduleIntervalIsMinutes
+            ? selectedBorder
+            : Brushes.Transparent;
+        ScheduleMinutesUnitButton.Foreground = _scheduleIntervalIsMinutes
+            ? selectedForeground
+            : idleForeground;
+        ScheduleMinutesUnitButton.FontWeight = _scheduleIntervalIsMinutes
+            ? FontWeights.SemiBold
+            : FontWeights.Medium;
     }
 
     private static string FormatInterval(int intervalSeconds)
@@ -503,7 +562,7 @@ public partial class MainWindow : Window
             return false;
         }
 
-        var intervalIsMinutes = ScheduleIntervalUnitComboBox.SelectedIndex == 1;
+        var intervalIsMinutes = _scheduleIntervalIsMinutes;
         var maximumValue = intervalIsMinutes ? 1440 : 86400;
         if (intervalValue > maximumValue)
         {
@@ -762,7 +821,8 @@ public partial class MainWindow : Window
         SaveScheduleButton.IsEnabled = !_scheduledBatchRunning;
         ScheduleEndpointsTextBox.IsEnabled = !_scheduledBatchRunning;
         ScheduleIntervalTextBox.IsEnabled = !_scheduledBatchRunning;
-        ScheduleIntervalUnitComboBox.IsEnabled = !_scheduledBatchRunning;
+        ScheduleSecondsUnitButton.IsEnabled = !_scheduledBatchRunning;
+        ScheduleMinutesUnitButton.IsEnabled = !_scheduledBatchRunning;
         RunScheduledNowButton.IsEnabled = !_scheduledBatchRunning && _scheduledEndpointStatuses.Count > 0;
         StartScheduleButton.IsEnabled = !_scheduledBatchRunning && !_scheduleConfiguration.IsEnabled;
         PauseScheduleButton.IsEnabled = !_scheduledBatchRunning && _scheduleConfiguration.IsEnabled;
