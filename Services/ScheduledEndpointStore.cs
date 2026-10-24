@@ -29,12 +29,21 @@ public sealed class ScheduledEndpointStore
 
         try
         {
-            var configuration = JsonSerializer.Deserialize<ScheduleConfiguration>(
-                File.ReadAllText(_path), JsonOptions);
+            var json = File.ReadAllText(_path);
+            var configuration = JsonSerializer.Deserialize<ScheduleConfiguration>(json, JsonOptions);
 
             if (configuration is null)
             {
                 return new ScheduleConfiguration();
+            }
+
+            // Migrate schedules created by the previous minute-only version.
+            using var document = JsonDocument.Parse(json);
+            if (!document.RootElement.TryGetProperty(nameof(ScheduleConfiguration.IntervalSeconds), out _) &&
+                document.RootElement.TryGetProperty("IntervalMinutes", out var legacyMinutes) &&
+                legacyMinutes.TryGetInt32(out var minutes))
+            {
+                configuration.IntervalSeconds = Math.Clamp(minutes, 1, 1440) * 60;
             }
 
             configuration.Endpoints ??= [];
@@ -44,7 +53,7 @@ public sealed class ScheduledEndpointStore
                 .Distinct(StringComparer.Ordinal)
                 .ToList();
 
-            configuration.IntervalMinutes = Math.Clamp(configuration.IntervalMinutes, 1, 1440);
+            configuration.IntervalSeconds = Math.Clamp(configuration.IntervalSeconds, 1, 86400);
             return configuration;
         }
         catch (Exception exception) when (
