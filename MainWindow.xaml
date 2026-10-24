@@ -812,7 +812,7 @@
                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                              VerticalContentAlignment="Top" AutomationProperties.Name="Scheduled endpoint list"/>
                     <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,0">
-                        <Button Content="Save endpoint list" Click="SaveScheduleButton_Click"/>
+                        <Button x:Name="SaveScheduleButton" Content="Save endpoint list" Click="SaveScheduleButton_Click"/>
                         <Button x:Name="RunScheduledNowButton" Content="Run all now"
                                 Style="{StaticResource SecondaryButton}" Click="RunScheduledNowButton_Click"
                                 Margin="9,0,0,0"/>
