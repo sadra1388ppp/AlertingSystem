@@ -121,10 +121,6 @@
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
         </Style>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <Style x:Key="IncidentListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0,0,0,9"/>
