@@ -446,7 +446,7 @@ public partial class MainWindow : Window
                 continue;
             }
 
-            if (!endpoints.Contains(normalized, StringComparer.OrdinalIgnoreCase))
+            if (!endpoints.Contains(normalized, StringComparer.Ordinal))
             {
                 endpoints.Add(normalized);
             }
