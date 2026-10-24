@@ -120,7 +120,7 @@
             <Setter Property="ContextMenu">
                 <Setter.Value>
                     <ContextMenu>
-                        <MenuItem Header="Delete incident"/>
+                        <MenuItem Header="Hide incident"/>
                     </ContextMenu>
                 </Setter.Value>
             </Setter>
@@ -701,7 +701,7 @@
                             <Setter Property="ContextMenu">
                                 <Setter.Value>
                                     <ContextMenu>
-                                        <MenuItem Header="Delete history entry"/>
+                                        <MenuItem Header="Hide history entry"/>
                                     </ContextMenu>
                                 </Setter.Value>
                             </Setter>
