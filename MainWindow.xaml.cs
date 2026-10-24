@@ -393,13 +393,13 @@ public partial class MainWindow : Window
     {
         _scheduleConfiguration = _scheduledEndpointStore.Load();
         ScheduleEndpointsTextBox.Text = string.Join(Environment.NewLine, _scheduleConfiguration.Endpoints);
-        ScheduleIntervalTextBox.Text = _scheduleConfiguration.IntervalMinutes.ToString();
+        SetScheduleIntervalControls(_scheduleConfiguration.IntervalSeconds);
         ScheduledEndpointsList.ItemsSource = _scheduledEndpointStatuses;
         RebuildScheduledEndpointStatuses(_scheduleConfiguration.Endpoints);
 
         if (_scheduleConfiguration.IsEnabled && _scheduleConfiguration.Endpoints.Count > 0)
         {
-            _scheduleConfiguration.NextRunAt ??= DateTime.Now.AddMinutes(_scheduleConfiguration.IntervalMinutes);
+            _scheduleConfiguration.NextRunAt ??= DateTime.Now.AddSeconds(_scheduleConfiguration.IntervalSeconds);
             _scheduledCheckTimer.Start();
         }
         else if (_scheduleConfiguration.IsEnabled)
@@ -410,6 +410,39 @@ public partial class MainWindow : Window
         }
 
         UpdateScheduledChecksUI();
+    }
+
+    private void SetScheduleIntervalControls(int intervalSeconds)
+    {
+        var useMinutes = intervalSeconds >= 60 && intervalSeconds % 60 == 0;
+        ScheduleIntervalUnitComboBox.SelectedIndex = useMinutes ? 1 : 0;
+        ScheduleIntervalTextBox.Text = (useMinutes ? intervalSeconds / 60 : intervalSeconds).ToString();
+    }
+
+    private static string FormatInterval(int intervalSeconds)
+    {
+        if (intervalSeconds >= 60 && intervalSeconds % 60 == 0)
+        {
+            var minutes = intervalSeconds / 60;
+            return $"{minutes} minute{(minutes == 1 ? string.Empty : "s")}";
+        }
+
+        return $"{intervalSeconds} second{(intervalSeconds == 1 ? string.Empty : "s")}";
+    }
+
+    private static string FormatNextRun(DateTime nextRun)
+    {
+        var remaining = nextRun - DateTime.Now;
+        if (remaining < TimeSpan.Zero)
+        {
+            remaining = TimeSpan.Zero;
+        }
+
+        var countdown = remaining.TotalHours >= 1
+            ? $"{(int)remaining.TotalHours:00}:{remaining.Minutes:00}:{remaining.Seconds:00}"
+            : $"{(int)remaining.TotalMinutes:00}:{remaining.Seconds:00}";
+
+        return $"In {countdown}  •  {nextRun:HH:mm:ss}";
     }
 
     private void SaveScheduleButton_Click(object sender, RoutedEventArgs e)
@@ -462,23 +495,35 @@ public partial class MainWindow : Window
             return false;
         }
 
-        if (!int.TryParse(ScheduleIntervalTextBox.Text.Trim(), out var intervalMinutes) ||
-            intervalMinutes < 1 || intervalMinutes > 1440)
+        if (!int.TryParse(ScheduleIntervalTextBox.Text.Trim(), out var intervalValue) ||
+            intervalValue < 1)
         {
-            MessageBox.Show(this, "Choose an interval between 1 and 1440 minutes.",
+            MessageBox.Show(this, "Enter a positive whole number for the check interval.",
                 "Invalid interval", MessageBoxButton.OK, MessageBoxImage.Warning);
             return false;
         }
 
+        var intervalIsMinutes = ScheduleIntervalUnitComboBox.SelectedIndex == 1;
+        var maximumValue = intervalIsMinutes ? 1440 : 86400;
+        if (intervalValue > maximumValue)
+        {
+            MessageBox.Show(this,
+                intervalIsMinutes
+                    ? "The maximum interval is 1440 minutes (24 hours)."
+                    : "The maximum interval is 86400 seconds (24 hours).",
+                "Invalid interval", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        var intervalSeconds = intervalIsMinutes ? intervalValue * 60 : intervalValue;
         _scheduleConfiguration.Endpoints = endpoints;
-        _scheduleConfiguration.IntervalMinutes = intervalMinutes;
+        _scheduleConfiguration.IntervalSeconds = intervalSeconds;
         if (_scheduleConfiguration.IsEnabled)
         {
-            _scheduleConfiguration.NextRunAt = DateTime.Now.AddMinutes(intervalMinutes);
+            _scheduleConfiguration.NextRunAt = DateTime.Now.AddSeconds(intervalSeconds);
         }
 
         ScheduleEndpointsTextBox.Text = string.Join(Environment.NewLine, endpoints);
-        ScheduleIntervalTextBox.Text = intervalMinutes.ToString();
         RebuildScheduledEndpointStatuses(endpoints);
 
         if (!SaveScheduleConfigurationSafely())
@@ -565,7 +610,7 @@ public partial class MainWindow : Window
         }
 
         _scheduleConfiguration.IsEnabled = true;
-        _scheduleConfiguration.NextRunAt = DateTime.Now.AddMinutes(_scheduleConfiguration.IntervalMinutes);
+        _scheduleConfiguration.NextRunAt = DateTime.Now.AddSeconds(_scheduleConfiguration.IntervalSeconds);
         if (!SaveScheduleConfigurationSafely())
         {
             _scheduleConfiguration.IsEnabled = false;
@@ -622,7 +667,7 @@ public partial class MainWindow : Window
 
         if (_scheduleConfiguration.NextRunAt is null)
         {
-            _scheduleConfiguration.NextRunAt = DateTime.Now.AddMinutes(_scheduleConfiguration.IntervalMinutes);
+            _scheduleConfiguration.NextRunAt = DateTime.Now.AddSeconds(_scheduleConfiguration.IntervalSeconds);
             SaveScheduleConfigurationSafely();
             UpdateScheduledChecksUI();
             return;
@@ -631,6 +676,10 @@ public partial class MainWindow : Window
         if (DateTime.Now >= _scheduleConfiguration.NextRunAt.Value)
         {
             await RunScheduledBatchAsync();
+        }
+        else
+        {
+            ScheduleNextRunText.Text = FormatNextRun(_scheduleConfiguration.NextRunAt.Value);
         }
     }
 
@@ -678,7 +727,7 @@ public partial class MainWindow : Window
 
             if (_scheduleConfiguration.IsEnabled)
             {
-                _scheduleConfiguration.NextRunAt = DateTime.Now.AddMinutes(_scheduleConfiguration.IntervalMinutes);
+                _scheduleConfiguration.NextRunAt = DateTime.Now.AddSeconds(_scheduleConfiguration.IntervalSeconds);
             }
 
             SaveScheduleConfigurationSafely();
@@ -713,6 +762,7 @@ public partial class MainWindow : Window
         SaveScheduleButton.IsEnabled = !_scheduledBatchRunning;
         ScheduleEndpointsTextBox.IsEnabled = !_scheduledBatchRunning;
         ScheduleIntervalTextBox.IsEnabled = !_scheduledBatchRunning;
+        ScheduleIntervalUnitComboBox.IsEnabled = !_scheduledBatchRunning;
         RunScheduledNowButton.IsEnabled = !_scheduledBatchRunning && _scheduledEndpointStatuses.Count > 0;
         StartScheduleButton.IsEnabled = !_scheduledBatchRunning && !_scheduleConfiguration.IsEnabled;
         PauseScheduleButton.IsEnabled = !_scheduledBatchRunning && _scheduleConfiguration.IsEnabled;
@@ -732,10 +782,10 @@ public partial class MainWindow : Window
             ScheduleStatusBadgeText.Foreground = (Brush)FindResource("SuccessBrush");
             ScheduleStatusIndicator.Fill = (Brush)FindResource("SuccessBrush");
             ScheduleNextRunText.Text = _scheduleConfiguration.NextRunAt is DateTime nextRun
-                ? nextRun.ToString("ddd, dd MMM yyyy • HH:mm:ss")
+                ? FormatNextRun(nextRun)
                 : "Calculating…";
             ScheduleStatusText.Text = string.IsNullOrWhiteSpace(_lastScheduledScanSummary)
-                ? $"Automatic checks are active. A new cycle starts every {_scheduleConfiguration.IntervalMinutes} minute(s) after the previous scan finishes."
+                ? $"Automatic checks are active every {FormatInterval(_scheduleConfiguration.IntervalSeconds)} after the previous scan finishes."
                 : _lastScheduledScanSummary;
         }
         else
