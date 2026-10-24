@@ -110,32 +110,17 @@
             <Setter Property="Foreground" Value="{DynamicResource HexD8E4F5Brush}"/>
         </Style>
 
-        <Style x:Key="ScheduleIntervalUnitComboBoxStyle" TargetType="{x:Type ComboBox}">
-            <Setter Property="Background" Value="{DynamicResource Hex0B1425Brush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Style x:Key="ScheduleUnitSegmentButton" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,7"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="MinHeight" Value="40"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="ItemContainerStyle">
-                <Setter.Value>
-                    <Style TargetType="{x:Type ComboBoxItem}">
-                        <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
-                        <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-                        <Setter Property="Padding" Value="10,8"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{DynamicResource Hex18253BBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="{DynamicResource Hex20385FBrush}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource HexEAF2FFBrush}"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="MinWidth" Value="76"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
                 </Setter.Value>
             </Setter>
         </Style>
@@ -925,13 +910,25 @@
                         <TextBox x:Name="ScheduleIntervalTextBox" Grid.Column="1" Text="5"
                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                  AutomationProperties.Name="Schedule interval value" Padding="8,9"/>
-                        <ComboBox x:Name="ScheduleIntervalUnitComboBox" Grid.Column="2"
-                                  Style="{StaticResource ScheduleIntervalUnitComboBoxStyle}"
-                                  SelectedIndex="1" Margin="9,0,0,0"
-                                  AutomationProperties.Name="Schedule interval unit">
-                            <ComboBoxItem Content="Seconds"/>
-                            <ComboBoxItem Content="Minutes"/>
-                        </ComboBox>
+                        <Border Grid.Column="2" Margin="9,0,0,0" Padding="3"
+                                Background="{DynamicResource Hex0B1425Brush}"
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="10" VerticalAlignment="Stretch">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="ScheduleSecondsUnitButton" Content="Seconds"
+                                        Style="{StaticResource ScheduleUnitSegmentButton}"
+                                        Click="ScheduleSecondsUnitButton_Click"
+                                        AutomationProperties.Name="Use seconds as schedule unit"/>
+                                <Button x:Name="ScheduleMinutesUnitButton" Grid.Column="1" Content="Minutes"
+                                        Style="{StaticResource ScheduleUnitSegmentButton}"
+                                        Click="ScheduleMinutesUnitButton_Click"
+                                        AutomationProperties.Name="Use minutes as schedule unit"/>
+                            </Grid>
+                        </Border>
                     </Grid>
 
                     <Grid Grid.Row="2" Margin="0,0,0,13">
