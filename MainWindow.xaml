@@ -110,6 +110,36 @@
             <Setter Property="Foreground" Value="{DynamicResource HexD8E4F5Brush}"/>
         </Style>
 
+        <Style x:Key="ScheduleIntervalUnitComboBoxStyle" TargetType="{x:Type ComboBox}">
+            <Setter Property="Background" Value="{DynamicResource Hex0B1425Brush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="MinHeight" Value="40"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type ComboBoxItem}">
+                        <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                        <Setter Property="Padding" Value="10,8"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Hex18253BBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Hex20385FBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource HexEAF2FFBrush}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="IncidentListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0,0,0,9"/>
@@ -754,36 +784,45 @@
             </Grid>
         </Border>
     </Grid>
-    <Grid x:Name="ScheduledChecksPage" Grid.Column="1" Margin="28,25,28,25" Visibility="Collapsed">
+    <Grid x:Name="ScheduledChecksPage" Grid.Column="1" Margin="30,24,30,24" Visibility="Collapsed">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Page heading -->
         <Grid Grid.Row="0" Margin="0,0,0,18">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel>
-                <TextBlock Text="Scheduled monitoring" FontSize="27" FontWeight="Bold"
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="MONITORING  /  AUTOMATION" FontSize="10" FontWeight="Bold"
+                           Foreground="{DynamicResource NeutralBrush}" Margin="0,0,0,7"/>
+                <TextBlock Text="Scheduled checks" FontSize="28" FontWeight="Bold"
                            Foreground="{DynamicResource TextBrush}"/>
-                <TextBlock Text="Monitor a list of websites or API endpoints on your own schedule."
-                           FontSize="13" Foreground="{DynamicResource MutedBrush}" Margin="0,7,0,0"/>
+                <TextBlock Text="Build a target list, choose your cadence, and let the monitor run the checks."
+                           FontSize="12" Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,0"
+                           TextWrapping="Wrap"/>
             </StackPanel>
             <Border Grid.Column="1" Background="{DynamicResource Hex0B1425Brush}"
                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                    CornerRadius="9" Padding="13,10" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal">
-                    <Ellipse x:Name="ScheduleStatusIndicator" Width="8" Height="8"
-                             Fill="{DynamicResource WarningBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <TextBlock x:Name="ScheduleStatusBadgeText" Text="PAUSED" FontSize="10"
-                               FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
+                    CornerRadius="10" Padding="14,11" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse x:Name="ScheduleStatusIndicator" Width="9" Height="9"
+                             Fill="{DynamicResource WarningBrush}" VerticalAlignment="Center" Margin="0,0,9,0"/>
+                    <StackPanel>
+                        <TextBlock Text="SCHEDULER" FontSize="9" FontWeight="Bold"
+                                   Foreground="{DynamicResource MutedBrush}"/>
+                        <TextBlock x:Name="ScheduleStatusBadgeText" Text="PAUSED" FontSize="11"
+                                   FontWeight="Bold" Foreground="{DynamicResource TextBrush}" Margin="0,3,0,0"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>
 
+        <!-- Target editor and cadence controls -->
         <Grid Grid.Row="1" Margin="0,0,0,14">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.08*"/>
@@ -792,104 +831,203 @@
 
             <Border Grid.Column="0" Background="{DynamicResource CardBrush}"
                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                    CornerRadius="12" Padding="18" Margin="0,0,10,0">
+                    CornerRadius="14" Padding="18" Margin="0,0,10,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="140"/>
+                        <RowDefinition Height="118"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="Endpoint list" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextBrush}"/>
-                        <TextBlock Text="Add one URL or domain per line. Domains without http:// or https:// use HTTPS."
-                                   FontSize="11" Foreground="{DynamicResource MutedBrush}"
-                                   TextWrapping="Wrap" Margin="0,6,0,12"/>
-                    </StackPanel>
-                    <TextBox x:Name="ScheduleEndpointsTextBox" Grid.Row="2"
-                             Height="140" AcceptsReturn="True" TextWrapping="Wrap"
-                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                             VerticalContentAlignment="Top" AutomationProperties.Name="Scheduled endpoint list"/>
-                    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,0">
-                        <Button x:Name="SaveScheduleButton" Content="Save endpoint list" Click="SaveScheduleButton_Click"/>
-                        <Button x:Name="RunScheduledNowButton" Content="Run all now"
-                                Style="{StaticResource SecondaryButton}" Click="RunScheduledNowButton_Click"
-                                Margin="9,0,0,0"/>
-                    </StackPanel>
+                    <Grid Grid.Row="0" Margin="0,0,0,7">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="32" Height="32" CornerRadius="9"
+                                Background="{DynamicResource Hex20385FBrush}" VerticalAlignment="Center">
+                            <TextBlock Text="01" FontSize="11" FontWeight="Bold"
+                                       Foreground="{DynamicResource HexEAF2FFBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Monitoring targets" FontSize="15" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextBrush}"/>
+                            <TextBlock Text="One URL or domain per line" FontSize="10"
+                                       Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,0"/>
+                        </StackPanel>
+                        <Border Grid.Column="2" CornerRadius="7" Padding="9,5"
+                                Background="{DynamicResource Hex0B1425Brush}"
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                VerticalAlignment="Center">
+                            <TextBlock x:Name="ScheduledEndpointCountText" Text="0 endpoints"
+                                       FontSize="10" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource MutedBrush}"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="Paste multiple addresses below. A domain without a scheme is checked over HTTPS."
+                               FontSize="11" LineHeight="16" Foreground="{DynamicResource MutedBrush}"
+                               TextWrapping="Wrap" Margin="0,0,0,10"/>
+                    <TextBox x:Name="ScheduleEndpointsTextBox" Grid.Row="2" Height="118"
+                             AcceptsReturn="True" TextWrapping="NoWrap"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                             VerticalContentAlignment="Top" AutomationProperties.Name="Scheduled endpoint list"
+                             FontFamily="Consolas" FontSize="12" Padding="11,9"/>
+                    <Grid Grid.Row="3" Margin="0,13,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="SaveScheduleButton" Content="Save targets"
+                                Click="SaveScheduleButton_Click" HorizontalAlignment="Left"
+                                Padding="14,10"/>
+                        <Button x:Name="RunScheduledNowButton" Grid.Column="1" Content="▶  Run all now"
+                                Style="{StaticResource SecondaryButton}"
+                                Click="RunScheduledNowButton_Click" Padding="13,10"/>
+                    </Grid>
                 </Grid>
             </Border>
 
             <Border Grid.Column="1" Background="{DynamicResource CardBrush}"
                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                    CornerRadius="12" Padding="18">
-                <StackPanel>
-                    <TextBlock Text="Schedule settings" FontSize="16" FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextBrush}"/>
-                    <TextBlock Text="After each complete scan, wait this long before starting the next one."
-                               FontSize="11" Foreground="{DynamicResource MutedBrush}"
-                               TextWrapping="Wrap" Margin="0,6,0,14"/>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Check every" FontSize="12"
-                                   Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
-                        <TextBox x:Name="ScheduleIntervalTextBox" Text="5" Width="72"
-                                 Margin="10,0,9,0" HorizontalContentAlignment="Center"
-                                 AutomationProperties.Name="Schedule interval in minutes"/>
-                        <TextBlock Text="minutes" FontSize="12"
-                                   Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                        <Button x:Name="StartScheduleButton" Content="Start schedule"
-                                Click="StartScheduleButton_Click"/>
-                        <Button x:Name="PauseScheduleButton" Content="Pause"
-                                Style="{StaticResource SecondaryButton}"
-                                Click="PauseScheduleButton_Click" Margin="9,0,0,0"/>
-                    </StackPanel>
-                    <Border Background="{DynamicResource Hex0B1425Brush}"
-                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                            CornerRadius="8" Padding="12" Margin="0,16,0,0">
-                        <StackPanel>
-                            <TextBlock Text="NEXT AUTOMATIC SCAN" FontSize="9" FontWeight="Bold"
-                                       Foreground="{DynamicResource MutedBrush}"/>
-                            <TextBlock x:Name="ScheduleNextRunText" Text="Not scheduled"
-                                       FontSize="14" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextBrush}" Margin="0,6,0,0"/>
-                            <TextBlock x:Name="ScheduleStatusText" Text="Add endpoints and start the schedule."
-                                       FontSize="11" Foreground="{DynamicResource MutedBrush}"
-                                       TextWrapping="Wrap" Margin="0,6,0,0"/>
+                    CornerRadius="14" Padding="18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,14">
+                        <Border Width="32" Height="32" CornerRadius="9"
+                                Background="{DynamicResource Hex302713Brush}" VerticalAlignment="Center">
+                            <TextBlock Text="02" FontSize="11" FontWeight="Bold"
+                                       Foreground="{DynamicResource HexFDE68ABrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Check cadence" FontSize="15" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextBrush}"/>
+                            <TextBlock Text="Pick a repeat interval" FontSize="10"
+                                       Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,0"/>
                         </StackPanel>
+                    </StackPanel>
+
+                    <Grid Grid.Row="1" Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="86"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Every" FontSize="12" Foreground="{DynamicResource TextBrush}"
+                                   VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBox x:Name="ScheduleIntervalTextBox" Grid.Column="1" Text="5"
+                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                 AutomationProperties.Name="Schedule interval value" Padding="8,9"/>
+                        <ComboBox x:Name="ScheduleIntervalUnitComboBox" Grid.Column="2"
+                                  Style="{StaticResource ScheduleIntervalUnitComboBoxStyle}"
+                                  SelectedIndex="1" Margin="9,0,0,0"
+                                  AutomationProperties.Name="Schedule interval unit">
+                            <ComboBoxItem Content="Seconds"/>
+                            <ComboBoxItem Content="Minutes"/>
+                        </ComboBox>
+                    </Grid>
+
+                    <Grid Grid.Row="2" Margin="0,0,0,13">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="StartScheduleButton" Content="▶  Start schedule"
+                                Click="StartScheduleButton_Click" Margin="0,0,5,0"
+                                HorizontalAlignment="Stretch" Padding="10,10"/>
+                        <Button x:Name="PauseScheduleButton" Grid.Column="1" Content="Ⅱ  Pause"
+                                Style="{StaticResource SecondaryButton}"
+                                Click="PauseScheduleButton_Click" Margin="5,0,0,0"
+                                HorizontalAlignment="Stretch" Padding="10,10"/>
+                    </Grid>
+
+                    <Border Grid.Row="3" Background="{DynamicResource Hex0B1425Brush}"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="10" Padding="12" VerticalAlignment="Stretch">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Width="34" Height="34" CornerRadius="9"
+                                    Background="{DynamicResource Hex18253BBrush}"
+                                    VerticalAlignment="Top" Margin="0,0,11,0">
+                                <TextBlock Text="◷" FontSize="19"
+                                           Foreground="{DynamicResource NeutralBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="NEXT CHECK" FontSize="9" FontWeight="Bold"
+                                           Foreground="{DynamicResource MutedBrush}"/>
+                                <TextBlock x:Name="ScheduleNextRunText" Text="Not scheduled"
+                                           FontSize="19" FontWeight="Bold"
+                                           Foreground="{DynamicResource TextBrush}" Margin="0,5,0,0"/>
+                                <TextBlock x:Name="ScheduleStatusText" Text="Add targets and start the schedule."
+                                           FontSize="10" Foreground="{DynamicResource MutedBrush}"
+                                           TextWrapping="Wrap" Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </Grid>
                     </Border>
-                    <TextBlock Text="Automatic checks run while AlertingSystem is open. Your schedule is saved locally and resumes when the app starts again."
-                               FontSize="10" Foreground="{DynamicResource MutedBrush}"
-                               TextWrapping="Wrap" Margin="0,12,0,0"/>
-                </StackPanel>
+                </Grid>
             </Border>
         </Grid>
 
+        <!-- Live results -->
         <Border Grid.Row="2" Background="{DynamicResource CardBrush}"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                CornerRadius="12" Padding="16">
+                CornerRadius="14" Padding="16">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0" Margin="0,0,0,10">
+                <Grid Grid.Row="0" Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel>
-                        <TextBlock Text="Monitoring list" FontSize="15" FontWeight="SemiBold"
+                        <TextBlock Text="Endpoint status" FontSize="16" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextBrush}"/>
-                        <TextBlock Text="Each result is also recorded in Alert history and can open or resolve an incident."
-                                   FontSize="11" Foreground="{DynamicResource MutedBrush}" Margin="0,5,0,0"/>
+                        <TextBlock Text="Live results from manual batch runs and automatic scans."
+                                   FontSize="11" Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0"/>
                     </StackPanel>
-                    <TextBlock x:Name="ScheduledEndpointCountText" Grid.Column="1" Text="0 endpoints"
-                               FontSize="11" Foreground="{DynamicResource MutedBrush}"
-                               VerticalAlignment="Center"/>
+                    <Border Grid.Column="1" CornerRadius="7" Padding="9,5"
+                            Background="{DynamicResource Hex0B1425Brush}"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="HTTP / HTTPS" FontSize="9" FontWeight="Bold"
+                                   Foreground="{DynamicResource MutedBrush}"/>
+                    </Border>
                 </Grid>
-                <Grid Grid.Row="1">
+
+                <Grid Grid.Row="1" Margin="10,0,10,7">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="2.2*"/>
+                        <ColumnDefinition Width="1.35*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="1" Text="ENDPOINT" FontSize="9" FontWeight="Bold"
+                               Foreground="{DynamicResource MutedBrush}"/>
+                    <TextBlock Grid.Column="2" Text="LAST CHECK" FontSize="9" FontWeight="Bold"
+                               Foreground="{DynamicResource MutedBrush}"/>
+                    <TextBlock Grid.Column="3" Text="STATUS" FontSize="9" FontWeight="Bold"
+                               Foreground="{DynamicResource MutedBrush}" Margin="12,0,18,0"/>
+                    <TextBlock Grid.Column="4" Text="LATENCY" FontSize="9" FontWeight="Bold"
+                               Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right"/>
+                </Grid>
+
+                <Grid Grid.Row="2">
                     <ListBox x:Name="ScheduledEndpointsList" Background="Transparent" BorderThickness="0"
                              Padding="0" ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <ListBox.ItemContainerStyle>
@@ -905,37 +1043,48 @@
                             <DataTemplate>
                                 <Border Background="{DynamicResource Hex101A2BBrush}"
                                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                                        CornerRadius="8" Padding="12">
+                                        CornerRadius="9" Padding="10,11">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="5"/>
+                                            <ColumnDefinition Width="2.2*"/>
+                                            <ColumnDefinition Width="1.35*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Endpoint}" FontSize="12"
+                                        <Border Grid.Column="0" Background="{Binding ResultBrush}"
+                                                CornerRadius="2" Margin="0,1,0,1"/>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,8,0">
+                                            <TextBlock Text="{Binding Endpoint}" FontSize="11"
                                                        FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"
                                                        TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Text="{Binding LastCheckedDisplay}" FontSize="10"
-                                                       Foreground="{DynamicResource MutedBrush}" Margin="0,5,0,0"/>
+                                            <TextBlock Text="{Binding LastCheckedDisplay}" FontSize="9"
+                                                       Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0"
+                                                       TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center"
-                                                    HorizontalAlignment="Right" Margin="12,0,0,0">
-                                            <TextBlock Text="{Binding LastResult}" FontSize="11"
-                                                       FontWeight="SemiBold" Foreground="{Binding ResultBrush}"
-                                                       HorizontalAlignment="Right"/>
-                                            <TextBlock Text="{Binding ResponseTimeDisplay}" FontSize="10"
-                                                       Foreground="{DynamicResource MutedBrush}"
-                                                       HorizontalAlignment="Right" Margin="0,5,0,0"/>
-                                        </StackPanel>
+                                        <TextBlock Grid.Column="2" Text="{Binding LastCheckedAt, StringFormat='{}{0:MMM dd, HH:mm:ss}'}"
+                                                   FontSize="10" Foreground="{DynamicResource MutedBrush}"
+                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                        <Border Grid.Column="3" CornerRadius="6" Padding="8,5"
+                                                Background="{DynamicResource Hex0B1425Brush}"
+                                                BorderBrush="{Binding ResultBrush}" BorderThickness="1"
+                                                VerticalAlignment="Center" Margin="12,0,16,0">
+                                            <TextBlock Text="{Binding LastResult}" FontSize="9" FontWeight="Bold"
+                                                       Foreground="{Binding ResultBrush}" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock Grid.Column="4" Text="{Binding ResponseTimeDisplay}"
+                                                   FontSize="10" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextBrush}"
+                                                   VerticalAlignment="Center" HorizontalAlignment="Right"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                     <TextBlock x:Name="ScheduledEndpointsEmptyText"
-                               Text="Your scheduled endpoint list is empty. Add URLs above, then save the list."
+                               Text="No targets yet. Add a few URLs above, save the list, and start a scan."
                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                               TextAlignment="Center" TextWrapping="Wrap" MaxWidth="430"
+                               TextAlignment="Center" TextWrapping="Wrap" MaxWidth="400"
                                FontSize="12" Foreground="{DynamicResource MutedBrush}"
                                IsHitTestVisible="False"/>
                 </Grid>
