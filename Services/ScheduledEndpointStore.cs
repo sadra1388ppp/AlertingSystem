@@ -37,10 +37,11 @@ public sealed class ScheduledEndpointStore
                 return new ScheduleConfiguration();
             }
 
+            configuration.Endpoints ??= [];
             configuration.Endpoints = configuration.Endpoints
                 .Where(endpoint => !string.IsNullOrWhiteSpace(endpoint))
                 .Select(endpoint => endpoint.Trim())
-                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Distinct(StringComparer.Ordinal)
                 .ToList();
 
             configuration.IntervalMinutes = Math.Clamp(configuration.IntervalMinutes, 1, 1440);
