@@ -592,6 +592,10 @@
                     <StackPanel Orientation="Horizontal" Margin="0,13,0,0">
                         <Button x:Name="MarkDoneIncidentButton" Content="Mark as done"
                                 Click="MarkDoneIncidentButton_Click" IsEnabled="False"
+                                Padding="12,9" Margin="0,0,7,0"/>
+                        <Button x:Name="EditIncidentReasonButton" Content="Edit reason"
+                                Style="{StaticResource SecondaryButton}"
+                                Click="EditIncidentReasonButton_Click" IsEnabled="False"
                                 Padding="12,9"/>
                     </StackPanel>
                 </StackPanel>
@@ -607,6 +611,7 @@
                                         BorderThickness="1" CornerRadius="9" Padding="14">
                                     <Grid>
                                         <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
@@ -643,10 +648,15 @@
                                                    FontSize="12" Margin="0,8,0,0"
                                                    Foreground="{DynamicResource MutedBrush}"
                                                    TextWrapping="Wrap"/>
-                                        <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="{Binding ActivityDisplay}"
+                                        <TextBlock Grid.Row="4" Grid.ColumnSpan="2"
+                                                   Text="{Binding Reason, TargetNullValue=Not documented}"
+                                                   FontSize="12" Margin="0,9,0,0"
+                                                   Foreground="{DynamicResource WarningBrush}"
+                                                   TextWrapping="Wrap"/>
+                                        <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="{Binding ActivityDisplay}"
                                                    FontSize="10" Margin="0,10,0,0"
                                                    Foreground="{DynamicResource Hex71829CBrush}" TextWrapping="Wrap"/>
-                                        <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="{Binding ResolutionNote}"
+                                        <TextBlock Grid.Row="6" Grid.ColumnSpan="2" Text="{Binding ResolutionNote}"
                                                    FontSize="11" Margin="0,5,0,0"
                                                    Foreground="{DynamicResource SuccessBrush}"
                                                    TextWrapping="Wrap"/>
