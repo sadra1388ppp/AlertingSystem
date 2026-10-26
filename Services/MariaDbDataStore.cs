@@ -73,10 +73,20 @@ public sealed class MariaDbDataStore
 
     private void EnsureIncidentReasonColumn(AlertingDbContext db)
     {
-        // EnsureCreated does not add columns to an existing database. Upgrade the existing
-        // incident table in place so all prior incident records are preserved.
-        var tableName = _useSimplifiedIncidentTable ? "incident_records" : "Incidents";
-        db.Database.ExecuteSqlRaw($"ALTER TABLE `{tableName}` ADD COLUMN IF NOT EXISTS `Reason` TEXT NULL");
+        // Repair old NULL values before EF materializes Reason as a non-nullable string.
+        // Only fixed table identifiers are used in these statements.
+        if (_useSimplifiedIncidentTable)
+        {
+            db.Database.ExecuteSqlRaw("ALTER TABLE incident_records ADD COLUMN IF NOT EXISTS Reason TEXT NULL");
+            db.Database.ExecuteSqlRaw("UPDATE incident_records SET Reason = '' WHERE Reason IS NULL");
+            db.Database.ExecuteSqlRaw("ALTER TABLE incident_records MODIFY COLUMN Reason TEXT NOT NULL");
+        }
+        else
+        {
+            db.Database.ExecuteSqlRaw("ALTER TABLE Incidents ADD COLUMN IF NOT EXISTS Reason TEXT NULL");
+            db.Database.ExecuteSqlRaw("UPDATE Incidents SET Reason = '' WHERE Reason IS NULL");
+            db.Database.ExecuteSqlRaw("ALTER TABLE Incidents MODIFY COLUMN Reason TEXT NOT NULL");
+        }
     }
 
     public List<Incident> LoadIncidents()
@@ -117,7 +127,7 @@ public sealed class MariaDbDataStore
         db.SaveChanges();
     }
 
-    public void SaveIncident(Incident incident, bool allowInsert = false)
+    public bool SaveIncident(Incident incident, bool allowInsert = false)
     {
         using var db = CreateContext();
         var stored = db.Incidents.FirstOrDefault(
@@ -127,7 +137,7 @@ public sealed class MariaDbDataStore
         {
             if (!allowInsert)
             {
-                return;
+                return false;
             }
 
             db.Incidents.Add(incident);
@@ -138,6 +148,7 @@ public sealed class MariaDbDataStore
         }
 
         db.SaveChanges();
+        return true;
     }
 
     public HashSet<long> LoadCheckHistoryIds()
