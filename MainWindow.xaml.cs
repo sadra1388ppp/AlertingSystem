@@ -40,6 +40,7 @@ public partial class MainWindow : Window
     };
     private int _checksRun;
     private bool _showAllIncidents;
+    private string? _displayedIncidentNumber;
     private bool _storageWarningShown;
     private bool _isLightTheme;
     private bool _isUpdatingThemeOptions;
@@ -170,6 +171,10 @@ public partial class MainWindow : Window
         _checkHistory = databaseHistory
             .Where(entry => !_hiddenItems.IsHistoryEntryHidden(entry.Id))
             .ToList();
+
+        IncidentSearchTextBox.TextChanged += IncidentSearchTextBox_TextChanged;
+        IncidentSeverityFilterComboBox.SelectionChanged += IncidentSeverityFilterComboBox_SelectionChanged;
+        IncidentReasonTextBox.TextChanged += IncidentReasonTextBox_TextChanged;
 
         RefreshIncidentUI();
         RefreshCheckHistoryUI();
@@ -912,7 +917,8 @@ public partial class MainWindow : Window
         {
             incident.Title = title;
             incident.Details = details;
-            if (string.IsNullOrWhiteSpace(incident.Reason))
+            if (string.IsNullOrWhiteSpace(incident.Reason) ||
+                incident.Reason.StartsWith("Auto-detected:", StringComparison.OrdinalIgnoreCase))
             {
                 incident.Reason = $"Auto-detected: {details}";
             }
@@ -988,16 +994,17 @@ public partial class MainWindow : Window
         ChecksRunText.Text = _checksRun.ToString();
     }
 
-    private void PersistIncident(Incident incident, bool allowInsert = false)
+    private bool PersistIncident(Incident incident, bool allowInsert = false)
     {
         try
         {
-            _dataStore.SaveIncident(incident, allowInsert);
+            return _dataStore.SaveIncident(incident, allowInsert);
         }
         catch (Exception exception) when (
             exception is DbException or DbUpdateException or IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
             ShowStorageWarning(exception);
+            return false;
         }
     }
 
@@ -1086,6 +1093,7 @@ public partial class MainWindow : Window
                 existing.Title != item.Title ||
                 existing.Details != item.Details ||
                 existing.ResolutionNote != item.ResolutionNote ||
+                existing.Reason != item.Reason ||
                 existing.Severity != item.Severity ||
                 existing.Status != item.Status ||
                 existing.FirstOccurredAt != item.FirstOccurredAt ||
@@ -1129,37 +1137,115 @@ public partial class MainWindow : Window
 
     private void RefreshIncidentUI()
     {
-        var openCount = _incidents.Count(item => item.Status == IncidentStatus.Open);
+        var openIncidents = _incidents.Where(item => item.Status == IncidentStatus.Open).ToList();
+        var openCount = openIncidents.Count;
         var doneCount = _incidents.Count(item => item.Status == IncidentStatus.Done);
+        var criticalCount = openIncidents.Count(item => item.Severity == IncidentSeverity.Critical);
         OpenIncidentCountText.Text = openCount.ToString();
+        CriticalIncidentCountText.Text = criticalCount.ToString();
         TotalIncidentCountText.Text = _incidents.Count.ToString();
         DoneIncidentCountText.Text = doneCount.ToString();
         OverviewOpenIncidentsCountText.Text = $"{openCount} open incident(s)";
 
+        var selectedNumber = (IncidentsListBox.SelectedItem as Incident)?.IncidentNumber ?? _displayedIncidentNumber;
+        var search = IncidentSearchTextBox.Text.Trim();
+        IncidentSeverity? severityFilter = IncidentSeverityFilterComboBox.SelectedIndex switch
+        {
+            1 => IncidentSeverity.Critical, 2 => IncidentSeverity.High,
+            3 => IncidentSeverity.Medium, 4 => IncidentSeverity.Low, _ => null
+        };
         var visibleIncidents = _incidents
-            .Where(item => _showAllIncidents || item.Status != IncidentStatus.Done)
-            .OrderByDescending(item => item.Status != IncidentStatus.Done)
-            .ThenByDescending(item => item.LastOccurredAt)
-            .ToList();
+            .Where(item => _showAllIncidents || item.Status == IncidentStatus.Open)
+            .Where(item => severityFilter is null || item.Severity == severityFilter.Value)
+            .Where(item => string.IsNullOrWhiteSpace(search) ||
+                (item.IncidentNumber ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (item.Title ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (item.EndpointUrl ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (item.Details ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (item.Reason ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (item.ResolutionNote ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(item => item.Status == IncidentStatus.Open)
+            .ThenBy(item => item.Severity)
+            .ThenByDescending(item => item.LastOccurredAt).ToList();
 
         IncidentsListBox.ItemsSource = visibleIncidents;
+        IncidentsListBox.SelectedItem = selectedNumber is null ? null :
+            visibleIncidents.FirstOrDefault(item => string.Equals(item.IncidentNumber, selectedNumber, StringComparison.OrdinalIgnoreCase));
+        if (IncidentsListBox.SelectedItem is null && visibleIncidents.Count > 0) IncidentsListBox.SelectedIndex = 0;
+        IncidentQueueCountText.Text = $"{visibleIncidents.Count} item(s)";
         IncidentFilterDescriptionText.Text = _showAllIncidents
-            ? "Showing all incidents, including done incidents"
-            : "Showing open incidents";
-        IncidentsEmptyText.Text = _showAllIncidents
-            ? "No incidents have been recorded yet. Run a failing endpoint check to create one."
-            : "No open incidents. Run a failing endpoint check to test incident creation.";
-        IncidentsEmptyText.Visibility = visibleIncidents.Count == 0
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-
+            ? $"Showing {visibleIncidents.Count} of {_incidents.Count} incident(s)"
+            : $"Showing {visibleIncidents.Count} open incident(s)";
+        IncidentsEmptyPanel.Visibility = visibleIncidents.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (visibleIncidents.Count == 0)
+            IncidentsEmptyText.Text = _incidents.Count == 0
+                ? "Failed endpoint checks will appear here automatically."
+                : "No incidents match the current search and filters.";
         OpenIncidentsFilterButton.Background = _showAllIncidents
-            ? (Brush)FindResource("SecondaryButtonBrush")
-            : (Brush)FindResource("SelectedFilterBrush");
+            ? (Brush)FindResource("SecondaryButtonBrush") : (Brush)FindResource("SelectedFilterBrush");
         AllIncidentsFilterButton.Background = _showAllIncidents
-            ? (Brush)FindResource("SelectedFilterBrush")
-            : (Brush)FindResource("SecondaryButtonBrush");
+            ? (Brush)FindResource("SelectedFilterBrush") : (Brush)FindResource("SecondaryButtonBrush");
+        DisplaySelectedIncidentDetails();
+        UpdateIncidentActionButtons();
+    }
 
+    private void IncidentSearchTextBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshIncidentUI();
+
+    private void IncidentSeverityFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => RefreshIncidentUI();
+
+    private void DisplaySelectedIncidentDetails()
+    {
+        if (IncidentsListBox.SelectedItem is not Incident selected)
+        {
+            IncidentNoSelectionPanel.Visibility = Visibility.Visible;
+            IncidentDetailScrollViewer.Visibility = Visibility.Collapsed;
+            _displayedIncidentNumber = null;
+            return;
+        }
+
+        IncidentNoSelectionPanel.Visibility = Visibility.Collapsed;
+        IncidentDetailScrollViewer.Visibility = Visibility.Visible;
+        SelectedIncidentTitleText.Text = string.IsNullOrWhiteSpace(selected.Title) ? "Untitled incident" : selected.Title;
+        SelectedIncidentIdText.Text = selected.IncidentNumber;
+        SelectedIncidentEndpointText.Text = selected.EndpointUrl;
+        SelectedIncidentSeverityText.Text = selected.SeverityDisplay.ToUpperInvariant();
+        SelectedIncidentSeverityBadge.Background = selected.SeverityBrush;
+        SelectedIncidentStatusText.Text = selected.StatusDisplay.ToUpperInvariant();
+        SelectedIncidentStatusBadge.Background = selected.Status == IncidentStatus.Done
+            ? (Brush)FindResource("SuccessBrush") : (Brush)FindResource("DangerBrush");
+        SelectedIncidentFirstSeenText.Text = selected.FirstOccurredAt.ToString("yyyy-MM-dd HH:mm:ss");
+        SelectedIncidentLastSeenText.Text = selected.LastOccurredAt.ToString("yyyy-MM-dd HH:mm:ss");
+        SelectedIncidentOccurrencesText.Text = selected.OccurrenceCount.ToString();
+        SelectedIncidentResolvedAtText.Text = selected.ResolvedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Not resolved";
+        SelectedIncidentTechnicalDetailsText.Text = string.IsNullOrWhiteSpace(selected.Details)
+            ? "No technical details were recorded for this incident." : selected.Details;
+        SelectedIncidentResolutionText.Text = string.IsNullOrWhiteSpace(selected.ResolutionNote)
+            ? "No resolution note has been recorded." : selected.ResolutionNote;
+        var lifecycle = new List<string>
+        {
+            $"FIRST DETECTED   {selected.FirstOccurredAt:yyyy-MM-dd HH:mm:ss}",
+            $"LATEST FAILURE   {selected.LastOccurredAt:yyyy-MM-dd HH:mm:ss}",
+            $"FAILURE EVENTS   {selected.OccurrenceCount}"
+        };
+        if (selected.ResolvedAt is DateTime resolvedAt) lifecycle.Add($"LAST RESOLVED    {resolvedAt:yyyy-MM-dd HH:mm:ss}");
+        SelectedIncidentTimelineText.Text = string.Join(Environment.NewLine, lifecycle);
+        if (!string.Equals(_displayedIncidentNumber, selected.IncidentNumber, StringComparison.OrdinalIgnoreCase))
+        {
+            IncidentReasonTextBox.Text = selected.Reason ?? string.Empty;
+            IncidentDetailFeedbackText.Text = "Document the confirmed cause or clearly label an unconfirmed hypothesis.";
+            _displayedIncidentNumber = selected.IncidentNumber;
+        }
+        else if (!IncidentReasonTextBox.IsKeyboardFocusWithin)
+        {
+            IncidentReasonTextBox.Text = selected.Reason ?? string.Empty;
+        }
+    }
+
+    private void IncidentReasonTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (IncidentsListBox.SelectedItem is Incident selected &&
+            !string.Equals(IncidentReasonTextBox.Text.Trim(), selected.Reason, StringComparison.Ordinal))
+            IncidentDetailFeedbackText.Text = "Unsaved changes — save your reason before leaving this incident.";
         UpdateIncidentActionButtons();
     }
 
@@ -1182,11 +1268,11 @@ public partial class MainWindow : Window
 
     private void UpdateIncidentActionButtons()
     {
-        var hasSelection = IncidentsListBox.SelectedItem is Incident;
-        MarkDoneIncidentButton.IsEnabled =
-            IncidentsListBox.SelectedItem is Incident selected &&
-            selected.Status != IncidentStatus.Done;
-        EditIncidentReasonButton.IsEnabled = hasSelection;
+        var selected = IncidentsListBox.SelectedItem as Incident;
+        MarkDoneIncidentButton.IsEnabled = selected is not null && selected.Status == IncidentStatus.Open;
+        ReopenIncidentButton.IsEnabled = selected is not null && selected.Status == IncidentStatus.Done;
+        SaveIncidentReasonButton.IsEnabled = selected is not null &&
+            !string.Equals(IncidentReasonTextBox.Text.Trim(), selected.Reason, StringComparison.Ordinal);
     }
 
     private void SetStatus(string message, string brushKey)
@@ -1387,103 +1473,78 @@ public partial class MainWindow : Window
 
     private void IncidentsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        DisplaySelectedIncidentDetails();
         UpdateIncidentActionButtons();
     }
 
-    private void EditIncidentReasonButton_Click(object sender, RoutedEventArgs e)
+    private void SaveIncidentReasonButton_Click(object sender, RoutedEventArgs e)
     {
-        if (IncidentsListBox.SelectedItem is not Incident selected)
+        if (IncidentsListBox.SelectedItem is not Incident selected) return;
+        var newReason = IncidentReasonTextBox.Text.Trim();
+        if (string.Equals(newReason, selected.Reason, StringComparison.Ordinal))
         {
+            IncidentDetailFeedbackText.Text = "There are no unsaved reason changes.";
+            UpdateIncidentActionButtons();
             return;
         }
-
-        var editor = new Window
+        var originalReason = selected.Reason;
+        selected.Reason = newReason;
+        if (PersistIncident(selected))
         {
-            Title = $"Incident reason — {selected.IncidentNumber}",
-            Width = 620,
-            Height = 390,
-            MinWidth = 480,
-            MinHeight = 300,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            ResizeMode = ResizeMode.CanResize,
-            Owner = this,
-            Background = (Brush)FindResource("CardBrush"),
-            Foreground = (Brush)FindResource("TextBrush")
-        };
-
-        var layout = new DockPanel { Margin = new Thickness(20) };
-        var heading = new TextBlock
-        {
-            Text = "Reason / root-cause notes",
-            FontSize = 16,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = (Brush)FindResource("TextBrush"),
-            Margin = new Thickness(0, 0, 0, 8)
-        };
-        DockPanel.SetDock(heading, Dock.Top);
-        layout.Children.Add(heading);
-
-        var help = new TextBlock
-        {
-            Text = "Record the confirmed cause, investigation notes, or why this failure is expected. Technical detection is shown separately in the incident details.",
-            TextWrapping = TextWrapping.Wrap,
-            Foreground = (Brush)FindResource("MutedBrush"),
-            Margin = new Thickness(0, 0, 0, 12)
-        };
-        DockPanel.SetDock(help, Dock.Top);
-        layout.Children.Add(help);
-
-        var saveButton = new Button
-        {
-            Content = "Save reason",
-            MinWidth = 110,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(0, 14, 0, 0),
-            IsDefault = true
-        };
-        saveButton.Click += (_, _) => editor.DialogResult = true;
-        DockPanel.SetDock(saveButton, Dock.Bottom);
-        layout.Children.Add(saveButton);
-
-        var reasonBox = new TextBox
-        {
-            Text = selected.Reason,
-            AcceptsReturn = true,
-            TextWrapping = TextWrapping.Wrap,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            MinHeight = 150,
-            Padding = new Thickness(10),
-            VerticalContentAlignment = VerticalAlignment.Top
-        };
-        AutomationProperties.SetName(reasonBox, "Incident reason");
-        layout.Children.Add(reasonBox);
-        editor.Content = layout;
-
-        if (editor.ShowDialog() != true)
-        {
-            return;
+            IncidentDetailFeedbackText.Text = $"Reason saved to MariaDB at {DateTime.Now:HH:mm:ss}.";
+            RefreshIncidentUI();
         }
-
-        selected.Reason = reasonBox.Text.Trim();
-        PersistIncident(selected);
-        RefreshIncidentUI();
-        IncidentsListBox.SelectedItem = selected;
-        UpdateIncidentActionButtons();
+        else
+        {
+            selected.Reason = originalReason;
+            IncidentDetailFeedbackText.Text = "Save failed. Check the MariaDB storage warning and retry.";
+            DisplaySelectedIncidentDetails();
+            UpdateIncidentActionButtons();
+        }
     }
 
     private void MarkDoneIncidentButton_Click(object sender, RoutedEventArgs e)
     {
-        if (IncidentsListBox.SelectedItem is not Incident selected ||
-            selected.Status == IncidentStatus.Done)
-        {
-            return;
-        }
-
+        if (IncidentsListBox.SelectedItem is not Incident selected || selected.Status == IncidentStatus.Done) return;
+        var previousStatus = selected.Status;
+        var previousResolvedAt = selected.ResolvedAt;
+        var previousResolutionNote = selected.ResolutionNote;
         selected.Status = IncidentStatus.Done;
         selected.ResolvedAt = DateTime.Now;
-        selected.ResolutionNote = $"Marked Done manually at {DateTime.Now:yyyy-MM-dd HH:mm:ss}.";
-        PersistIncident(selected);
-        RefreshIncidentUI();
+        var doneNote = $"Marked Done manually at {DateTime.Now:yyyy-MM-dd HH:mm:ss}.";
+        selected.ResolutionNote = string.IsNullOrWhiteSpace(previousResolutionNote)
+            ? doneNote : previousResolutionNote + Environment.NewLine + doneNote;
+        if (PersistIncident(selected))
+        {
+            IncidentDetailFeedbackText.Text = "Incident marked Done and saved.";
+            RefreshIncidentUI();
+        }
+        else
+        {
+            selected.Status = previousStatus;
+            selected.ResolvedAt = previousResolvedAt;
+            selected.ResolutionNote = previousResolutionNote;
+            DisplaySelectedIncidentDetails();
+        }
+    }
+
+    private void ReopenIncidentButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (IncidentsListBox.SelectedItem is not Incident selected || selected.Status != IncidentStatus.Done) return;
+        var previousResolvedAt = selected.ResolvedAt;
+        selected.Status = IncidentStatus.Open;
+        // Keep the previous resolution timestamp and note for audit context.
+        if (PersistIncident(selected))
+        {
+            IncidentDetailFeedbackText.Text = "Incident reopened. Previous resolution context was preserved.";
+            RefreshIncidentUI();
+        }
+        else
+        {
+            selected.Status = IncidentStatus.Done;
+            selected.ResolvedAt = previousResolvedAt;
+            DisplaySelectedIncidentDetails();
+        }
     }
 
     private void DeleteIncidentMenuItem_Click(object sender, RoutedEventArgs e)
