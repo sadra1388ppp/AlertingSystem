@@ -40,6 +40,7 @@ public partial class MainWindow : Window
     };
     private int _checksRun;
     private bool _showAllIncidents;
+    private bool _isUpdatingIncidentDetails;
     private string? _displayedIncidentNumber;
     private bool _storageWarningShown;
     private bool _isLightTheme;
@@ -175,7 +176,10 @@ public partial class MainWindow : Window
 
         IncidentSearchTextBox.TextChanged += IncidentSearchTextBox_TextChanged;
         IncidentSeverityFilterComboBox.SelectionChanged += IncidentSeverityFilterComboBox_SelectionChanged;
+        IncidentSortComboBox.SelectionChanged += IncidentSortComboBox_SelectionChanged;
+        SelectedIncidentSeverityComboBox.SelectionChanged += SelectedIncidentSeverityComboBox_SelectionChanged;
         IncidentReasonTextBox.TextChanged += IncidentReasonTextBox_TextChanged;
+        IncidentResolutionTextBox.TextChanged += IncidentResolutionTextBox_TextChanged;
 
         RefreshIncidentUI();
         RefreshCheckHistoryUI();
@@ -1160,7 +1164,7 @@ public partial class MainWindow : Window
             1 => IncidentSeverity.Critical, 2 => IncidentSeverity.High,
             3 => IncidentSeverity.Medium, 4 => IncidentSeverity.Low, _ => null
         };
-        var visibleIncidents = _incidents
+        var matchingIncidents = _incidents
             .Where(item => _showAllIncidents || item.Status == IncidentStatus.Open)
             .Where(item => severityFilter is null || item.Severity == severityFilter.Value)
             .Where(item => string.IsNullOrWhiteSpace(search) ||
@@ -1170,9 +1174,27 @@ public partial class MainWindow : Window
                 (item.Details ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 (item.Reason ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 (item.ResolutionNote ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase))
-            .OrderByDescending(item => item.Status == IncidentStatus.Open)
-            .ThenBy(item => item.Severity)
-            .ThenByDescending(item => item.LastOccurredAt).ToList();
+            .ToList();
+
+        var visibleIncidents = IncidentSortComboBox.SelectedIndex switch
+        {
+            1 => matchingIncidents
+                .OrderByDescending(item => item.Status == IncidentStatus.Open)
+                .ThenByDescending(item => item.LastOccurredAt)
+                .ThenBy(item => item.Severity)
+                .ToList(),
+            2 => matchingIncidents
+                .OrderByDescending(item => item.Status == IncidentStatus.Open)
+                .ThenByDescending(item => item.OccurrenceCount)
+                .ThenBy(item => item.Severity)
+                .ThenByDescending(item => item.LastOccurredAt)
+                .ToList(),
+            _ => matchingIncidents
+                .OrderByDescending(item => item.Status == IncidentStatus.Open)
+                .ThenBy(item => item.Severity)
+                .ThenByDescending(item => item.LastOccurredAt)
+                .ToList()
+        };
 
         IncidentsListBox.ItemsSource = visibleIncidents;
         IncidentsListBox.SelectedItem = selectedNumber is null ? null :
@@ -1198,6 +1220,26 @@ public partial class MainWindow : Window
     private void IncidentSearchTextBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshIncidentUI();
 
     private void IncidentSeverityFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => RefreshIncidentUI();
+
+    private void IncidentSortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => RefreshIncidentUI();
+
+    private void SelectedIncidentSeverityComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isUpdatingIncidentDetails) return;
+        if (IncidentsListBox.SelectedItem is Incident selected &&
+            SelectedIncidentSeverityComboBox.SelectedIndex != (int)selected.Severity)
+            IncidentDetailFeedbackText.Text = "Priority changed but not saved. Choose Update priority to persist it.";
+        UpdateIncidentActionButtons();
+    }
+
+    private void IncidentResolutionTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_isUpdatingIncidentDetails) return;
+        if (IncidentsListBox.SelectedItem is Incident selected &&
+            !string.Equals(IncidentResolutionTextBox.Text.Trim(), selected.ResolutionNote, StringComparison.Ordinal))
+            IncidentDetailFeedbackText.Text = "Unsaved resolution notes — save them before leaving this incident.";
+        UpdateIncidentActionButtons();
+    }
 
     private void ClearIncidentSearchButton_Click(object sender, RoutedEventArgs e)
     {
@@ -1271,11 +1313,13 @@ public partial class MainWindow : Window
 
         IncidentNoSelectionPanel.Visibility = Visibility.Collapsed;
         IncidentDetailScrollViewer.Visibility = Visibility.Visible;
+        _isUpdatingIncidentDetails = true;
         SelectedIncidentTitleText.Text = string.IsNullOrWhiteSpace(selected.Title) ? "Untitled incident" : selected.Title;
         SelectedIncidentIdText.Text = selected.IncidentNumber;
         SelectedIncidentEndpointText.Text = selected.EndpointUrl;
         SelectedIncidentSeverityText.Text = selected.SeverityDisplay.ToUpperInvariant();
         SelectedIncidentSeverityBadge.Background = selected.SeverityBrush;
+        SelectedIncidentSeverityComboBox.SelectedIndex = (int)selected.Severity;
         SelectedIncidentStatusText.Text = selected.StatusDisplay.ToUpperInvariant();
         SelectedIncidentStatusBadge.Background = selected.Status == IncidentStatus.Done
             ? (Brush)FindResource("SuccessBrush") : (Brush)FindResource("DangerBrush");
@@ -1285,8 +1329,6 @@ public partial class MainWindow : Window
         SelectedIncidentResolvedAtText.Text = selected.ResolvedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Not resolved";
         SelectedIncidentTechnicalDetailsText.Text = string.IsNullOrWhiteSpace(selected.Details)
             ? "No technical details were recorded for this incident." : selected.Details;
-        SelectedIncidentResolutionText.Text = string.IsNullOrWhiteSpace(selected.ResolutionNote)
-            ? "No resolution note has been recorded." : selected.ResolutionNote;
         var lifecycle = new List<string>
         {
             $"FIRST DETECTED   {selected.FirstOccurredAt:yyyy-MM-dd HH:mm:ss}",
@@ -1298,20 +1340,27 @@ public partial class MainWindow : Window
         if (!string.Equals(_displayedIncidentNumber, selected.IncidentNumber, StringComparison.OrdinalIgnoreCase))
         {
             IncidentReasonTextBox.Text = selected.Reason ?? string.Empty;
+            IncidentResolutionTextBox.Text = selected.ResolutionNote ?? string.Empty;
             IncidentDetailFeedbackText.Text = "Document the confirmed cause or clearly label an unconfirmed hypothesis.";
             _displayedIncidentNumber = selected.IncidentNumber;
         }
-        else if (!IncidentReasonTextBox.IsKeyboardFocusWithin)
+        else
         {
-            IncidentReasonTextBox.Text = selected.Reason ?? string.Empty;
+            if (!IncidentReasonTextBox.IsKeyboardFocusWithin)
+                IncidentReasonTextBox.Text = selected.Reason ?? string.Empty;
+            if (!IncidentResolutionTextBox.IsKeyboardFocusWithin)
+                IncidentResolutionTextBox.Text = selected.ResolutionNote ?? string.Empty;
         }
+        _isUpdatingIncidentDetails = false;
+        UpdateIncidentActionButtons();
     }
 
     private void IncidentReasonTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (_isUpdatingIncidentDetails) return;
         if (IncidentsListBox.SelectedItem is Incident selected &&
             !string.Equals(IncidentReasonTextBox.Text.Trim(), selected.Reason, StringComparison.Ordinal))
-            IncidentDetailFeedbackText.Text = "Unsaved changes — save your reason before leaving this incident.";
+            IncidentDetailFeedbackText.Text = "Unsaved root-cause notes — save them before leaving this incident.";
         UpdateIncidentActionButtons();
     }
 
@@ -1339,6 +1388,10 @@ public partial class MainWindow : Window
         ReopenIncidentButton.IsEnabled = selected is not null && selected.Status == IncidentStatus.Done;
         SaveIncidentReasonButton.IsEnabled = selected is not null &&
             !string.Equals(IncidentReasonTextBox.Text.Trim(), selected.Reason, StringComparison.Ordinal);
+        SaveIncidentResolutionButton.IsEnabled = selected is not null &&
+            !string.Equals(IncidentResolutionTextBox.Text.Trim(), selected.ResolutionNote, StringComparison.Ordinal);
+        ApplyIncidentSeverityButton.IsEnabled = selected is not null &&
+            SelectedIncidentSeverityComboBox.SelectedIndex != (int)selected.Severity;
     }
 
     private void SetStatus(string message, string brushKey)
@@ -1543,6 +1596,65 @@ public partial class MainWindow : Window
         UpdateIncidentActionButtons();
     }
 
+    private void ApplyIncidentSeverityButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (IncidentsListBox.SelectedItem is not Incident selected) return;
+        var newSeverity = SelectedIncidentSeverityComboBox.SelectedIndex switch
+        {
+            0 => IncidentSeverity.Critical,
+            1 => IncidentSeverity.High,
+            2 => IncidentSeverity.Medium,
+            3 => IncidentSeverity.Low,
+            _ => selected.Severity
+        };
+        if (newSeverity == selected.Severity)
+        {
+            IncidentDetailFeedbackText.Text = "Priority is already up to date.";
+            UpdateIncidentActionButtons();
+            return;
+        }
+
+        var previousSeverity = selected.Severity;
+        selected.Severity = newSeverity;
+        if (PersistIncident(selected))
+        {
+            IncidentDetailFeedbackText.Text = $"Priority updated to {newSeverity}.";
+            RefreshIncidentUI();
+        }
+        else
+        {
+            selected.Severity = previousSeverity;
+            DisplaySelectedIncidentDetails();
+            IncidentDetailFeedbackText.Text = "Priority update failed. Check the MariaDB storage warning and retry.";
+        }
+    }
+
+    private void SaveIncidentResolutionButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (IncidentsListBox.SelectedItem is not Incident selected) return;
+        var newResolution = IncidentResolutionTextBox.Text.Trim();
+        if (string.Equals(newResolution, selected.ResolutionNote, StringComparison.Ordinal))
+        {
+            IncidentDetailFeedbackText.Text = "There are no unsaved resolution-note changes.";
+            UpdateIncidentActionButtons();
+            return;
+        }
+
+        var previousResolution = selected.ResolutionNote;
+        selected.ResolutionNote = newResolution;
+        if (PersistIncident(selected))
+        {
+            IncidentDetailFeedbackText.Text = $"Resolution notes saved to MariaDB at {DateTime.Now:HH:mm:ss}.";
+            RefreshIncidentUI();
+        }
+        else
+        {
+            selected.ResolutionNote = previousResolution;
+            DisplaySelectedIncidentDetails();
+            IncidentDetailFeedbackText.Text = "Resolution notes could not be saved. Check the MariaDB storage warning and retry.";
+        }
+    }
+
     private void SaveIncidentReasonButton_Click(object sender, RoutedEventArgs e)
     {
         if (IncidentsListBox.SelectedItem is not Incident selected) return;
@@ -1575,11 +1687,12 @@ public partial class MainWindow : Window
         var previousStatus = selected.Status;
         var previousResolvedAt = selected.ResolvedAt;
         var previousResolutionNote = selected.ResolutionNote;
+        var draftedResolution = IncidentResolutionTextBox.Text.Trim();
         selected.Status = IncidentStatus.Done;
         selected.ResolvedAt = DateTime.Now;
         var doneNote = $"Marked Done manually at {DateTime.Now:yyyy-MM-dd HH:mm:ss}.";
-        selected.ResolutionNote = string.IsNullOrWhiteSpace(previousResolutionNote)
-            ? doneNote : previousResolutionNote + Environment.NewLine + doneNote;
+        selected.ResolutionNote = string.IsNullOrWhiteSpace(draftedResolution)
+            ? doneNote : draftedResolution + Environment.NewLine + Environment.NewLine + doneNote;
         if (PersistIncident(selected))
         {
             IncidentDetailFeedbackText.Text = "Incident marked Done and saved.";
