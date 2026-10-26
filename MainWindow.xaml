@@ -502,177 +502,81 @@
         </Grid>
 
     <Grid x:Name="IncidentsPage" Grid.Column="1" Margin="28,25,28,25" Visibility="Collapsed">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <Grid Grid.Row="0" Margin="0,0,0,20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Grid Grid.Row="0" Margin="0,0,0,17">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <StackPanel>
-                <TextBlock Text="Incident management" FontSize="27" FontWeight="Bold"
-                           Foreground="{DynamicResource TextBrush}"/>
-                <TextBlock Text="Failures from endpoint checks are tracked here until they recover or you resolve them."
-                           FontSize="13" Foreground="{DynamicResource MutedBrush}"
-                           Margin="0,7,0,0" TextWrapping="Wrap"/>
+                <TextBlock Text="OPERATIONS  /  INCIDENT RESPONSE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource NeutralBrush}" Margin="0,0,0,6"/>
+                <TextBlock Text="Incident Management" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/>
+                <TextBlock Text="Investigate failures, document root cause, and track service recovery." FontSize="12" Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
             </StackPanel>
-            <Border Grid.Column="1" BorderBrush="{DynamicResource BorderBrush}"
-                    Background="{DynamicResource CardBrush}" BorderThickness="1"
-                    CornerRadius="8" Padding="12,9" VerticalAlignment="Center">
-                <TextBlock Text="INCIDENTS" FontSize="10" FontWeight="Bold"
-                           Foreground="{DynamicResource MutedBrush}"/>
+            <Border Grid.Column="1" BorderBrush="{DynamicResource BorderBrush}" Background="{DynamicResource CardBrush}" BorderThickness="1" CornerRadius="9" Padding="12,10" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal"><Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/><StackPanel><TextBlock Text="INCIDENT WORKSPACE" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="MariaDB-backed" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" Margin="0,3,0,0"/></StackPanel></StackPanel>
             </Border>
         </Grid>
-
-        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,18">
-            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
-                <StackPanel>
-                    <TextBlock Text="OPEN INCIDENTS" FontSize="10" FontWeight="Bold"
-                               Foreground="{DynamicResource MutedBrush}"/>
-                    <TextBlock x:Name="OpenIncidentCountText" Text="0" FontSize="28" FontWeight="Bold"
-                               Foreground="{DynamicResource DangerBrush}" Margin="0,7,0,0"/>
-                    <TextBlock Text="Not yet resolved" FontSize="11"
-                               Foreground="{DynamicResource MutedBrush}" Margin="0,2,0,0"/>
-                </StackPanel>
-            </Border>
-            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
-                <StackPanel>
-                    <TextBlock Text="TOTAL INCIDENTS" FontSize="10" FontWeight="Bold"
-                               Foreground="{DynamicResource MutedBrush}"/>
-                    <TextBlock x:Name="TotalIncidentCountText" Text="0" FontSize="28"
-                               FontWeight="Bold" Foreground="{DynamicResource TextBrush}" Margin="0,7,0,0"/>
-                    <TextBlock Text="All recorded incidents" FontSize="11"
-                               Foreground="{DynamicResource MutedBrush}" Margin="0,2,0,0"/>
-                </StackPanel>
-            </Border>
-            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1" CornerRadius="11" Padding="16">
-                <StackPanel>
-                    <TextBlock Text="DONE INCIDENTS" FontSize="10" FontWeight="Bold"
-                               Foreground="{DynamicResource MutedBrush}"/>
-                    <TextBlock x:Name="DoneIncidentCountText" Text="0" FontSize="28"
-                               FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" Margin="0,7,0,0"/>
-                    <TextBlock Text="Finished incidents" FontSize="11"
-                               Foreground="{DynamicResource MutedBrush}" Margin="0,2,0,0"/>
-                </StackPanel>
-            </Border>
+        <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,15">
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="13" Margin="0,0,8,0"><StackPanel><TextBlock Text="OPEN" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="OpenIncidentCountText" Text="0" FontSize="27" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}" Margin="0,4,0,0"/><TextBlock Text="Requires attention" FontSize="10" Foreground="{DynamicResource MutedBrush}" Margin="0,1,0,0"/></StackPanel></Border>
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="13" Margin="0,0,8,0"><StackPanel><TextBlock Text="CRITICAL OPEN" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="CriticalIncidentCountText" Text="0" FontSize="27" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}" Margin="0,4,0,0"/><TextBlock Text="Highest severity" FontSize="10" Foreground="{DynamicResource MutedBrush}" Margin="0,1,0,0"/></StackPanel></Border>
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="13" Margin="0,0,8,0"><StackPanel><TextBlock Text="TOTAL RECORDED" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="TotalIncidentCountText" Text="0" FontSize="27" FontWeight="Bold" Foreground="{DynamicResource TextBrush}" Margin="0,4,0,0"/><TextBlock Text="All incidents" FontSize="10" Foreground="{DynamicResource MutedBrush}" Margin="0,1,0,0"/></StackPanel></Border>
+            <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="13"><StackPanel><TextBlock Text="DONE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="DoneIncidentCountText" Text="0" FontSize="27" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" Margin="0,4,0,0"/><TextBlock Text="Resolved or closed" FontSize="10" Foreground="{DynamicResource MutedBrush}" Margin="0,1,0,0"/></StackPanel></Border>
         </UniformGrid>
-
-        <Border Grid.Row="2" Background="{DynamicResource CardBrush}"
-                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
-                CornerRadius="12" Padding="18">
-            <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="Incident list" FontSize="16" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextBrush}"/>
-                            <TextBlock x:Name="IncidentFilterDescriptionText" Text="Showing open incidents"
-                                       FontSize="11" Foreground="{DynamicResource MutedBrush}" Margin="0,5,0,0"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button x:Name="OpenIncidentsFilterButton" Content="Open"
-                                    Style="{StaticResource SecondaryButton}" Click="OpenIncidentsFilterButton_Click"
-                                    Margin="0,0,7,0" Padding="12,8"/>
-                            <Button x:Name="AllIncidentsFilterButton" Content="ALL INCIDENTS"
-                                    Style="{StaticResource SecondaryButton}" Click="AllIncidentsFilterButton_Click"
-                                    Padding="12,8"/>
-                        </StackPanel>
-                    </Grid>
-                    <StackPanel Orientation="Horizontal" Margin="0,13,0,0">
-                        <Button x:Name="MarkDoneIncidentButton" Content="Mark as done"
-                                Click="MarkDoneIncidentButton_Click" IsEnabled="False"
-                                Padding="12,9" Margin="0,0,7,0"/>
-                        <Button x:Name="EditIncidentReasonButton" Content="Edit reason"
-                                Style="{StaticResource SecondaryButton}"
-                                Click="EditIncidentReasonButton_Click" IsEnabled="False"
-                                Padding="12,9"/>
-                    </StackPanel>
-                </StackPanel>
-
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="0.88*"/><ColumnDefinition Width="1.12*"/></Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,0,10,0">
                 <Grid>
-                    <ListBox x:Name="IncidentsListBox" Background="Transparent" BorderThickness="0"
-                             ItemContainerStyle="{StaticResource IncidentListBoxItemStyle}"
-                             SelectionChanged="IncidentsListBox_SelectionChanged"
-                             ScrollViewer.VerticalScrollBarVisibility="Auto">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="{DynamicResource Hex101B2FBrush}" BorderBrush="{DynamicResource BorderBrush}"
-                                        BorderThickness="1" CornerRadius="9" Padding="14">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-                                            <Border Background="{Binding SeverityBrush}" CornerRadius="5"
-                                                    Padding="7,3" Margin="0,0,9,0">
-                                                <TextBlock Text="{Binding SeverityDisplay}" FontSize="10"
-                                                           FontWeight="Bold" Foreground="{DynamicResource Hex0B1120Brush}"/>
-                                            </Border>
-                                            <TextBlock Text="{Binding IncidentNumber}" FontSize="11"
-                                                       VerticalAlignment="Center"
-                                                       Foreground="{DynamicResource MutedBrush}"/>
-                                        </StackPanel>
-                                        <TextBlock Grid.Row="0" Grid.Column="1"
-                                                   Text="{Binding StatusDisplay}" FontSize="11"
-                                                   FontWeight="SemiBold" VerticalAlignment="Center"
-                                                   Foreground="{Binding StatusBrush}"/>
-                                        <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Title}"
-                                                   FontSize="14" FontWeight="SemiBold" Margin="0,11,0,0"
-                                                   Foreground="{DynamicResource TextBrush}"/>
-                                        <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding EndpointUrl}"
-                                                   FontSize="11" Margin="0,6,0,0"
-                                                   Foreground="{DynamicResource NeutralBrush}"
-                                                   TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Text="{Binding Details}"
-                                                   FontSize="12" Margin="0,8,0,0"
-                                                   Foreground="{DynamicResource MutedBrush}"
-                                                   TextWrapping="Wrap"/>
-                                        <TextBlock Grid.Row="4" Grid.ColumnSpan="2"
-                                                   Text="{Binding Reason, TargetNullValue=Not documented}"
-                                                   FontSize="12" Margin="0,9,0,0"
-                                                   Foreground="{DynamicResource WarningBrush}"
-                                                   TextWrapping="Wrap"/>
-                                        <TextBlock Grid.Row="5" Grid.ColumnSpan="2" Text="{Binding ActivityDisplay}"
-                                                   FontSize="10" Margin="0,10,0,0"
-                                                   Foreground="{DynamicResource Hex71829CBrush}" TextWrapping="Wrap"/>
-                                        <TextBlock Grid.Row="6" Grid.ColumnSpan="2" Text="{Binding ResolutionNote}"
-                                                   FontSize="11" Margin="0,5,0,0"
-                                                   Foreground="{DynamicResource SuccessBrush}"
-                                                   TextWrapping="Wrap"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                    <TextBlock x:Name="IncidentsEmptyText" Text="No open incidents. Run a failing endpoint check to test incident creation."
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                               TextAlignment="Center" TextWrapping="Wrap" MaxWidth="400"
-                               FontSize="13" Foreground="{DynamicResource MutedBrush}"
-                               Margin="20" IsHitTestVisible="False"/>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Incident queue" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/><TextBlock x:Name="IncidentFilterDescriptionText" Text="Showing open incidents" FontSize="10" Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0"/></StackPanel><Border Grid.Column="1" Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="7" Padding="9,5" VerticalAlignment="Center"><TextBlock x:Name="IncidentQueueCountText" Text="0 items" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/></Border></Grid>
+                    <StackPanel Grid.Row="1" Margin="0,0,0,10">
+                        <TextBox x:Name="IncidentSearchTextBox" Height="37" Padding="10,8" FontSize="12" ToolTip="Search incident ID, title, endpoint, error details, or reason"/>
+                        <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Button x:Name="OpenIncidentsFilterButton" Content="Open" Style="{StaticResource SecondaryButton}" Click="OpenIncidentsFilterButton_Click" Margin="0,0,6,0" Padding="10,7" FontSize="11"/>
+                            <Button x:Name="AllIncidentsFilterButton" Grid.Column="1" Content="All" Style="{StaticResource SecondaryButton}" Click="AllIncidentsFilterButton_Click" Margin="0,0,8,0" Padding="10,7" FontSize="11"/>
+                            <ComboBox x:Name="IncidentSeverityFilterComboBox" Grid.Column="2" Height="34" MinWidth="115" HorizontalAlignment="Stretch" Background="{DynamicResource Hex0B1425Brush}" Foreground="{DynamicResource TextBrush}" BorderBrush="{DynamicResource BorderBrush}" SelectedIndex="0">
+                                <ComboBox.ItemContainerStyle><Style TargetType="{x:Type ComboBoxItem}"><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="Padding" Value="8,6"/></Style></ComboBox.ItemContainerStyle>
+                                <ComboBoxItem Content="All severities"/><ComboBoxItem Content="Critical"/><ComboBoxItem Content="High"/><ComboBoxItem Content="Medium"/><ComboBoxItem Content="Low"/>
+                            </ComboBox>
+                        </Grid>
+                    </StackPanel>
+                    <Grid Grid.Row="2">
+                        <ListBox x:Name="IncidentsListBox" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource IncidentListBoxItemStyle}" SelectionChanged="IncidentsListBox_SelectionChanged" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemTemplate><DataTemplate><Border Background="{DynamicResource Hex101B2FBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="9" Padding="12">
+                                <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal"><Border Background="{Binding SeverityBrush}" CornerRadius="4" Padding="7,3" Margin="0,0,8,0"><TextBlock Text="{Binding SeverityDisplay}" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Hex0B1120Brush}"/></Border><TextBlock Text="{Binding IncidentNumber}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource MutedBrush}"/></StackPanel>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StatusDisplay}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{Binding StatusBrush}"/>
+                                    <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Margin="0,9,0,0" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" MaxHeight="40"/>
+                                    <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding EndpointUrl}" FontSize="10" Margin="0,5,0,0" Foreground="{DynamicResource NeutralBrush}" TextTrimming="CharacterEllipsis"/>
+                                    <Grid Grid.Row="3" Grid.ColumnSpan="2" Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="{Binding ActivityDisplay}" FontSize="9" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/><TextBlock Grid.Column="1" Text="{Binding OccurrenceCount, StringFormat={}{0} events}" FontSize="9" Foreground="{DynamicResource MutedBrush}" Margin="8,0,0,0"/></Grid>
+                                </Grid></Border></DataTemplate></ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel x:Name="IncidentsEmptyPanel" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="270" Margin="22" IsHitTestVisible="False"><TextBlock Text="No incidents found" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextAlignment="Center"/><TextBlock x:Name="IncidentsEmptyText" Text="Failed endpoint checks will appear here automatically." FontSize="11" Foreground="{DynamicResource MutedBrush}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,7,0,0"/></StackPanel>
+                    </Grid>
                 </Grid>
-            </DockPanel>
-        </Border>
+            </Border>
+            <Border Grid.Column="1" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="17">
+                <Grid>
+                    <StackPanel x:Name="IncidentNoSelectionPanel" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="320" Margin="25"><Border Width="54" Height="54" CornerRadius="15" Background="{DynamicResource Hex20385FBrush}" HorizontalAlignment="Center" Margin="0,0,0,15"><TextBlock Text="!" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource HexEAF2FFBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="Select an incident" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextAlignment="Center"/><TextBlock Text="Choose an item from the queue to inspect diagnostics, record root cause, and document resolution." FontSize="12" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0"/></StackPanel>
+                    <ScrollViewer x:Name="IncidentDetailScrollViewer" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel>
+                            <TextBlock Text="INVESTIGATION RECORD" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource NeutralBrush}" Margin="0,0,0,7"/>
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock x:Name="SelectedIncidentTitleText" Text="Incident title" FontSize="19" FontWeight="Bold" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/><TextBlock x:Name="SelectedIncidentIdText" Text="INC-000000" FontSize="10" Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,0"/></StackPanel><StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="8,0,0,0"><Border x:Name="SelectedIncidentSeverityBadge" CornerRadius="5" Padding="8,4" HorizontalAlignment="Right"><TextBlock x:Name="SelectedIncidentSeverityText" Text="High" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Hex0B1120Brush}"/></Border><Border x:Name="SelectedIncidentStatusBadge" CornerRadius="5" Padding="8,4" Margin="0,6,0,0" HorizontalAlignment="Right"><TextBlock x:Name="SelectedIncidentStatusText" Text="Open" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource Hex0B1120Brush}"/></Border></StackPanel></Grid>
+                            <TextBlock Text="AFFECTED ENDPOINT" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}" Margin="0,18,0,7"/><Border Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="11"><TextBlock x:Name="SelectedIncidentEndpointText" Text="—" FontSize="11" Foreground="{DynamicResource NeutralBrush}" TextWrapping="Wrap"/></Border>
+                            <Grid Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                <Border Grid.Row="0" Grid.Column="0" Background="{DynamicResource Hex101B2FBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,5,5"><StackPanel><TextBlock Text="FIRST DETECTED" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="SelectedIncidentFirstSeenText" Text="—" FontSize="11" Foreground="{DynamicResource TextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/></StackPanel></Border>
+                                <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource Hex101B2FBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="5,0,0,5"><StackPanel><TextBlock Text="LATEST FAILURE" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="SelectedIncidentLastSeenText" Text="—" FontSize="11" Foreground="{DynamicResource TextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/></StackPanel></Border>
+                                <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource Hex101B2FBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,5,5,0"><StackPanel><TextBlock Text="FAILURE EVENTS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="SelectedIncidentOccurrencesText" Text="0" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextBrush}" Margin="0,4,0,0"/></StackPanel></Border>
+                                <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource Hex101B2FBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="5,5,0,0"><StackPanel><TextBlock Text="LAST RESOLVED" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="SelectedIncidentResolvedAtText" Text="Not resolved" FontSize="11" Foreground="{DynamicResource TextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/></StackPanel></Border>
+                            </Grid>
+                            <TextBlock Text="DETECTED TECHNICAL DETAILS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}" Margin="0,16,0,7"/><Border Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="11"><TextBlock x:Name="SelectedIncidentTechnicalDetailsText" Text="No technical details recorded." FontSize="11" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/></Border>
+                            <Grid Margin="0,17,0,7"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="ROOT CAUSE / REASON" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"/><TextBlock Text="Record what is confirmed; label assumptions clearly." FontSize="10" Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0" TextWrapping="Wrap"/></StackPanel><TextBlock Grid.Column="1" Text="OPERATOR NOTES" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource NeutralBrush}" VerticalAlignment="Top" Margin="8,1,0,0"/></Grid>
+                            <TextBox x:Name="IncidentReasonTextBox" MinHeight="100" Padding="11" FontSize="12" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto" ToolTip="Describe the confirmed cause, investigation findings, or current hypothesis"/><TextBlock x:Name="IncidentDetailFeedbackText" Text="Reason notes are saved to MariaDB when you choose Save reason." FontSize="10" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                            <TextBlock Text="LIFECYCLE SUMMARY" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextBrush}" Margin="0,17,0,7"/><Border Background="{DynamicResource Hex101B2FBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="11"><TextBlock x:Name="SelectedIncidentTimelineText" Text="—" FontSize="10" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/></Border>
+                            <TextBlock Text="RESOLUTION NOTES" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextBrush}" Margin="0,16,0,7"/><Border Background="{DynamicResource Hex101B2FBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="11"><TextBlock x:Name="SelectedIncidentResolutionText" Text="No resolution recorded." FontSize="11" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap"/></Border>
+                            <StackPanel Orientation="Horizontal" Margin="0,16,0,2"><Button x:Name="SaveIncidentReasonButton" Content="Save reason" Click="SaveIncidentReasonButton_Click" IsEnabled="False" Padding="13,9" Margin="0,0,7,0"/><Button x:Name="MarkDoneIncidentButton" Content="Mark as done" Click="MarkDoneIncidentButton_Click" IsEnabled="False" Padding="13,9" Margin="0,0,7,0"/><Button x:Name="ReopenIncidentButton" Content="Reopen" Style="{StaticResource SecondaryButton}" Click="ReopenIncidentButton_Click" IsEnabled="False" Padding="13,9"/></StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 
     <Grid x:Name="AlertHistoryPage" Grid.Column="1" Margin="28,25,28,25" Visibility="Collapsed">
