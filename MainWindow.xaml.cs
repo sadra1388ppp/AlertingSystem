@@ -141,17 +141,24 @@ public partial class MainWindow : Window
 
         _hiddenItems.Reconcile(databaseIncidents, _dataStore.LoadCheckHistoryIds());
 
-        var migratedLegacyStatuses = false;
+        var migratedIncidentData = false;
         foreach (var incident in databaseIncidents)
         {
             if (incident.Status != IncidentStatus.Open && incident.Status != IncidentStatus.Done)
             {
                 incident.Status = IncidentStatus.Open;
-                migratedLegacyStatuses = true;
+                migratedIncidentData = true;
+            }
+
+            // Backfill a useful initial reason for incidents created by older app versions.
+            if (string.IsNullOrWhiteSpace(incident.Reason))
+            {
+                incident.Reason = $"Auto-detected from failure details: {incident.Details}";
+                migratedIncidentData = true;
             }
         }
 
-        if (migratedLegacyStatuses)
+        if (migratedIncidentData)
         {
             _dataStore.SaveIncidents(databaseIncidents);
         }
@@ -371,17 +378,19 @@ public partial class MainWindow : Window
         {
             stopwatch.Stop();
             var details = $"The check could not be completed. {exception.Message}";
+            var incident = UpsertIncident(uri, "Endpoint check failed", IncidentSeverity.High, details);
+            var historyDetails = $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
 
             if (updateManualUi)
             {
                 SetStatus("Check failed", "DangerBrush");
                 LastResultSummaryText.Text = "Check failed";
-                LastResultText.Text = details;
+                LastResultText.Text = $"{details} Incident {incident.IncidentNumber} was created or updated.";
                 ResponseTimeText.Text = "Response time: —";
                 ResponseTimeSummaryText.Text = "—";
             }
 
-            RecordCheck(uri.AbsoluteUri, "Check failed", details, null);
+            RecordCheck(uri.AbsoluteUri, "Check failed", historyDetails, null);
             return ("Check failed", null);
         }
         finally
