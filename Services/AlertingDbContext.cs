@@ -60,6 +60,7 @@ public sealed class AlertingDbContext : DbContext
             entity.Property(item => item.Title).HasMaxLength(512).HasColumnType("varchar(512)");
             entity.Property(item => item.Details).HasColumnType("text");
             entity.Property(item => item.ResolutionNote).HasColumnType("text");
+            entity.Property(item => item.Reason).HasColumnType("text");
             entity.Property(item => item.Severity).HasColumnType("int");
             entity.Property(item => item.Status).HasColumnType("int");
             entity.Property(item => item.FirstOccurredAt)
