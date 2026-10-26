@@ -122,6 +122,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        PreviewKeyDown += MainWindow_PreviewKeyDown;
         LoadThemePreference();
         ShowPage(OverviewPage, OverviewNavButton);
 
@@ -1137,6 +1138,11 @@ public partial class MainWindow : Window
 
     private void RefreshIncidentUI()
     {
+        var searchText = IncidentSearchTextBox.Text;
+        var hasSearchText = !string.IsNullOrWhiteSpace(searchText);
+        IncidentSearchPlaceholderText.Visibility = hasSearchText ? Visibility.Collapsed : Visibility.Visible;
+        ClearIncidentSearchButton.Visibility = hasSearchText ? Visibility.Visible : Visibility.Collapsed;
+
         var openIncidents = _incidents.Where(item => item.Status == IncidentStatus.Open).ToList();
         var openCount = openIncidents.Count;
         var doneCount = _incidents.Count(item => item.Status == IncidentStatus.Done);
@@ -1148,7 +1154,7 @@ public partial class MainWindow : Window
         OverviewOpenIncidentsCountText.Text = $"{openCount} open incident(s)";
 
         var selectedNumber = (IncidentsListBox.SelectedItem as Incident)?.IncidentNumber ?? _displayedIncidentNumber;
-        var search = IncidentSearchTextBox.Text.Trim();
+        var search = searchText.Trim();
         IncidentSeverity? severityFilter = IncidentSeverityFilterComboBox.SelectedIndex switch
         {
             1 => IncidentSeverity.Critical, 2 => IncidentSeverity.High,
@@ -1192,6 +1198,66 @@ public partial class MainWindow : Window
     private void IncidentSearchTextBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshIncidentUI();
 
     private void IncidentSeverityFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => RefreshIncidentUI();
+
+    private void ClearIncidentSearchButton_Click(object sender, RoutedEventArgs e)
+    {
+        IncidentSearchTextBox.Clear();
+        IncidentSearchTextBox.Focus();
+    }
+
+    private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if ((System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Control) != 0 &&
+            e.Key == System.Windows.Input.Key.F)
+        {
+            ShowPage(IncidentsPage, IncidentsNavButton);
+            IncidentSearchTextBox.Focus();
+            IncidentSearchTextBox.SelectAll();
+            e.Handled = true;
+            return;
+        }
+
+        if (IncidentsPage.Visibility == Visibility.Visible &&
+            IncidentSearchTextBox.IsKeyboardFocusWithin &&
+            e.Key == System.Windows.Input.Key.Escape &&
+            !string.IsNullOrWhiteSpace(IncidentSearchTextBox.Text))
+        {
+            IncidentSearchTextBox.Clear();
+            e.Handled = true;
+        }
+    }
+
+    private void CopyIncidentIdButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (IncidentsListBox.SelectedItem is Incident selected)
+            CopyIncidentValueToClipboard(selected.IncidentNumber, "Incident ID");
+    }
+
+    private void CopyIncidentEndpointButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (IncidentsListBox.SelectedItem is Incident selected)
+            CopyIncidentValueToClipboard(selected.EndpointUrl, "Endpoint URL");
+    }
+
+    private void CopyIncidentValueToClipboard(string? value, string label)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            IncidentDetailFeedbackText.Text = $"No {label.ToLowerInvariant()} is available to copy.";
+            return;
+        }
+
+        try
+        {
+            Clipboard.SetText(value);
+            IncidentDetailFeedbackText.Text = $"{label} copied to clipboard.";
+        }
+        catch (Exception exception) when (
+            exception is InvalidOperationException or System.Runtime.InteropServices.ExternalException)
+        {
+            IncidentDetailFeedbackText.Text = $"Could not copy the {label.ToLowerInvariant()}. Try again.";
+        }
+    }
 
     private void DisplaySelectedIncidentDetails()
     {
