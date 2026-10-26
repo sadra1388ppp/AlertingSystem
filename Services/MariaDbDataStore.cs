@@ -67,7 +67,16 @@ public sealed class MariaDbDataStore
             _hasMetadataTable = true;
         }
 
+        EnsureIncidentReasonColumn(db);
         ImportLegacyJsonOnce(db);
+    }
+
+    private void EnsureIncidentReasonColumn(AlertingDbContext db)
+    {
+        // EnsureCreated does not add columns to an existing database. Upgrade the existing
+        // incident table in place so all prior incident records are preserved.
+        var tableName = _useSimplifiedIncidentTable ? "incident_records" : "Incidents";
+        db.Database.ExecuteSqlRaw($"ALTER TABLE `{tableName}` ADD COLUMN IF NOT EXISTS `Reason` TEXT NULL");
     }
 
     public List<Incident> LoadIncidents()

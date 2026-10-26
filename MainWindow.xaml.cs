@@ -141,17 +141,24 @@ public partial class MainWindow : Window
 
         _hiddenItems.Reconcile(databaseIncidents, _dataStore.LoadCheckHistoryIds());
 
-        var migratedLegacyStatuses = false;
+        var migratedIncidentData = false;
         foreach (var incident in databaseIncidents)
         {
             if (incident.Status != IncidentStatus.Open && incident.Status != IncidentStatus.Done)
             {
                 incident.Status = IncidentStatus.Open;
-                migratedLegacyStatuses = true;
+                migratedIncidentData = true;
+            }
+
+            // Backfill a useful initial reason for incidents created by older app versions.
+            if (string.IsNullOrWhiteSpace(incident.Reason))
+            {
+                incident.Reason = $"Auto-detected from failure details: {incident.Details}";
+                migratedIncidentData = true;
             }
         }
 
-        if (migratedLegacyStatuses)
+        if (migratedIncidentData)
         {
             _dataStore.SaveIncidents(databaseIncidents);
         }
@@ -371,17 +378,19 @@ public partial class MainWindow : Window
         {
             stopwatch.Stop();
             var details = $"The check could not be completed. {exception.Message}";
+            var incident = UpsertIncident(uri, "Endpoint check failed", IncidentSeverity.High, details);
+            var historyDetails = $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
 
             if (updateManualUi)
             {
                 SetStatus("Check failed", "DangerBrush");
                 LastResultSummaryText.Text = "Check failed";
-                LastResultText.Text = details;
+                LastResultText.Text = $"{details} Incident {incident.IncidentNumber} was created or updated.";
                 ResponseTimeText.Text = "Response time: —";
                 ResponseTimeSummaryText.Text = "—";
             }
 
-            RecordCheck(uri.AbsoluteUri, "Check failed", details, null);
+            RecordCheck(uri.AbsoluteUri, "Check failed", historyDetails, null);
             return ("Check failed", null);
         }
         finally
@@ -891,6 +900,7 @@ public partial class MainWindow : Window
                 Severity = severity,
                 Status = IncidentStatus.Open,
                 Details = details,
+                Reason = $"Auto-detected: {details}",
                 FirstOccurredAt = DateTime.Now,
                 LastOccurredAt = DateTime.Now,
                 OccurrenceCount = 1
@@ -902,6 +912,10 @@ public partial class MainWindow : Window
         {
             incident.Title = title;
             incident.Details = details;
+            if (string.IsNullOrWhiteSpace(incident.Reason))
+            {
+                incident.Reason = $"Auto-detected: {details}";
+            }
             incident.LastOccurredAt = DateTime.Now;
             incident.OccurrenceCount++;
 
@@ -1168,9 +1182,11 @@ public partial class MainWindow : Window
 
     private void UpdateIncidentActionButtons()
     {
+        var hasSelection = IncidentsListBox.SelectedItem is Incident;
         MarkDoneIncidentButton.IsEnabled =
             IncidentsListBox.SelectedItem is Incident selected &&
             selected.Status != IncidentStatus.Done;
+        EditIncidentReasonButton.IsEnabled = hasSelection;
     }
 
     private void SetStatus(string message, string brushKey)
@@ -1371,6 +1387,87 @@ public partial class MainWindow : Window
 
     private void IncidentsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        UpdateIncidentActionButtons();
+    }
+
+    private void EditIncidentReasonButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (IncidentsListBox.SelectedItem is not Incident selected)
+        {
+            return;
+        }
+
+        var editor = new Window
+        {
+            Title = $"Incident reason — {selected.IncidentNumber}",
+            Width = 620,
+            Height = 390,
+            MinWidth = 480,
+            MinHeight = 300,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            ResizeMode = ResizeMode.CanResize,
+            Owner = this,
+            Background = (Brush)FindResource("CardBrush"),
+            Foreground = (Brush)FindResource("TextBrush")
+        };
+
+        var layout = new DockPanel { Margin = new Thickness(20) };
+        var heading = new TextBlock
+        {
+            Text = "Reason / root-cause notes",
+            FontSize = 16,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = (Brush)FindResource("TextBrush"),
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+        DockPanel.SetDock(heading, Dock.Top);
+        layout.Children.Add(heading);
+
+        var help = new TextBlock
+        {
+            Text = "Record the confirmed cause, investigation notes, or why this failure is expected. Technical detection is shown separately in the incident details.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = (Brush)FindResource("MutedBrush"),
+            Margin = new Thickness(0, 0, 0, 12)
+        };
+        DockPanel.SetDock(help, Dock.Top);
+        layout.Children.Add(help);
+
+        var saveButton = new Button
+        {
+            Content = "Save reason",
+            MinWidth = 110,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(0, 14, 0, 0),
+            IsDefault = true
+        };
+        saveButton.Click += (_, _) => editor.DialogResult = true;
+        DockPanel.SetDock(saveButton, Dock.Bottom);
+        layout.Children.Add(saveButton);
+
+        var reasonBox = new TextBox
+        {
+            Text = selected.Reason,
+            AcceptsReturn = true,
+            TextWrapping = TextWrapping.Wrap,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            MinHeight = 150,
+            Padding = new Thickness(10),
+            VerticalContentAlignment = VerticalAlignment.Top
+        };
+        AutomationProperties.SetName(reasonBox, "Incident reason");
+        layout.Children.Add(reasonBox);
+        editor.Content = layout;
+
+        if (editor.ShowDialog() != true)
+        {
+            return;
+        }
+
+        selected.Reason = reasonBox.Text.Trim();
+        PersistIncident(selected);
+        RefreshIncidentUI();
+        IncidentsListBox.SelectedItem = selected;
         UpdateIncidentActionButtons();
     }
 

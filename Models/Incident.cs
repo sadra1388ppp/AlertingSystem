@@ -26,6 +26,7 @@ public sealed class Incident : INotifyPropertyChanged
     private string _title = string.Empty;
     private string _details = string.Empty;
     private string _resolutionNote = string.Empty;
+    private string _reason = string.Empty;
     private IncidentSeverity _severity = IncidentSeverity.High;
     private IncidentStatus _status = IncidentStatus.Open;
     private DateTime _firstOccurredAt = DateTime.Now;
@@ -61,6 +62,13 @@ public sealed class Incident : INotifyPropertyChanged
     {
         get => _resolutionNote;
         set => SetField(ref _resolutionNote, value);
+    }
+
+    /// <summary>Operator-entered reason or root-cause notes for this incident.</summary>
+    public string Reason
+    {
+        get => _reason;
+        set => SetField(ref _reason, value);
     }
 
     public IncidentSeverity Severity
