@@ -21,7 +21,10 @@ public partial class MainWindow : Window
     };
 
     private readonly MariaDbDataStore _dataStore = new();
+    private readonly AccountStore _accountStore = new();
+    private readonly SecurityAuditLogger _securityAuditLogger = new();
     private readonly AccountUser _currentUser;
+    private bool _sessionEnding;
     private readonly List<Incident> _incidents;
     private readonly List<CheckHistoryEntry> _checkHistory;
     private readonly HiddenItemsStore _hiddenItems = new();
@@ -1157,6 +1160,24 @@ public partial class MainWindow : Window
     {
         try
         {
+            if (!_sessionEnding && !_accountStore.IsActiveAccount(_currentUser.Id))
+            {
+                _sessionEnding = true;
+                _securityAuditLogger.RecordSessionRevoked(
+                    _currentUser,
+                    "This account was soft-deleted while a session was still active.");
+                MessageBox.Show(
+                    this,
+                    "This account has been deleted and can no longer access AlertingSystem. Your session will now end. Existing incidents and alert history remain preserved.",
+                    "Account access revoked",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                Dispatcher.BeginInvoke(
+                    DispatcherPriority.Background,
+                    new Action(EndSessionAndRequireLogin));
+                return;
+            }
+
             var databaseIncidents = _dataStore.LoadIncidents();
             var databaseHistory = _dataStore.LoadCheckHistory()
                 .OrderByDescending(entry => entry.Timestamp)
@@ -1201,12 +1222,24 @@ public partial class MainWindow : Window
                         "LOGIN ERROR", StringComparison.OrdinalIgnoreCase);
                 var accountCreated = securityEvent.Result.Equals(
                     "ACCOUNT CREATED", StringComparison.OrdinalIgnoreCase);
+                var accountDeleted = securityEvent.Result.Equals(
+                    "ACCOUNT DELETED", StringComparison.OrdinalIgnoreCase);
+                var signedOut = securityEvent.Result.Equals(
+                    "SIGN OUT", StringComparison.OrdinalIgnoreCase);
+                var sessionRevoked = securityEvent.Result.Equals(
+                    "SESSION REVOKED", StringComparison.OrdinalIgnoreCase);
 
                 var title = failedLogin
                     ? "SECURITY INCIDENT  /  FAILED SIGN-IN"
                     : accountCreated
                         ? "SECURITY ALERT  /  NEW ACCOUNT"
-                        : "SECURITY ALERT  /  SUCCESSFUL LOGIN";
+                        : accountDeleted
+                            ? "SECURITY ALERT  /  ACCOUNT DELETED"
+                            : sessionRevoked
+                                ? "SECURITY ALERT  /  SESSION REVOKED"
+                                : signedOut
+                                    ? "SECURITY ALERT  /  USER SIGNED OUT"
+                                    : "SECURITY ALERT  /  SUCCESSFUL LOGIN";
                 var detailLines = securityEvent.Details
                     .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
                 var usefulDetail = failedLogin
@@ -1214,10 +1247,12 @@ public partial class MainWindow : Window
                         ?? detailLines.FirstOrDefault(line => line.StartsWith("Category:", StringComparison.OrdinalIgnoreCase))
                     : detailLines.FirstOrDefault(line => line.StartsWith("Event:", StringComparison.OrdinalIgnoreCase));
                 var message = $"{securityEvent.Endpoint}\n{securityEvent.Timestamp:yyyy-MM-dd HH:mm:ss}\n{usefulDetail ?? securityEvent.Result}";
-                QueueSecurityAlertToast(
-                    title,
-                    message,
-                    failedLogin ? "DangerBrush" : "SuccessBrush");
+                var brushKey = failedLogin || accountDeleted || sessionRevoked
+                    ? "DangerBrush"
+                    : signedOut
+                        ? "WarningBrush"
+                        : "SuccessBrush";
+                QueueSecurityAlertToast(title, message, brushKey);
             }
         }
         catch (Exception exception)
@@ -1265,7 +1300,10 @@ public partial class MainWindow : Window
         entry.Result.Equals("LOGIN SUCCESS", StringComparison.OrdinalIgnoreCase) ||
         entry.Result.Equals("LOGIN FAILED", StringComparison.OrdinalIgnoreCase) ||
         entry.Result.Equals("LOGIN ERROR", StringComparison.OrdinalIgnoreCase) ||
-        entry.Result.Equals("ACCOUNT CREATED", StringComparison.OrdinalIgnoreCase);
+        entry.Result.Equals("ACCOUNT CREATED", StringComparison.OrdinalIgnoreCase) ||
+        entry.Result.Equals("SIGN OUT", StringComparison.OrdinalIgnoreCase) ||
+        entry.Result.Equals("ACCOUNT DELETED", StringComparison.OrdinalIgnoreCase) ||
+        entry.Result.Equals("SESSION REVOKED", StringComparison.OrdinalIgnoreCase);
 
     private void QueueSecurityAlertToast(string title, string message, string brushKey)
     {
@@ -1641,7 +1679,36 @@ public partial class MainWindow : Window
 
     private void AccountNavButton_Click(object sender, RoutedEventArgs e)
     {
+        RefreshAccountDirectory();
         ShowPage(AccountPage, AccountNavButton);
+    }
+
+    private void RefreshAccountDirectoryButton_Click(object sender, RoutedEventArgs e)
+    {
+        RefreshAccountDirectory();
+    }
+
+    private void RefreshAccountDirectory()
+    {
+        try
+        {
+            var accounts = _accountStore.GetAllAccounts();
+            AccountDirectoryList.ItemsSource = accounts;
+            var deletedCount = accounts.Count(account => account.IsDeleted);
+            AccountDirectoryCountText.Text =
+                $"{accounts.Count} accounts  •  {deletedCount} deleted";
+        }
+        catch (Exception exception)
+        {
+            AccountDirectoryList.ItemsSource = null;
+            AccountDirectoryCountText.Text = "Account list unavailable";
+            MessageBox.Show(
+                this,
+                $"The account list could not be loaded from MariaDB. No account data was deleted.\n\n{exception.Message}",
+                "Account directory warning",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
     }
 
     private void CreateAnotherAccountButton_Click(object sender, RoutedEventArgs e)
@@ -1655,9 +1722,14 @@ public partial class MainWindow : Window
 
     private void SignOutButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_sessionEnding)
+        {
+            return;
+        }
+
         var answer = MessageBox.Show(
             this,
-            "Sign out of AlertingSystem? You will need to sign in again to continue.",
+            "Sign out of AlertingSystem? This action will be recorded in Alert History.",
             "Sign out",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
@@ -1666,6 +1738,76 @@ public partial class MainWindow : Window
         {
             return;
         }
+
+        _sessionEnding = true;
+        _securityAuditLogger.RecordSuccessfulLogout(_currentUser);
+        EndSessionAndRequireLogin();
+    }
+
+    private void DeleteAccountButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_sessionEnding)
+        {
+            return;
+        }
+
+        var confirmation = new DeleteAccountWindow(_currentUser.Username)
+        {
+            Owner = this
+        };
+
+        if (confirmation.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            if (!_accountStore.TrySoftDeleteAccount(
+                    _currentUser.Id,
+                    confirmation.ConfirmedPassword,
+                    out var error))
+            {
+                MessageBox.Show(
+                    this,
+                    error,
+                    "Account not deleted",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
+            _sessionEnding = true;
+            _securityAuditLogger.RecordAccountDeleted(_currentUser);
+            _securityAuditLogger.RecordSuccessfulLogout(
+                _currentUser,
+                "Session ended because the account was soft-deleted.");
+
+            MessageBox.Show(
+                this,
+                "Your account has been marked as deleted. Its AppUsers row remains in MariaDB with IsDeleted = 1 and DeletedAt set. Your incidents and alert history have not been removed.",
+                "Account deleted",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+
+            EndSessionAndRequireLogin();
+        }
+        catch (Exception exception)
+        {
+            MessageBox.Show(
+                this,
+                $"The account could not be deleted. MariaDB did not confirm the change.\n\n{exception.Message}",
+                "Account deletion failed",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    private void EndSessionAndRequireLogin()
+    {
+        _databaseSyncTimer.Stop();
+        _scheduledCheckTimer.Stop();
+        _securityAlertToastTimer.Stop();
 
         var loginWindow = new LoginWindow();
         Hide();
@@ -1676,12 +1818,9 @@ public partial class MainWindow : Window
             var nextWindow = new MainWindow(loginWindow.AuthenticatedUser);
             Application.Current.MainWindow = nextWindow;
             nextWindow.Show();
-            Close();
-            return;
         }
 
-        Show();
-        Application.Current.MainWindow = this;
+        Close();
     }
 
     private sealed class UiPreferences

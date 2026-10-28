@@ -305,6 +305,39 @@
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         </Style>
 
+        <Style TargetType="{x:Type PasswordBox}">
+            <Setter Property="Background" Value="{DynamicResource Hex0B1425Brush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="MinHeight" Value="40"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type PasswordBox}">
+                        <Border x:Name="PasswordBoxBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="PasswordBoxBorder" Property="BorderBrush" Value="{DynamicResource Hex477DFABrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="PasswordBoxBorder" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ThemeOptionRadioButton" TargetType="{x:Type RadioButton}">
             <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
@@ -1312,6 +1345,7 @@
     <Grid x:Name="AccountPage" Grid.Column="1" Margin="28,26,28,26" Visibility="Collapsed">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -1323,7 +1357,7 @@
                        Margin="0,7,0,0" TextWrapping="Wrap"/>
         </StackPanel>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.1*"/>
                 <ColumnDefinition Width="0.9*"/>
@@ -1379,9 +1413,22 @@
                             Click="CreateAnotherAccountButton_Click"
                             Style="{StaticResource SecondaryButton}"
                             HorizontalAlignment="Left" Margin="0,0,0,10"/>
-                    <Button x:Name="SignOutButton" Content="Sign out"
-                            Click="SignOutButton_Click"
-                            HorizontalAlignment="Left" MinWidth="130"/>
+                    <Grid Margin="0,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="SignOutButton" Content="Sign out"
+                                Click="SignOutButton_Click"
+                                HorizontalAlignment="Stretch" Margin="0,0,5,0"/>
+                        <Button x:Name="DeleteAccountButton" Grid.Column="1"
+                                Content="Delete account"
+                                Click="DeleteAccountButton_Click"
+                                Background="{DynamicResource DangerBrush}"
+                                BorderBrush="{DynamicResource DangerBrush}"
+                                Foreground="White"
+                                HorizontalAlignment="Stretch" Margin="5,0,0,0"/>
+                    </Grid>
                 </StackPanel>
             </Border>
 
@@ -1419,6 +1466,96 @@
                 </StackPanel>
             </Border>
         </Grid>
+
+        <Border Grid.Row="2" Background="{DynamicResource CardBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                CornerRadius="14" Padding="16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Account directory" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextBrush}"/>
+                        <TextBlock Text="Records are retained in MariaDB, including deleted accounts."
+                                   FontSize="11" Foreground="{DynamicResource MutedBrush}"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <TextBlock x:Name="AccountDirectoryCountText" Grid.Column="1"
+                               Text="0 accounts" FontSize="11"
+                               Foreground="{DynamicResource MutedBrush}"
+                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Button Grid.Column="2" Content="Refresh"
+                            Click="RefreshAccountDirectoryButton_Click"
+                            Style="{StaticResource SecondaryButton}"
+                            Padding="12,7" MinHeight="32"/>
+                </Grid>
+
+                <ListBox x:Name="AccountDirectoryList" Grid.Row="1"
+                         Background="Transparent" BorderThickness="0"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListBoxItem}">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0,0,0,7"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{DynamicResource Hex0B1425Brush}"
+                                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                    CornerRadius="10" Padding="10,9">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextBrush}"/>
+                                        <TextBlock Text="{Binding Username, StringFormat='@{0}'}"
+                                                   FontSize="10" Foreground="{DynamicResource MutedBrush}"
+                                                   Margin="0,2,0,0"/>
+                                        <TextBlock Text="{Binding LifecycleDisplay}" FontSize="9"
+                                                   Foreground="{DynamicResource MutedBrush}"
+                                                   Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="1" CornerRadius="6" Padding="9,5"
+                                            VerticalAlignment="Center" BorderThickness="1">
+                                        <Border.Style>
+                                            <Style TargetType="{x:Type Border}">
+                                                <Setter Property="Background" Value="{DynamicResource Hex162743Brush}"/>
+                                                <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsDeleted}" Value="True">
+                                                        <Setter Property="Background" Value="{DynamicResource Hex302713Brush}"/>
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding StatusDisplay}" FontSize="9"
+                                                   FontWeight="Bold"
+                                                   Foreground="{DynamicResource TextBrush}"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
     </Grid>
 
     <Border x:Name="SecurityAlertToastBorder" Grid.Column="1"

@@ -22,26 +22,83 @@ public sealed class AccountStore
 
         using var connection = new MySqlConnection(_connectionString);
         connection.Open();
-        using var command = connection.CreateCommand();
-        command.CommandText = """
-            CREATE TABLE IF NOT EXISTS AppUsers (
-                Id INT NOT NULL AUTO_INCREMENT,
-                DisplayName VARCHAR(100) NOT NULL,
-                Username VARCHAR(32) NOT NULL,
-                PasswordHash VARCHAR(255) NOT NULL,
-                CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-                PRIMARY KEY (Id),
-                UNIQUE KEY UX_AppUsers_Username (Username)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-            """;
-        command.ExecuteNonQuery();
+
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText = """
+                CREATE TABLE IF NOT EXISTS AppUsers (
+                    Id INT NOT NULL AUTO_INCREMENT,
+                    DisplayName VARCHAR(100) NOT NULL,
+                    Username VARCHAR(32) NOT NULL,
+                    PasswordHash VARCHAR(255) NOT NULL,
+                    CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                    IsDeleted TINYINT(1) NOT NULL DEFAULT 0,
+                    DeletedAt DATETIME(6) NULL,
+                    PRIMARY KEY (Id),
+                    UNIQUE KEY UX_AppUsers_Username (Username)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                """;
+            command.ExecuteNonQuery();
+        }
+
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText =
+                "ALTER TABLE AppUsers ADD COLUMN IF NOT EXISTS IsDeleted TINYINT(1) NOT NULL DEFAULT 0";
+            command.ExecuteNonQuery();
+        }
+
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText =
+                "ALTER TABLE AppUsers ADD COLUMN IF NOT EXISTS DeletedAt DATETIME(6) NULL";
+            command.ExecuteNonQuery();
+        }
     }
 
     public bool HasAccounts()
     {
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
-        command.CommandText = "SELECT EXISTS(SELECT 1 FROM AppUsers LIMIT 1)";
+        command.CommandText = "SELECT EXISTS(SELECT 1 FROM AppUsers WHERE IsDeleted = 0 LIMIT 1)";
+        return Convert.ToInt32(command.ExecuteScalar()) == 1;
+    }
+
+    public List<AccountUser> GetAllAccounts()
+    {
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT Id, DisplayName, Username, CreatedAt, IsDeleted, DeletedAt
+            FROM AppUsers
+            ORDER BY IsDeleted ASC, CreatedAt DESC, Id DESC
+            """;
+
+        using var reader = command.ExecuteReader();
+        var accounts = new List<AccountUser>();
+        while (reader.Read())
+        {
+            accounts.Add(new AccountUser
+            {
+                Id = reader.GetInt32(0),
+                DisplayName = reader.GetString(1),
+                Username = reader.GetString(2),
+                CreatedAt = reader.GetDateTime(3),
+                IsDeleted = reader.GetBoolean(4),
+                DeletedAt = reader.IsDBNull(5) ? null : reader.GetDateTime(5)
+            });
+        }
+
+        return accounts;
+    }
+
+    public bool IsActiveAccount(int userId)
+    {
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            "SELECT EXISTS(SELECT 1 FROM AppUsers WHERE Id = @id AND IsDeleted = 0 LIMIT 1)";
+        command.Parameters.AddWithValue("@id", userId);
         return Convert.ToInt32(command.ExecuteScalar()) == 1;
     }
 
@@ -125,7 +182,7 @@ public sealed class AccountStore
         command.CommandText = """
             SELECT Id, DisplayName, Username, PasswordHash, CreatedAt
             FROM AppUsers
-            WHERE Username = @username
+            WHERE Username = @username AND IsDeleted = 0
             LIMIT 1
             """;
         command.Parameters.AddWithValue("@username", username);
@@ -149,6 +206,63 @@ public sealed class AccountStore
             Username = reader.GetString(2),
             CreatedAt = reader.GetDateTime(4)
         };
+        return true;
+    }
+
+    public bool TrySoftDeleteAccount(int userId, string password, out string error)
+    {
+        error = string.Empty;
+        string passwordHash;
+        bool isDeleted;
+
+        using var connection = OpenConnection();
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText = """
+                SELECT PasswordHash, IsDeleted
+                FROM AppUsers
+                WHERE Id = @id
+                LIMIT 1
+                """;
+            command.Parameters.AddWithValue("@id", userId);
+
+            using var reader = command.ExecuteReader();
+            if (!reader.Read())
+            {
+                error = "This account could not be found in MariaDB.";
+                return false;
+            }
+
+            passwordHash = reader.GetString(0);
+            isDeleted = reader.GetBoolean(1);
+        }
+
+        if (isDeleted)
+        {
+            error = "This account has already been deleted.";
+            return false;
+        }
+
+        if (!VerifyPassword(password, passwordHash))
+        {
+            error = "The password is incorrect. The account was not changed.";
+            return false;
+        }
+
+        using var updateCommand = connection.CreateCommand();
+        updateCommand.CommandText = """
+            UPDATE AppUsers
+            SET IsDeleted = 1, DeletedAt = UTC_TIMESTAMP(6)
+            WHERE Id = @id AND IsDeleted = 0
+            """;
+        updateCommand.Parameters.AddWithValue("@id", userId);
+
+        if (updateCommand.ExecuteNonQuery() != 1)
+        {
+            error = "The account could not be marked as deleted. Refresh the account list and try again.";
+            return false;
+        }
+
         return true;
     }
 

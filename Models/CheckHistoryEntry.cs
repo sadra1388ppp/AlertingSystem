@@ -30,7 +30,14 @@ public sealed class CheckHistoryEntry
                 return Brushes.MediumAquamarine;
             }
 
-            if (Result.Equals("LOGIN FAILED", StringComparison.OrdinalIgnoreCase) ||
+            if (Result.Equals("SIGN OUT", StringComparison.OrdinalIgnoreCase))
+            {
+                return Brushes.Goldenrod;
+            }
+
+            if (Result.Equals("ACCOUNT DELETED", StringComparison.OrdinalIgnoreCase) ||
+                Result.Equals("SESSION REVOKED", StringComparison.OrdinalIgnoreCase) ||
+                Result.Equals("LOGIN FAILED", StringComparison.OrdinalIgnoreCase) ||
                 Result.Equals("LOGIN ERROR", StringComparison.OrdinalIgnoreCase))
             {
                 return Brushes.LightCoral;

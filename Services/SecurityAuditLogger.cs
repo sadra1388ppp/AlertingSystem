@@ -64,6 +64,67 @@ public sealed class SecurityAuditLogger
         });
     }
 
+    public void RecordSuccessfulLogout(AccountUser user, string? context = null)
+    {
+        var now = DateTime.Now;
+        var details = BuildBaseDetails(now, user.Username) +
+            Environment.NewLine + "Event: Sign-out completed." +
+            (string.IsNullOrWhiteSpace(context)
+                ? string.Empty
+                : Environment.NewLine + "Context: " + context);
+
+        Record(new PendingSecurityAuditEvent
+        {
+            HistoryEntry = new CheckHistoryEntry
+            {
+                Timestamp = now,
+                Endpoint = $"Authentication / @{user.Username}",
+                Result = "SIGN OUT",
+                Details = details
+            }
+        });
+    }
+
+    public void RecordAccountDeleted(AccountUser user)
+    {
+        var now = DateTime.Now;
+        var details = BuildBaseDetails(now, user.Username) +
+            Environment.NewLine + "Event: Account soft-deleted by its owner." +
+            Environment.NewLine + $"Account ID: {user.Id}" +
+            Environment.NewLine + "Database retention: the AppUsers row remains and is marked IsDeleted = 1 with DeletedAt set." +
+            Environment.NewLine + "Related incidents and alert history were not deleted.";
+
+        Record(new PendingSecurityAuditEvent
+        {
+            HistoryEntry = new CheckHistoryEntry
+            {
+                Timestamp = now,
+                Endpoint = $"Authentication / @{user.Username}",
+                Result = "ACCOUNT DELETED",
+                Details = details
+            }
+        });
+    }
+
+    public void RecordSessionRevoked(AccountUser user, string context)
+    {
+        var now = DateTime.Now;
+        var details = BuildBaseDetails(now, user.Username) +
+            Environment.NewLine + "Event: Session access was revoked." +
+            Environment.NewLine + "Reason: " + context;
+
+        Record(new PendingSecurityAuditEvent
+        {
+            HistoryEntry = new CheckHistoryEntry
+            {
+                Timestamp = now,
+                Endpoint = $"Authentication / @{user.Username}",
+                Result = "SESSION REVOKED",
+                Details = details
+            }
+        });
+    }
+
     public void RecordFailedLogin(
         string? attemptedUsername,
         string category,
