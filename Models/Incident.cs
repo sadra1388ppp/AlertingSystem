@@ -67,7 +67,6 @@ public sealed class Incident : INotifyPropertyChanged
         set => SetField(ref _resolutionNote, value);
     }
 
-    /// <summary>Operator-entered reason or root-cause notes for this incident.</summary>
     public string Reason
     {
         get => _reason;
