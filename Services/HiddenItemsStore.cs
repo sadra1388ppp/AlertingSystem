@@ -4,10 +4,6 @@ using AlertingSystem.Models;
 
 namespace AlertingSystem.Services;
 
-/// <summary>
-/// Stores app-only hidden identifiers locally. Hiding never deletes a MariaDB row.
-/// If a row is deleted in MariaDB, its hidden marker is removed automatically.
-/// </summary>
 public sealed class HiddenItemsStore
 {
     private readonly string _path = Path.Combine(
@@ -87,7 +83,6 @@ public sealed class HiddenItemsStore
         catch (Exception exception) when (
             exception is IOException or UnauthorizedAccessException or JsonException)
         {
-            // A damaged local hide list must not prevent the app from opening.
         }
     }
 
