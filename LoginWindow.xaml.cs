@@ -33,6 +33,7 @@ public partial class LoginWindow : Window
         if (_registrationOnly)
         {
             ModeSwitchButton.Visibility = Visibility.Collapsed;
+            ModeSwitchFooter.Visibility = Visibility.Collapsed;
         }
     }
 
