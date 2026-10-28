@@ -30,7 +30,7 @@ public partial class LoginWindow : Window
             FeedbackText.Foreground = System.Windows.Media.Brushes.LightGreen;
         }
 
-        if (_registrationOnly)
+        if (_registrationOnly || !hasAccounts)
         {
             ModeSwitchButton.Visibility = Visibility.Collapsed;
             ModeSwitchFooter.Visibility = Visibility.Collapsed;
@@ -49,9 +49,15 @@ public partial class LoginWindow : Window
 
         if (!_registrationOnly)
         {
+            ModeSwitchPromptText.Text = registerMode
+                ? "ALREADY HAVE AN ACCOUNT?"
+                : "NEW TO ALERTINGSYSTEM?";
+            ModeSwitchDescriptionText.Text = registerMode
+                ? "Return to secure sign-in"
+                : "Create your workspace account";
             ModeSwitchButton.Content = registerMode
-                ? "Already registered? Sign in"
-                : "New here? Create an account";
+                ? "Sign in instead  →"
+                : "Create account  →";
         }
 
         FeedbackText.Text = string.Empty;

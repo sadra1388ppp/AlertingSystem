@@ -508,11 +508,11 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="NEW TO ALERTINGSYSTEM?"
+                                    <TextBlock x:Name="ModeSwitchPromptText" Text="NEW TO ALERTINGSYSTEM?"
                                                FontSize="9" FontWeight="Bold"
                                               
                                                Foreground="#6F829E"/>
-                                    <TextBlock Text="Create your workspace account"
+                                    <TextBlock x:Name="ModeSwitchDescriptionText" Text="Create your workspace account"
                                                FontSize="10.5" Foreground="#91A2BC"
                                                Margin="0,4,0,0"/>
                                 </StackPanel>
