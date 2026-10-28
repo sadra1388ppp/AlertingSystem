@@ -200,13 +200,13 @@
             </Setter>
         </Style>
 
-        <!-- Custom, theme-controlled face and popup. The face no longer depends on
-             the operating system's default WPF ComboBox ToggleButton template. -->
+        <!-- Keep the stock ComboBox interaction template; the visible closed face is drawn
+             by the themed wrapper at each incident dropdown. -->
         <Style x:Key="IncidentComboBoxStyle" TargetType="{x:Type ComboBox}">
-            <Setter Property="Background" Value="{DynamicResource Hex0B1425Brush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="10,6"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -218,117 +218,6 @@
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
             <Setter Property="ItemContainerStyle" Value="{StaticResource IncidentComboBoxItemStyle}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ComboBox}">
-                        <Grid SnapsToDevicePixels="True">
-                            <ToggleButton x:Name="ToggleButton"
-                                          Background="{TemplateBinding Background}"
-                                          Foreground="{TemplateBinding Foreground}"
-                                          BorderBrush="{TemplateBinding BorderBrush}"
-                                          BorderThickness="{TemplateBinding BorderThickness}"
-                                          Focusable="False"
-                                          ClickMode="Press"
-                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
-                                <ToggleButton.Template>
-                                    <ControlTemplate TargetType="{x:Type ToggleButton}">
-                                        <Border x:Name="ToggleBorder"
-                                                Background="{TemplateBinding Background}"
-                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                CornerRadius="7"
-                                                SnapsToDevicePixels="True">
-                                            <Grid>
-                                                <Path Data="M 0 0 L 4 4 L 8 0 Z"
-                                                      Width="9"
-                                                      Height="5"
-                                                      Stretch="Fill"
-                                                      Fill="{DynamicResource MutedBrush}"
-                                                      HorizontalAlignment="Right"
-                                                      VerticalAlignment="Center"
-                                                      Margin="0,0,11,0"/>
-                                            </Grid>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource NeutralBrush}"/>
-                                            </Trigger>
-                                            <Trigger Property="IsChecked" Value="True">
-                                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource NeutralBrush}"/>
-                                                <Setter TargetName="ToggleBorder" Property="Background" Value="{DynamicResource Hex101A2BBrush}"/>
-                                            </Trigger>
-                                            <Trigger Property="IsPressed" Value="True">
-                                                <Setter TargetName="ToggleBorder" Property="Background" Value="{DynamicResource Hex20385FBrush}"/>
-                                            </Trigger>
-                                            <Trigger Property="IsEnabled" Value="False">
-                                                <Setter TargetName="ToggleBorder" Property="Opacity" Value="0.55"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </ToggleButton.Template>
-                            </ToggleButton>
-
-                            <ContentPresenter x:Name="ContentSite"
-                                              IsHitTestVisible="False"
-                                              Content="{TemplateBinding SelectionBoxItem}"
-                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                              ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
-                                              Margin="10,0,30,0"
-                                              VerticalAlignment="Center"
-                                              HorizontalAlignment="Left"
-                                              RecognizesAccessKey="True"/>
-
-                            <Popup x:Name="PART_Popup"
-                                   Placement="Bottom"
-                                   IsOpen="{TemplateBinding IsDropDownOpen}"
-                                   AllowsTransparency="True"
-                                   Focusable="False"
-                                   PopupAnimation="Fade">
-                                <Grid x:Name="DropDown"
-                                      SnapsToDevicePixels="True"
-                                      MinWidth="{TemplateBinding ActualWidth}"
-                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                    <Border x:Name="DropDownBorder"
-                                            Background="{DynamicResource CardBrush}"
-                                            BorderBrush="{DynamicResource BorderBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="8"
-                                            Margin="0,4,0,0"/>
-                                    <ScrollViewer Margin="4,8,4,4"
-                                                  SnapsToDevicePixels="True"
-                                                  CanContentScroll="{TemplateBinding ScrollViewer.CanContentScroll}"
-                                                  HorizontalScrollBarVisibility="Disabled"
-                                                  VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
-                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
-                                    </ScrollViewer>
-                                </Grid>
-                            </Popup>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="HasItems" Value="False">
-                                <Setter TargetName="DropDownBorder" Property="MinHeight" Value="28"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.55"/>
-                            </Trigger>
-                            <Trigger Property="IsDropDownOpen" Value="True">
-                                <Setter TargetName="ToggleButton" Property="IsChecked" Value="True"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="BorderBrush" Value="{DynamicResource NeutralBrush}"/>
-                </Trigger>
-                <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                    <Setter Property="BorderBrush" Value="{DynamicResource NeutralBrush}"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Opacity" Value="0.55"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
 
         <Style TargetType="TextBox">
@@ -772,14 +661,24 @@
                         <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <Button x:Name="OpenIncidentsFilterButton" Content="Open" Style="{StaticResource SecondaryButton}" Click="OpenIncidentsFilterButton_Click" Margin="0,0,6,0" Padding="10,7" FontSize="11"/>
                             <Button x:Name="AllIncidentsFilterButton" Grid.Column="1" Content="All" Style="{StaticResource SecondaryButton}" Click="AllIncidentsFilterButton_Click" Margin="0,0,8,0" Padding="10,7" FontSize="11"/>
-                            <ComboBox x:Name="IncidentSeverityFilterComboBox" Grid.Column="2" Height="34" MinWidth="105" Margin="0,0,5,0" HorizontalAlignment="Stretch" Background="{DynamicResource Hex0B1425Brush}" Foreground="{DynamicResource TextBrush}" BorderBrush="{DynamicResource BorderBrush}" SelectedIndex="0" ToolTip="Filter by severity" Style="{StaticResource IncidentComboBoxStyle}">
+                            <Grid Grid.Column="2" Height="34" MinWidth="105" Margin="0,0,5,0" HorizontalAlignment="Stretch">
+                                <Border Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="7"/>
+                                <TextBlock Text="{Binding SelectedItem.Content, ElementName=IncidentSeverityFilterComboBox}" Foreground="{DynamicResource TextBrush}" FontSize="12" FontWeight="SemiBold" Margin="10,0,30,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                <Path Data="M 0 0 L 4 4 L 8 0 Z" Width="9" Height="5" Stretch="Fill" Fill="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,11,0" IsHitTestVisible="False"/>
+                                <ComboBox x:Name="IncidentSeverityFilterComboBox" Height="34" MinWidth="105" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" Foreground="Transparent" BorderBrush="Transparent" BorderThickness="0" Opacity="0.01" SelectedIndex="0" ToolTip="Filter by severity" Style="{StaticResource IncidentComboBoxStyle}">
                                 
                                 <ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="All severities"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Critical"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="High"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Medium"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Low"/>
-                            </ComboBox>
-                            <ComboBox x:Name="IncidentSortComboBox" Grid.Column="3" Height="34" MinWidth="105" HorizontalAlignment="Stretch" Background="{DynamicResource Hex0B1425Brush}" Foreground="{DynamicResource TextBrush}" BorderBrush="{DynamicResource BorderBrush}" SelectedIndex="0" ToolTip="Change incident queue order" Style="{StaticResource IncidentComboBoxStyle}">
+                                </ComboBox>
+                            </Grid>
+                            <Grid Grid.Column="3" Height="34" MinWidth="105" HorizontalAlignment="Stretch">
+                                <Border Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="7"/>
+                                <TextBlock Text="{Binding SelectedItem.Content, ElementName=IncidentSortComboBox}" Foreground="{DynamicResource TextBrush}" FontSize="12" FontWeight="SemiBold" Margin="10,0,30,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                <Path Data="M 0 0 L 4 4 L 8 0 Z" Width="9" Height="5" Stretch="Fill" Fill="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,11,0" IsHitTestVisible="False"/>
+                                <ComboBox x:Name="IncidentSortComboBox" Height="34" MinWidth="105" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" Foreground="Transparent" BorderBrush="Transparent" BorderThickness="0" Opacity="0.01" SelectedIndex="0" ToolTip="Change incident queue order" Style="{StaticResource IncidentComboBoxStyle}">
                                 
                                 <ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Priority first"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Newest first"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Most frequent"/>
-                            </ComboBox>
+                                </ComboBox>
+                            </Grid>
                         </Grid>
                     </StackPanel>
                     <Grid Grid.Row="2">
@@ -842,10 +741,15 @@
                                     <TextBlock Text="INCIDENT PRIORITY" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
                                     <TextBlock Text="Set triage level" FontSize="10" Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,0"/>
                                 </StackPanel>
-                                <ComboBox x:Name="SelectedIncidentSeverityComboBox" Grid.Column="1" Height="35" VerticalAlignment="Center" MinWidth="110" Background="{DynamicResource Hex0B1425Brush}" Foreground="{DynamicResource TextBrush}" BorderBrush="{DynamicResource BorderBrush}" ToolTip="Choose a new severity level" Style="{StaticResource IncidentComboBoxStyle}">
+                                <Grid Grid.Column="1" Height="35" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                                    <Border Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="7"/>
+                                    <TextBlock Text="{Binding SelectedItem.Content, ElementName=SelectedIncidentSeverityComboBox, TargetNullValue=Select severity, FallbackValue=Select severity}" Foreground="{DynamicResource TextBrush}" FontSize="12" FontWeight="SemiBold" Margin="10,0,30,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                    <Path Data="M 0 0 L 4 4 L 8 0 Z" Width="9" Height="5" Stretch="Fill" Fill="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,11,0" IsHitTestVisible="False"/>
+                                    <ComboBox x:Name="SelectedIncidentSeverityComboBox" Height="35" VerticalAlignment="Stretch" MinWidth="110" HorizontalAlignment="Stretch" Background="Transparent" Foreground="Transparent" BorderBrush="Transparent" BorderThickness="0" Opacity="0.01" ToolTip="Choose a new severity level" Style="{StaticResource IncidentComboBoxStyle}">
                                     
                                     <ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Critical"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="High"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Medium"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Low"/>
-                                </ComboBox>
+                                    </ComboBox>
+                                </Grid>
                                 <Button x:Name="ApplyIncidentSeverityButton" Grid.Column="2" Content="Update priority" Style="{StaticResource SecondaryButton}" Click="ApplyIncidentSeverityButton_Click" IsEnabled="False" Padding="10,8" FontSize="11" Margin="8,0,0,0" VerticalAlignment="Center"/>
                             </Grid>
                             <TextBlock Text="AFFECTED ENDPOINT" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}" Margin="0,18,0,7"/><Border Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8">
