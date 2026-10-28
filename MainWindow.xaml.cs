@@ -1166,7 +1166,9 @@ public partial class MainWindow : Window
             3 => IncidentSeverity.Medium, 4 => IncidentSeverity.Low, _ => null
         };
         var matchingIncidents = _incidents
-            .Where(item => _showAllIncidents || item.Status == IncidentStatus.Open)
+            // A search should be able to find an incident by ID even when it is already Done.
+            // The Open/All buttons control the default queue only when the search box is empty.
+            .Where(item => hasSearchText || _showAllIncidents || item.Status == IncidentStatus.Open)
             .Where(item => severityFilter is null || item.Severity == severityFilter.Value)
             .Where(item => string.IsNullOrWhiteSpace(search) ||
                 (item.IncidentNumber ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
@@ -1202,9 +1204,11 @@ public partial class MainWindow : Window
             visibleIncidents.FirstOrDefault(item => string.Equals(item.IncidentNumber, selectedNumber, StringComparison.OrdinalIgnoreCase));
         if (IncidentsListBox.SelectedItem is null && visibleIncidents.Count > 0) IncidentsListBox.SelectedIndex = 0;
         IncidentQueueCountText.Text = $"{visibleIncidents.Count} item(s)";
-        IncidentFilterDescriptionText.Text = _showAllIncidents
-            ? $"Showing {visibleIncidents.Count} of {_incidents.Count} incident(s)"
-            : $"Showing {visibleIncidents.Count} open incident(s)";
+        IncidentFilterDescriptionText.Text = hasSearchText
+            ? $"Search results across all statuses • {visibleIncidents.Count} match(es)"
+            : _showAllIncidents
+                ? $"Showing {visibleIncidents.Count} of {_incidents.Count} incident(s)"
+                : $"Showing {visibleIncidents.Count} open incident(s)";
         IncidentsEmptyPanel.Visibility = visibleIncidents.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         if (visibleIncidents.Count == 0)
             IncidentsEmptyText.Text = _incidents.Count == 0
