@@ -22,7 +22,7 @@
         <SolidColorBrush x:Key="SecondaryButtonBrush" Color="#1B2A44"/>
         <SolidColorBrush x:Key="SelectedFilterBrush" Color="#477DFA"/>
 
-        <!-- Runtime-switchable literal colors for Dark and Light themes. -->
+        
         <SolidColorBrush x:Key="Hex0A1020Brush" Color="#0A1020"/>
         <SolidColorBrush x:Key="Hex0B1120Brush" Color="#0B1120"/>
         <SolidColorBrush x:Key="Hex0B1425Brush" Color="#0B1425"/>
@@ -200,8 +200,7 @@
             </Setter>
         </Style>
 
-        <!-- Keep the stock ComboBox interaction template; the visible closed face is drawn
-             by the themed wrapper at each incident dropdown. -->
+        
         <Style x:Key="IncidentComboBoxStyle" TargetType="{x:Type ComboBox}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="Transparent"/>
@@ -298,7 +297,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Sidebar -->
+        
         <Border Grid.Column="0"
                 Background="{DynamicResource SidebarBrush}"
                 BorderBrush="{DynamicResource BorderBrush}"
@@ -354,7 +353,7 @@
             </Grid>
         </Border>
 
-        <!-- Main content -->
+        
         <Grid x:Name="OverviewPage" Grid.Column="1" Margin="32,28,32,28">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -362,7 +361,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Header -->
+            
             <Grid Grid.Row="0" Margin="0,0,0,22">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -389,7 +388,7 @@
                 </Border>
             </Grid>
 
-            <!-- Summary cards -->
+            
             <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,18">
                 <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1" CornerRadius="11" Padding="16" Margin="0,0,10,0">
@@ -428,14 +427,14 @@
                 </Border>
             </UniformGrid>
 
-            <!-- Main panels -->
+            
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.15*"/>
                     <ColumnDefinition Width="0.85*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Endpoint check -->
+                
                 <Border Grid.Column="0" Background="{DynamicResource CardBrush}"
                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                         CornerRadius="12" Padding="20" Margin="0,0,12,0">
@@ -507,7 +506,7 @@
                     </Grid>
                 </Border>
 
-                <!-- Scope and next steps -->
+                
                 <StackPanel Grid.Column="1">
                     <Border Background="{DynamicResource CardBrush}"
                             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
@@ -890,7 +889,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Page heading -->
+        
         <Grid Grid.Row="0" Margin="0,0,0,18">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -921,7 +920,7 @@
             </Border>
         </Grid>
 
-        <!-- Target editor and cadence controls -->
+        
         <Grid Grid.Row="1" Margin="0,0,0,14">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.08*"/>
@@ -1090,7 +1089,7 @@
             </Border>
         </Grid>
 
-        <!-- Live results -->
+        
         <Border Grid.Row="2" Background="{DynamicResource CardBrush}"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                 CornerRadius="14" Padding="16">
