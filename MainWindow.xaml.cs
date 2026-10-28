@@ -1530,19 +1530,21 @@ public partial class MainWindow : Window
             Resources[key] = new SolidColorBrush(ParseThemeColor(color));
         }
 
-        // Native WPF ComboBox popups use system brushes for their dropdown surface.
-        // Override those brushes with the active application theme so the popup never flashes white.
-        Resources[SystemColors.WindowBrushKey] = new SolidColorBrush(
+        // ComboBox dropdowns are hosted in a separate Popup visual tree.
+        // Window.Resources is not a reliable source for the popup's system brushes,
+        // so publish the active theme at Application scope for native WPF templates.
+        var applicationResources = Application.Current.Resources;
+        applicationResources[SystemColors.WindowBrushKey] = new SolidColorBrush(
             ParseThemeColor(_isLightTheme ? "#FFFFFF" : "#121E33"));
-        Resources[SystemColors.WindowTextBrushKey] = new SolidColorBrush(
+        applicationResources[SystemColors.WindowTextBrushKey] = new SolidColorBrush(
             ParseThemeColor(_isLightTheme ? "#182338" : "#F1F5FC"));
-        Resources[SystemColors.ControlBrushKey] = new SolidColorBrush(
+        applicationResources[SystemColors.ControlBrushKey] = new SolidColorBrush(
             ParseThemeColor(_isLightTheme ? "#E8EDF6" : "#1B2A44"));
-        Resources[SystemColors.ControlTextBrushKey] = new SolidColorBrush(
+        applicationResources[SystemColors.ControlTextBrushKey] = new SolidColorBrush(
             ParseThemeColor(_isLightTheme ? "#182338" : "#F1F5FC"));
-        Resources[SystemColors.HighlightBrushKey] = new SolidColorBrush(
+        applicationResources[SystemColors.HighlightBrushKey] = new SolidColorBrush(
             ParseThemeColor(_isLightTheme ? "#DDE8FF" : "#20385F"));
-        Resources[SystemColors.HighlightTextBrushKey] = new SolidColorBrush(
+        applicationResources[SystemColors.HighlightTextBrushKey] = new SolidColorBrush(
             ParseThemeColor(_isLightTheme ? "#182338" : "#F1F5FC"));
 
         StatusIndicator.Fill = (Brush)FindResource(_currentStatusBrushKey);
