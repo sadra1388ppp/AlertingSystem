@@ -352,11 +352,11 @@
                                 <TextBlock Text="SECURE ACCESS" FontSize="9"
                                            FontWeight="Bold"
                                            Foreground="#88A9FF"/>
-                                <TextBlock Text="Your workspace awaits."
+                                <TextBlock x:Name="HeadingText" Text="Your workspace awaits."
                                            FontSize="25" FontWeight="Bold"
                                            Foreground="{StaticResource AuthTextBrush}"
                                            TextWrapping="Wrap" Margin="0,9,0,0"/>
-                                <TextBlock Text="Sign in to pick up where you left off."
+                                <TextBlock x:Name="SubheadingText" Text="Sign in to pick up where you left off."
                                            FontSize="11.5" Foreground="{StaticResource AuthMutedBrush}"
                                            TextWrapping="Wrap" Margin="0,7,0,0"/>
                             </StackPanel>
