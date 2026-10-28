@@ -335,6 +335,8 @@
                             Content="◉   Incidents" Click="IncidentsNavButton_Click"/>
                     <Button x:Name="AlertHistoryNavButton" Style="{StaticResource SidebarNavButton}"
                             Content="◷   Alert history" Click="AlertHistoryNavButton_Click"/>
+                    <Button x:Name="AccountNavButton" Style="{StaticResource SidebarNavButton}"
+                            Content="♙   Account" Click="AccountNavButton_Click"/>
                     <Button x:Name="SettingsNavButton" Style="{StaticResource SidebarNavButton}"
                             Content="⚙   Settings" Click="SettingsNavButton_Click"/>
                 </StackPanel>
@@ -342,11 +344,14 @@
                 <StackPanel Grid.Row="2">
                     <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,0,0,14"/>
                     <StackPanel Orientation="Horizontal" Margin="3,0,0,0">
-                        <Ellipse Width="8" Height="8" Fill="{DynamicResource WarningBrush}"
+                        <Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}"
                                  VerticalAlignment="Center"/>
-                        <TextBlock Text=" Local test mode" FontSize="11"
+                        <TextBlock Text=" Signed in" FontSize="11"
                                    Foreground="{DynamicResource MutedBrush}" Margin="7,0,0,0"/>
                     </StackPanel>
+                    <TextBlock x:Name="SidebarCurrentUserText" Text="Account" FontSize="11"
+                               Foreground="{DynamicResource TextBrush}" Margin="18,7,0,0"
+                               TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="v0.1 • First build" FontSize="10"
                                Foreground="{DynamicResource Hex64748BBrush}" Margin="3,10,0,0"/>
                 </StackPanel>
@@ -1250,6 +1255,118 @@
                 </StackPanel>
             </StackPanel>
         </Border>
+    </Grid>
+
+    <Grid x:Name="AccountPage" Grid.Column="1" Margin="32,28,32,28" Visibility="Collapsed">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Text="Account &amp; access" FontSize="27" FontWeight="Bold"
+                       Foreground="{DynamicResource TextBrush}"/>
+            <TextBlock Text="Manage your signed-in identity and access to this shared incident workspace."
+                       FontSize="13" Foreground="{DynamicResource MutedBrush}"
+                       Margin="0,7,0,0" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.1*"/>
+                <ColumnDefinition Width="0.9*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="{DynamicResource CardBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="12" Padding="26" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock Text="SIGNED-IN ACCOUNT" FontSize="10" FontWeight="Bold"
+                               Foreground="{DynamicResource MutedBrush}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,24,0,24">
+                        <Border Width="64" Height="64" CornerRadius="15"
+                                Background="{DynamicResource Hex20385FBrush}"
+                                BorderBrush="{DynamicResource NeutralBrush}" BorderThickness="1">
+                            <TextBlock x:Name="AccountInitialText" Text="A" FontSize="28"
+                                       FontWeight="Bold" Foreground="{DynamicResource TextBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Margin="16,0,0,0">
+                            <TextBlock x:Name="AccountDisplayNameText" Text="Account name"
+                                       FontSize="21" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextBrush}"/>
+                            <TextBlock x:Name="AccountUsernameText" Text="@username"
+                                       FontSize="13" Foreground="{DynamicResource MutedBrush}"
+                                       Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,0,0,18"/>
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Account ID" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
+                        <TextBlock x:Name="AccountIdText" Grid.Column="1" Text="—"
+                                   FontSize="12" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextBrush}"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,24">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Member since" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
+                        <TextBlock x:Name="AccountCreatedText" Grid.Column="1" Text="—"
+                                   FontSize="12" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextBrush}"/>
+                    </Grid>
+                    <Button x:Name="CreateAnotherAccountButton"
+                            Content="Register another account"
+                            Click="CreateAnotherAccountButton_Click"
+                            Style="{StaticResource SecondaryButton}"
+                            HorizontalAlignment="Left" Margin="0,0,0,10"/>
+                    <Button x:Name="SignOutButton" Content="Sign out"
+                            Click="SignOutButton_Click"
+                            HorizontalAlignment="Left" MinWidth="130"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Background="{DynamicResource CardBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="12" Padding="24">
+                <StackPanel>
+                    <TextBlock Text="ACCESS &amp; SECURITY" FontSize="10"
+                               FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
+                    <Border Background="{DynamicResource Hex0B1425Brush}"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="10" Padding="14" Margin="0,20,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}"
+                                     VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="Authenticated session" FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextBrush}"/>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Text="Password protection" FontSize="14"
+                               FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"
+                               Margin="0,23,0,0"/>
+                    <TextBlock Text="Passwords are stored as salted PBKDF2 hashes, not as plain text."
+                               FontSize="12" LineHeight="19"
+                               Foreground="{DynamicResource MutedBrush}"
+                               TextWrapping="Wrap" Margin="0,8,0,0"/>
+                    <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,22,0,18"/>
+                    <TextBlock Text="Shared incident workspace" FontSize="14"
+                               FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                    <TextBlock Text="Accounts connected to the same MariaDB workspace see the same incidents and alert history. Individual incident assignment and role permissions are not enabled yet."
+                               FontSize="12" LineHeight="19"
+                               Foreground="{DynamicResource MutedBrush}"
+                               TextWrapping="Wrap" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
     </Grid>
 </Window>

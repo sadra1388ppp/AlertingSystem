@@ -18,9 +18,20 @@ public partial class App : Application
 
         try
         {
-            var window = new MainWindow();
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            var loginWindow = new LoginWindow();
+            var loginResult = loginWindow.ShowDialog();
+
+            if (loginResult != true || loginWindow.AuthenticatedUser is null)
+            {
+                Shutdown();
+                return;
+            }
+
+            var window = new MainWindow(loginWindow.AuthenticatedUser);
             MainWindow = window;
             window.Show();
+            ShutdownMode = ShutdownMode.OnLastWindowClose;
         }
         catch (Exception exception)
         {

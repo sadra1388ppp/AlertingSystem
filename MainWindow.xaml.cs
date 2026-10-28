@@ -21,6 +21,7 @@ public partial class MainWindow : Window
     };
 
     private readonly MariaDbDataStore _dataStore = new();
+    private readonly AccountUser _currentUser;
     private readonly List<Incident> _incidents;
     private readonly List<CheckHistoryEntry> _checkHistory;
     private readonly HiddenItemsStore _hiddenItems = new();
@@ -121,9 +122,16 @@ public partial class MainWindow : Window
         ["#101A2B"] = "#FFFFFF"
     };
 
-    public MainWindow()
+    public MainWindow(AccountUser currentUser)
     {
+        _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
         InitializeComponent();
+        AccountInitialText.Text = _currentUser.DisplayName[..1].ToUpperInvariant();
+        AccountDisplayNameText.Text = _currentUser.DisplayName;
+        AccountUsernameText.Text = "@" + _currentUser.Username;
+        AccountIdText.Text = _currentUser.Id.ToString();
+        AccountCreatedText.Text = _currentUser.CreatedAt.ToString("yyyy-MM-dd");
+        SidebarCurrentUserText.Text = _currentUser.DisplayName;
         PreviewKeyDown += MainWindow_PreviewKeyDown;
         LoadThemePreference();
         ShowPage(OverviewPage, OverviewNavButton);
@@ -1522,6 +1530,51 @@ public partial class MainWindow : Window
         ShowPage(AlertHistoryPage, AlertHistoryNavButton);
     }
 
+    private void AccountNavButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowPage(AccountPage, AccountNavButton);
+    }
+
+    private void CreateAnotherAccountButton_Click(object sender, RoutedEventArgs e)
+    {
+        var registrationWindow = new LoginWindow(openRegistration: true, registrationOnly: true)
+        {
+            Owner = this
+        };
+        registrationWindow.ShowDialog();
+    }
+
+    private void SignOutButton_Click(object sender, RoutedEventArgs e)
+    {
+        var answer = MessageBox.Show(
+            this,
+            "Sign out of AlertingSystem? You will need to sign in again to continue.",
+            "Sign out",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (answer != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        var loginWindow = new LoginWindow();
+        Hide();
+        var result = loginWindow.ShowDialog();
+
+        if (result == true && loginWindow.AuthenticatedUser is not null)
+        {
+            var nextWindow = new MainWindow(loginWindow.AuthenticatedUser);
+            Application.Current.MainWindow = nextWindow;
+            nextWindow.Show();
+            Close();
+            return;
+        }
+
+        Show();
+        Application.Current.MainWindow = this;
+    }
+
     private sealed class UiPreferences
     {
         public string Theme { get; set; } = "Dark";
@@ -1674,6 +1727,7 @@ public partial class MainWindow : Window
         IncidentsPage.Visibility = Visibility.Collapsed;
         AlertHistoryPage.Visibility = Visibility.Collapsed;
         SettingsPage.Visibility = Visibility.Collapsed;
+        AccountPage.Visibility = Visibility.Collapsed;
         selectedPage.Visibility = Visibility.Visible;
 
         _activePage = selectedPage;
@@ -1688,7 +1742,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        foreach (var button in new[] { OverviewNavButton, ScheduledChecksNavButton, IncidentsNavButton, AlertHistoryNavButton, SettingsNavButton })
+        foreach (var button in new[] { OverviewNavButton, ScheduledChecksNavButton, IncidentsNavButton, AlertHistoryNavButton, AccountNavButton, SettingsNavButton })
         {
             button.Background = Brushes.Transparent;
             button.Foreground = (Brush)FindResource("MutedBrush");
