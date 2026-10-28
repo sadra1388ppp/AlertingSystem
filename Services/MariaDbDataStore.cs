@@ -33,9 +33,6 @@ public sealed class MariaDbDataStore
         Directory.CreateDirectory(_directory);
         _connectionString = DatabaseSettings.LoadConnectionString(_directory);
 
-        // The app may have been rolled back while MariaDB retained newer table names.
-        // If the check-history table is still named "checks", rename it through an EF Core
-        // migration so existing rows and indexes remain intact.
         var existingTables = ReadTableNames(_connectionString);
         if (existingTables.Contains("checks") && !existingTables.Contains("AlertHistory"))
         {
@@ -63,7 +60,6 @@ public sealed class MariaDbDataStore
 
         if (databaseCreated)
         {
-            // A fresh database is created using the original schema, which includes metadata.
             _hasMetadataTable = true;
         }
 
@@ -73,8 +69,6 @@ public sealed class MariaDbDataStore
 
     private void EnsureIncidentReasonColumn(AlertingDbContext db)
     {
-        // Repair old NULL values before EF materializes Reason as a non-nullable string.
-        // Only fixed table identifiers are used in these statements.
         if (_useSimplifiedIncidentTable)
         {
             db.Database.ExecuteSqlRaw("ALTER TABLE incident_records ADD COLUMN IF NOT EXISTS Reason TEXT NULL");
@@ -107,8 +101,6 @@ public sealed class MariaDbDataStore
             .ToList();
     }
 
-    // Updates rows that already exist. Missing rows are never recreated here,
-    // and rows omitted from the in-memory list are never deleted.
     public void SaveIncidents(IEnumerable<Incident> incidents)
     {
         using var db = CreateContext();
@@ -160,8 +152,6 @@ public sealed class MariaDbDataStore
             .ToHashSet();
     }
 
-    // Updates existing history, inserts only genuinely new entries, and never
-    // removes older rows just because they are no longer displayed in the app.
     public void SaveCheckHistory(IEnumerable<CheckHistoryEntry> history)
     {
         using var db = CreateContext();
@@ -194,7 +184,6 @@ public sealed class MariaDbDataStore
         {
             var stored = db.CheckHistory.Find(entry.Id);
 
-            // Do not resurrect a row deleted directly in MariaDB.
             if (stored is null)
             {
                 return;
@@ -253,9 +242,6 @@ public sealed class MariaDbDataStore
 
     private void ImportLegacyJsonOnce(AlertingDbContext db)
     {
-        // AppMetadata only stores the legacy-import marker. Some older or partially
-        // migrated databases never had this table; don't let that optional marker
-        // stop the main incident/history screens from opening or risk duplicate imports.
         if (!_hasMetadataTable)
         {
             return;
@@ -266,7 +252,6 @@ public sealed class MariaDbDataStore
             return;
         }
 
-        // Do not merge stale JSON into a database that already contains records.
         if (!db.Incidents.Any() && !db.CheckHistory.Any())
         {
             var incidents = LoadLegacyJson<Incident>("incidents.json");
