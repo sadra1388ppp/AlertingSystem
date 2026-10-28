@@ -125,6 +125,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         PreviewKeyDown += MainWindow_PreviewKeyDown;
+        Loaded += (_, _) => RefreshIncidentComboBoxTheme();
         LoadThemePreference();
         ShowPage(OverviewPage, OverviewNavButton);
 
@@ -184,6 +185,9 @@ public partial class MainWindow : Window
         IncidentSeverityFilterComboBox.DropDownOpened += IncidentComboBox_DropDownOpened;
         IncidentSortComboBox.DropDownOpened += IncidentComboBox_DropDownOpened;
         SelectedIncidentSeverityComboBox.DropDownOpened += IncidentComboBox_DropDownOpened;
+        IncidentSeverityFilterComboBox.DropDownClosed += IncidentComboBox_DropDownClosed;
+        IncidentSortComboBox.DropDownClosed += IncidentComboBox_DropDownClosed;
+        SelectedIncidentSeverityComboBox.DropDownClosed += IncidentComboBox_DropDownClosed;
 
         IncidentReasonTextBox.TextChanged += IncidentReasonTextBox_TextChanged;
         IncidentResolutionTextBox.TextChanged += IncidentResolutionTextBox_TextChanged;
@@ -200,6 +204,68 @@ public partial class MainWindow : Window
             _databaseSyncTimer.Stop();
             _scheduledCheckTimer.Stop();
         };
+    }
+
+    private void RefreshIncidentComboBoxTheme()
+    {
+        ApplyIncidentComboBoxClosedTheme(IncidentSeverityFilterComboBox);
+        ApplyIncidentComboBoxClosedTheme(IncidentSortComboBox);
+        ApplyIncidentComboBoxClosedTheme(SelectedIncidentSeverityComboBox);
+    }
+
+    private void ApplyIncidentComboBoxClosedTheme(ComboBox comboBox)
+    {
+        var surfaceBrush = (Brush)FindResource("Hex0B1425Brush");
+        var textBrush = (Brush)FindResource("TextBrush");
+        var outlineBrush = (Brush)FindResource("BorderBrush");
+
+        // Set the public properties and the native template's actual toggle surface.
+        // WPF's default ComboBox template can keep a system-white brush on the closed
+        // face even when ComboBox.Background itself has the correct theme brush.
+        comboBox.Background = surfaceBrush;
+        comboBox.Foreground = textBrush;
+        comboBox.BorderBrush = outlineBrush;
+        comboBox.BorderThickness = new Thickness(1);
+        comboBox.ApplyTemplate();
+
+        if (comboBox.Template.FindName("ToggleButton", comboBox)
+            is System.Windows.Controls.Primitives.ToggleButton toggleButton)
+        {
+            toggleButton.Background = surfaceBrush;
+            toggleButton.Foreground = textBrush;
+            toggleButton.BorderBrush = outlineBrush;
+            toggleButton.BorderThickness = new Thickness(1);
+            toggleButton.ApplyTemplate();
+
+            var toggleSurface = FindFirstVisualBorder(toggleButton);
+            if (toggleSurface is not null)
+            {
+                toggleSurface.Background = surfaceBrush;
+                toggleSurface.BorderBrush = outlineBrush;
+                toggleSurface.BorderThickness = new Thickness(1);
+                toggleSurface.CornerRadius = new CornerRadius(7);
+            }
+        }
+
+        if (comboBox.Template.FindName("ContentSite", comboBox) is ContentPresenter selectedContent)
+        {
+            TextElement.SetForeground(selectedContent, textBrush);
+        }
+
+        if (comboBox.Template.FindName("PART_EditableTextBox", comboBox) is TextBox editableText)
+        {
+            editableText.Background = surfaceBrush;
+            editableText.Foreground = textBrush;
+            editableText.BorderBrush = outlineBrush;
+        }
+    }
+
+    private void IncidentComboBox_DropDownClosed(object? sender, EventArgs e)
+    {
+        if (sender is ComboBox comboBox)
+        {
+            ApplyIncidentComboBoxClosedTheme(comboBox);
+        }
     }
 
     private void IncidentComboBox_DropDownOpened(object? sender, EventArgs e)
@@ -246,7 +312,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var surface = FindFirstPopupBorder(popupRoot);
+        var surface = FindFirstVisualBorder(popupRoot);
         if (surface is null)
         {
             return;
@@ -258,7 +324,7 @@ public partial class MainWindow : Window
         surface.CornerRadius = new CornerRadius(8);
     }
 
-    private static Border? FindFirstPopupBorder(DependencyObject parent)
+    private static Border? FindFirstVisualBorder(DependencyObject parent)
     {
         var childCount = VisualTreeHelper.GetChildrenCount(parent);
         for (var index = 0; index < childCount; index++)
@@ -269,7 +335,7 @@ public partial class MainWindow : Window
                 return border;
             }
 
-            var nestedBorder = FindFirstPopupBorder(child);
+            var nestedBorder = FindFirstVisualBorder(child);
             if (nestedBorder is not null)
             {
                 return nestedBorder;
@@ -1642,6 +1708,8 @@ public partial class MainWindow : Window
             ParseThemeColor(_isLightTheme ? "#DDE8FF" : "#20385F"));
         applicationResources[SystemColors.HighlightTextBrushKey] = new SolidColorBrush(
             ParseThemeColor(_isLightTheme ? "#182338" : "#F1F5FC"));
+
+        RefreshIncidentComboBoxTheme();
 
         StatusIndicator.Fill = (Brush)FindResource(_currentStatusBrushKey);
         OpenIncidentsFilterButton.Background = _showAllIncidents
