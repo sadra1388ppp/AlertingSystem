@@ -128,8 +128,6 @@ public partial class MainWindow : Window
         LoadThemePreference();
         ShowPage(OverviewPage, OverviewNavButton);
 
-        // Wire context-menu actions in code-behind. Keeping Click handlers out of
-        // resource XAML avoids the WPF component-connection ID mismatch at startup.
         AttachContextMenuHandler(
             FindResource("IncidentListBoxItemStyle") as Style,
             DeleteIncidentMenuItem_Click);
@@ -154,7 +152,6 @@ public partial class MainWindow : Window
                 migratedIncidentData = true;
             }
 
-            // Backfill a useful initial reason for incidents created by older app versions.
             if (string.IsNullOrWhiteSpace(incident.Reason))
             {
                 incident.Reason = $"Auto-detected from failure details: {incident.Details}";
@@ -179,8 +176,6 @@ public partial class MainWindow : Window
         IncidentSortComboBox.SelectionChanged += IncidentSortComboBox_SelectionChanged;
         SelectedIncidentSeverityComboBox.SelectionChanged += SelectedIncidentSeverityComboBox_SelectionChanged;
 
-        // Re-skin the real native popup after WPF opens it. Styling only the ComboBox
-        // and its items does not change the default popup's white surface.
         IncidentSeverityFilterComboBox.DropDownOpened += IncidentComboBox_DropDownOpened;
         IncidentSortComboBox.DropDownOpened += IncidentComboBox_DropDownOpened;
         SelectedIncidentSeverityComboBox.DropDownOpened += IncidentComboBox_DropDownOpened;
@@ -209,12 +204,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        // The native template owns the actual dropdown surface. Update its Border
-        // after opening so WPF cannot leave the operating-system white brush behind.
         ApplyIncidentDropdownPopupTheme(comboBox);
 
-        // Some WPF themes finish measuring the Popup on the next dispatcher pass.
-        // Apply once more after layout so the visible surface is consistently themed.
         Dispatcher.BeginInvoke(
             DispatcherPriority.Loaded,
             new Action(() => ApplyIncidentDropdownPopupTheme(comboBox)));
@@ -310,8 +301,6 @@ public partial class MainWindow : Window
 
         e.Handled = true;
 
-        // Reuse the exact same validation and check flow as the button.
-        // Ignore further Enter presses while a check is already running.
         if (CheckEndpointButton.IsEnabled)
         {
             CheckEndpoint_Click(CheckEndpointButton, new RoutedEventArgs());
@@ -339,11 +328,6 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>
-    /// Shared check pipeline for manual and scheduled checks. Both paths create history entries,
-    /// update incidents, and use the same HTTP status/timeout rules; only manual checks alter
-    /// the large result panel on the Endpoint checker page.
-    /// </summary>
     private async Task<(string Status, long? ResponseTimeMs)> PerformEndpointCheckAsync(
         string address,
         bool updateManualUi)
@@ -1014,7 +998,6 @@ public partial class MainWindow : Window
             incident.LastOccurredAt = DateTime.Now;
             incident.OccurrenceCount++;
 
-            // Escalate severity when a later failure is more serious; do not silently downgrade it.
             if ((int)severity < (int)incident.Severity)
             {
                 incident.Severity = severity;
@@ -1249,7 +1232,6 @@ public partial class MainWindow : Window
             3 => IncidentSeverity.Medium, 4 => IncidentSeverity.Low, _ => null
         };
         var matchingIncidents = _incidents
-            // Searching takes precedence over queue and severity filters so IDs remain findable.
             .Where(item => hasSearchText || _showAllIncidents || item.Status == IncidentStatus.Open)
             .Where(item => hasSearchText || severityFilter is null || item.Severity == severityFilter.Value)
             .Where(item => MatchesIncidentSearch(item, search))
@@ -1458,8 +1440,6 @@ public partial class MainWindow : Window
             return true;
         }
 
-        // Incident IDs contain separators (for example INC-20261028-123456-A1B2).
-        // Ignore those separators so partial or pasted IDs are still easy to match.
         var normalizedSearch = NormalizeSearchToken(search);
         if (normalizedSearch.Length > 0 &&
             NormalizeSearchToken(incidentNumber).Contains(normalizedSearch, StringComparison.Ordinal))
@@ -1568,7 +1548,6 @@ public partial class MainWindow : Window
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
-            // Missing or unreadable theme preferences must never prevent monitoring from starting.
             theme = "Dark";
         }
 
@@ -1614,9 +1593,6 @@ public partial class MainWindow : Window
             Resources[key] = new SolidColorBrush(ParseThemeColor(color));
         }
 
-        // Popup is hosted in a separate visual tree, so mirror theme brushes at
-        // application scope as well. This keeps item text and selected/hover states
-        // themed even when the Popup cannot inherit Window.Resources.
         var applicationResources = Application.Current.Resources;
         foreach (var entry in ThemeRoleColors)
         {
@@ -1629,7 +1605,6 @@ public partial class MainWindow : Window
             applicationResources[key] = Resources[key];
         }
 
-        // Also override system brushes used by the operating-system ComboBox template.
         applicationResources[SystemColors.WindowBrushKey] = new SolidColorBrush(
             ParseThemeColor(_isLightTheme ? "#FFFFFF" : "#121E33"));
         applicationResources[SystemColors.WindowTextBrushKey] = new SolidColorBrush(
@@ -1859,7 +1834,6 @@ public partial class MainWindow : Window
         if (IncidentsListBox.SelectedItem is not Incident selected || selected.Status != IncidentStatus.Done) return;
         var previousResolvedAt = selected.ResolvedAt;
         selected.Status = IncidentStatus.Open;
-        // Keep the previous resolution timestamp and note for audit context.
         if (PersistIncident(selected))
         {
             IncidentDetailFeedbackText.Text = "Incident reopened. Previous resolution context was preserved.";
