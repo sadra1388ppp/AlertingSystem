@@ -43,6 +43,7 @@ public partial class MainWindow : Window
     {
         Interval = TimeSpan.FromSeconds(8)
     };
+    private readonly Queue<(string Title, string Message, string BrushKey)> _pendingSecurityToasts = new();
     private int _checksRun;
     private bool _showAllIncidents;
     private bool _isUpdatingIncidentDetails;
@@ -203,7 +204,14 @@ public partial class MainWindow : Window
         _securityAlertToastTimer.Tick += (_, _) =>
         {
             _securityAlertToastTimer.Stop();
-            SecurityAlertToastBorder.Visibility = Visibility.Collapsed;
+            if (_pendingSecurityToasts.Count > 0)
+            {
+                ShowNextSecurityAlertToast();
+            }
+            else
+            {
+                SecurityAlertToastBorder.Visibility = Visibility.Collapsed;
+            }
         };
         _scheduledCheckTimer.Tick += ScheduledCheckTimer_Tick;
         InitializeScheduledChecks();
@@ -1164,12 +1172,13 @@ public partial class MainWindow : Window
                 RefreshCheckHistoryUI();
             }
 
-            if (newlyObservedSecurityEvents.Count > 0)
+            foreach (var securityEvent in newlyObservedSecurityEvents.OrderBy(entry => entry.Timestamp))
             {
-                var latestSecurityEvent = newlyObservedSecurityEvents[0];
-                var failedLogin = latestSecurityEvent.Result.Equals(
-                    "LOGIN FAILED", StringComparison.OrdinalIgnoreCase);
-                var accountCreated = latestSecurityEvent.Result.Equals(
+                var failedLogin = securityEvent.Result.Equals(
+                        "LOGIN FAILED", StringComparison.OrdinalIgnoreCase) ||
+                    securityEvent.Result.Equals(
+                        "LOGIN ERROR", StringComparison.OrdinalIgnoreCase);
+                var accountCreated = securityEvent.Result.Equals(
                     "ACCOUNT CREATED", StringComparison.OrdinalIgnoreCase);
 
                 var title = failedLogin
@@ -1177,11 +1186,14 @@ public partial class MainWindow : Window
                     : accountCreated
                         ? "SECURITY ALERT  /  NEW ACCOUNT"
                         : "SECURITY ALERT  /  SUCCESSFUL LOGIN";
-                var firstDetail = latestSecurityEvent.Details
-                    .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                    .FirstOrDefault() ?? latestSecurityEvent.Result;
-                var message = $"{latestSecurityEvent.Endpoint}\n{latestSecurityEvent.Timestamp:yyyy-MM-dd HH:mm:ss}\n{firstDetail}";
-                ShowSecurityAlertToast(
+                var detailLines = securityEvent.Details
+                    .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                var usefulDetail = failedLogin
+                    ? detailLines.FirstOrDefault(line => line.StartsWith("Reason:", StringComparison.OrdinalIgnoreCase))
+                        ?? detailLines.FirstOrDefault(line => line.StartsWith("Category:", StringComparison.OrdinalIgnoreCase))
+                    : detailLines.FirstOrDefault(line => line.StartsWith("Event:", StringComparison.OrdinalIgnoreCase));
+                var message = $"{securityEvent.Endpoint}\n{securityEvent.Timestamp:yyyy-MM-dd HH:mm:ss}\n{usefulDetail ?? securityEvent.Result}";
+                QueueSecurityAlertToast(
                     title,
                     message,
                     failedLogin ? "DangerBrush" : "SuccessBrush");
@@ -1234,11 +1246,28 @@ public partial class MainWindow : Window
         entry.Result.Equals("LOGIN ERROR", StringComparison.OrdinalIgnoreCase) ||
         entry.Result.Equals("ACCOUNT CREATED", StringComparison.OrdinalIgnoreCase);
 
-    private void ShowSecurityAlertToast(string title, string message, string brushKey)
+    private void QueueSecurityAlertToast(string title, string message, string brushKey)
     {
-        SecurityAlertToastTitle.Text = title;
-        SecurityAlertToastBody.Text = message;
-        var alertBrush = (Brush)FindResource(brushKey);
+        _pendingSecurityToasts.Enqueue((title, message, brushKey));
+        if (!_securityAlertToastTimer.IsEnabled &&
+            SecurityAlertToastBorder.Visibility != Visibility.Visible)
+        {
+            ShowNextSecurityAlertToast();
+        }
+    }
+
+    private void ShowNextSecurityAlertToast()
+    {
+        if (_pendingSecurityToasts.Count == 0)
+        {
+            SecurityAlertToastBorder.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var notification = _pendingSecurityToasts.Dequeue();
+        SecurityAlertToastTitle.Text = notification.Title;
+        SecurityAlertToastBody.Text = notification.Message;
+        var alertBrush = (Brush)FindResource(notification.BrushKey);
         SecurityAlertToastBorder.BorderBrush = alertBrush;
         SecurityAlertToastIndicator.Fill = alertBrush;
         SecurityAlertToastTitle.Foreground = alertBrush;
