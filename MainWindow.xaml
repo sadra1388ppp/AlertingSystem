@@ -743,7 +743,7 @@
                                 </StackPanel>
                                 <Grid Grid.Column="1" Height="35" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                                     <Border Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="7"/>
-                                    <TextBlock Text="{Binding SelectedItem.Content, ElementName=SelectedIncidentSeverityComboBox, TargetNullValue=Select severity, FallbackValue=Select severity}" Foreground="{DynamicResource TextBrush}" FontSize="12" FontWeight="SemiBold" Margin="10,0,30,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                    <TextBlock Text="{Binding SelectedItem.Content, ElementName=SelectedIncidentSeverityComboBox, TargetNullValue='Select severity', FallbackValue='Select severity'}" Foreground="{DynamicResource TextBrush}" FontSize="12" FontWeight="SemiBold" Margin="10,0,30,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
                                     <Path Data="M 0 0 L 4 4 L 8 0 Z" Width="9" Height="5" Stretch="Fill" Fill="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,11,0" IsHitTestVisible="False"/>
                                     <ComboBox x:Name="SelectedIncidentSeverityComboBox" Height="35" VerticalAlignment="Stretch" MinWidth="110" HorizontalAlignment="Stretch" Background="Transparent" Foreground="Transparent" BorderBrush="Transparent" BorderThickness="0" Opacity="0.01" ToolTip="Choose a new severity level" Style="{StaticResource IncidentComboBoxStyle}">
                                     
