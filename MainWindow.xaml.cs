@@ -58,19 +58,19 @@ public partial class MainWindow : Window
 
     private static readonly Dictionary<string, (string Dark, string Light)> ThemeRoleColors = new()
     {
-        ["AppBackgroundBrush"] = ("#0A1020", "#F4F7FB"),
-        ["SidebarBrush"] = ("#0D1628", "#EFF3F9"),
-        ["CardBrush"] = ("#121E33", "#FFFFFF"),
-        ["BorderBrush"] = ("#263650", "#DCE4EF"),
-        ["TextBrush"] = ("#F1F5FC", "#182338"),
+        ["AppBackgroundBrush"] = ("#080F1D", "#F3F6FB"),
+        ["SidebarBrush"] = ("#0B1424", "#EAF0F8"),
+        ["CardBrush"] = ("#111D30", "#FFFFFF"),
+        ["BorderBrush"] = ("#25354D", "#D9E2EF"),
+        ["TextBrush"] = ("#F3F6FC", "#172337"),
         ["MutedBrush"] = ("#9AAAC2", "#68758C"),
-        ["SuccessBrush"] = ("#3DD9A0", "#16845D"),
+        ["SuccessBrush"] = ("#34D399", "#15825D"),
         ["CriticalBrush"] = ("#C084FC", "#7C3AED"),
         ["WarningBrush"] = ("#F6C65B", "#9A6700"),
-        ["DangerBrush"] = ("#FF718B", "#C52F4B"),
-        ["NeutralBrush"] = ("#72A7FF", "#2F65D5"),
-        ["SecondaryButtonBrush"] = ("#1B2A44", "#E8EDF6"),
-        ["SelectedFilterBrush"] = ("#477DFA", "#2F63E0")
+        ["DangerBrush"] = ("#FB7185", "#C52F4B"),
+        ["NeutralBrush"] = ("#60A5FA", "#2F65D5"),
+        ["SecondaryButtonBrush"] = ("#18263C", "#E8EDF6"),
+        ["SelectedFilterBrush"] = ("#315FE5", "#2F63E0")
     };
 
     private static readonly string[] ThemeLiteralColors =
@@ -98,6 +98,27 @@ public partial class MainWindow : Window
         "#EAF2FF",
         "#EEF3FA",
         "#FDE68A"
+    };
+
+    private static readonly Dictionary<string, string> DarkLiteralColorOverrides = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["#0A1020"] = "#080F1D",
+        ["#0B1120"] = "#0B1424",
+        ["#0B1425"] = "#0D1729",
+        ["#101A2B"] = "#111D30",
+        ["#101B2F"] = "#142037",
+        ["#14233A"] = "#172742",
+        ["#162743"] = "#1A2D4B",
+        ["#18253B"] = "#1A2940",
+        ["#1A2942"] = "#1C2D47",
+        ["#20385F"] = "#294A78",
+        ["#294568"] = "#35557F",
+        ["#3B82F6"] = "#4F83FF",
+        ["#477DFA"] = "#4F83FF",
+        ["#5C8CFF"] = "#79A2FF",
+        ["#91A2BB"] = "#A1B0C8",
+        ["#D8E4F5"] = "#DEE7F6",
+        ["#EEF3FA"] = "#F2F6FC"
     };
 
     private static readonly Dictionary<string, string> LightLiteralColorOverrides = new(StringComparer.OrdinalIgnoreCase)
@@ -1729,6 +1750,10 @@ public partial class MainWindow : Window
             {
                 color = lightColor;
             }
+            else if (!_isLightTheme && DarkLiteralColorOverrides.TryGetValue(darkColor, out var darkOverride))
+            {
+                color = darkOverride;
+            }
 
             var key = "Hex" + darkColor.TrimStart('#') + "Brush";
             Resources[key] = new SolidColorBrush(ParseThemeColor(color));
@@ -1832,14 +1857,20 @@ public partial class MainWindow : Window
 
         foreach (var button in new[] { OverviewNavButton, ScheduledChecksNavButton, IncidentsNavButton, AlertHistoryNavButton, AccountNavButton, SettingsNavButton })
         {
-            button.Background = Brushes.Transparent;
-            button.Foreground = (Brush)FindResource("MutedBrush");
-            button.FontWeight = FontWeights.Normal;
+            var isSelected = button == _activeNavButton;
+            button.Tag = isSelected;
+            button.Background = isSelected
+                ? (Brush)FindResource("Hex20385FBrush")
+                : Brushes.Transparent;
+            button.BorderBrush = isSelected
+                ? (Brush)FindResource("Hex3B82F6Brush")
+                : Brushes.Transparent;
+            button.BorderThickness = new Thickness(isSelected ? 1 : 0);
+            button.Foreground = isSelected
+                ? (Brush)FindResource("HexEAF2FFBrush")
+                : (Brush)FindResource("MutedBrush");
+            button.FontWeight = isSelected ? FontWeights.SemiBold : FontWeights.Normal;
         }
-
-        _activeNavButton.Background = (Brush)FindResource("Hex20385FBrush");
-        _activeNavButton.Foreground = (Brush)FindResource("HexEAF2FFBrush");
-        _activeNavButton.FontWeight = FontWeights.SemiBold;
     }
 
     private void OpenIncidentsFilterButton_Click(object sender, RoutedEventArgs e)
