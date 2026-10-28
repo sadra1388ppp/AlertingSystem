@@ -8,6 +8,7 @@ namespace AlertingSystem;
 public partial class LoginWindow : Window
 {
     private readonly AccountStore _accountStore;
+    private readonly SecurityAuditLogger _securityAuditLogger = new();
     private readonly bool _registrationOnly;
     private bool _isRegisterMode;
 
@@ -20,6 +21,7 @@ public partial class LoginWindow : Window
         _accountStore = new AccountStore();
 
         var hasAccounts = _accountStore.HasAccounts();
+        _securityAuditLogger.FlushPendingEvents();
         SetMode(openRegistration || !hasAccounts);
 
         if (!hasAccounts && !registrationOnly)
@@ -70,7 +72,13 @@ public partial class LoginWindow : Window
         if (string.IsNullOrWhiteSpace(LoginUsernameTextBox.Text) ||
             string.IsNullOrEmpty(LoginPasswordBox.Password))
         {
+            _securityAuditLogger.RecordFailedLogin(
+                LoginUsernameTextBox.Text,
+                "Incomplete credentials",
+                "The sign-in form was submitted with a missing username or password. Credential validation was not attempted.",
+                IncidentSeverity.Low);
             FeedbackText.Text = "Enter both your username and password.";
+            LoginPasswordBox.Clear();
             return;
         }
 
@@ -82,17 +90,27 @@ public partial class LoginWindow : Window
                     out var user) &&
                 user is not null)
             {
+                _securityAuditLogger.RecordSuccessfulLogin(user);
                 AuthenticatedUser = user;
                 DialogResult = true;
                 Close();
                 return;
             }
 
+            _securityAuditLogger.RecordFailedLogin(
+                LoginUsernameTextBox.Text,
+                "Invalid credentials",
+                "The submitted username/password pair did not match a registered account. For privacy, the application does not disclose which field was incorrect.");
             FeedbackText.Text = "Username or password is incorrect.";
             LoginPasswordBox.Clear();
         }
         catch (Exception exception)
         {
+            _securityAuditLogger.RecordFailedLogin(
+                LoginUsernameTextBox.Text,
+                "Authentication service error",
+                $"Authentication could not complete because the account store raised {exception.GetType().Name}: {exception.Message}. No password was recorded.",
+                IncidentSeverity.High);
             FeedbackText.Text = $"Account storage is unavailable: {exception.Message}";
         }
     }
@@ -123,6 +141,8 @@ public partial class LoginWindow : Window
                 return;
             }
 
+            _securityAuditLogger.RecordAccountCreated(user);
+
             if (_registrationOnly)
             {
                 MessageBox.Show(
@@ -136,6 +156,9 @@ public partial class LoginWindow : Window
                 return;
             }
 
+            _securityAuditLogger.RecordSuccessfulLogin(
+                user,
+                "First sign-in completed immediately after account registration.");
             AuthenticatedUser = user;
             DialogResult = true;
             Close();

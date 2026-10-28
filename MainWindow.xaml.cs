@@ -39,6 +39,10 @@ public partial class MainWindow : Window
     {
         Interval = TimeSpan.FromSeconds(3)
     };
+    private readonly DispatcherTimer _securityAlertToastTimer = new()
+    {
+        Interval = TimeSpan.FromSeconds(8)
+    };
     private int _checksRun;
     private bool _showAllIncidents;
     private bool _isUpdatingIncidentDetails;
@@ -196,12 +200,18 @@ public partial class MainWindow : Window
 
         _databaseSyncTimer.Tick += (_, _) => SyncFromDatabase();
         _databaseSyncTimer.Start();
+        _securityAlertToastTimer.Tick += (_, _) =>
+        {
+            _securityAlertToastTimer.Stop();
+            SecurityAlertToastBorder.Visibility = Visibility.Collapsed;
+        };
         _scheduledCheckTimer.Tick += ScheduledCheckTimer_Tick;
         InitializeScheduledChecks();
         Closed += (_, _) =>
         {
             _databaseSyncTimer.Stop();
             _scheduledCheckTimer.Stop();
+            _securityAlertToastTimer.Stop();
         };
     }
 
@@ -1133,6 +1143,13 @@ public partial class MainWindow : Window
                 .Where(entry => !_hiddenItems.IsHistoryEntryHidden(entry.Id))
                 .ToList();
 
+            var newlyObservedSecurityEvents = visibleHistory
+                .Where(entry => entry.Id > 0 &&
+                    !_checkHistory.Any(existing => existing.Id == entry.Id) &&
+                    IsSecurityAuditEvent(entry))
+                .OrderByDescending(entry => entry.Timestamp)
+                .ToList();
+
             if (!IncidentListsEqual(_incidents, visibleIncidents))
             {
                 _incidents.Clear();
@@ -1145,6 +1162,29 @@ public partial class MainWindow : Window
                 _checkHistory.Clear();
                 _checkHistory.AddRange(visibleHistory);
                 RefreshCheckHistoryUI();
+            }
+
+            if (newlyObservedSecurityEvents.Count > 0)
+            {
+                var latestSecurityEvent = newlyObservedSecurityEvents[0];
+                var failedLogin = latestSecurityEvent.Result.Equals(
+                    "LOGIN FAILED", StringComparison.OrdinalIgnoreCase);
+                var accountCreated = latestSecurityEvent.Result.Equals(
+                    "ACCOUNT CREATED", StringComparison.OrdinalIgnoreCase);
+
+                var title = failedLogin
+                    ? "SECURITY INCIDENT  /  FAILED SIGN-IN"
+                    : accountCreated
+                        ? "SECURITY ALERT  /  NEW ACCOUNT"
+                        : "SECURITY ALERT  /  SUCCESSFUL LOGIN";
+                var firstDetail = latestSecurityEvent.Details
+                    .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                    .FirstOrDefault() ?? latestSecurityEvent.Result;
+                var message = $"{latestSecurityEvent.Endpoint}\n{latestSecurityEvent.Timestamp:yyyy-MM-dd HH:mm:ss}\n{firstDetail}";
+                ShowSecurityAlertToast(
+                    title,
+                    message,
+                    failedLogin ? "DangerBrush" : "SuccessBrush");
             }
         }
         catch (Exception exception)
@@ -1186,6 +1226,25 @@ public partial class MainWindow : Window
         }
 
         return true;
+    }
+
+    private static bool IsSecurityAuditEvent(CheckHistoryEntry entry) =>
+        entry.Result.Equals("LOGIN SUCCESS", StringComparison.OrdinalIgnoreCase) ||
+        entry.Result.Equals("LOGIN FAILED", StringComparison.OrdinalIgnoreCase) ||
+        entry.Result.Equals("LOGIN ERROR", StringComparison.OrdinalIgnoreCase) ||
+        entry.Result.Equals("ACCOUNT CREATED", StringComparison.OrdinalIgnoreCase);
+
+    private void ShowSecurityAlertToast(string title, string message, string brushKey)
+    {
+        SecurityAlertToastTitle.Text = title;
+        SecurityAlertToastBody.Text = message;
+        var alertBrush = (Brush)FindResource(brushKey);
+        SecurityAlertToastBorder.BorderBrush = alertBrush;
+        SecurityAlertToastIndicator.Fill = alertBrush;
+        SecurityAlertToastTitle.Foreground = alertBrush;
+        SecurityAlertToastBorder.Visibility = Visibility.Visible;
+        _securityAlertToastTimer.Stop();
+        _securityAlertToastTimer.Start();
     }
 
     private static bool HistoryListsEqual(

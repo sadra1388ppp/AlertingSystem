@@ -23,9 +23,17 @@ public sealed class CheckHistoryEntry
     {
         get
         {
-            if (Result.StartsWith("HTTP 2", StringComparison.OrdinalIgnoreCase))
+            if (Result.StartsWith("HTTP 2", StringComparison.OrdinalIgnoreCase) ||
+                Result.Equals("LOGIN SUCCESS", StringComparison.OrdinalIgnoreCase) ||
+                Result.Equals("ACCOUNT CREATED", StringComparison.OrdinalIgnoreCase))
             {
                 return Brushes.MediumAquamarine;
+            }
+
+            if (Result.Equals("LOGIN FAILED", StringComparison.OrdinalIgnoreCase) ||
+                Result.Equals("LOGIN ERROR", StringComparison.OrdinalIgnoreCase))
+            {
+                return Brushes.LightCoral;
             }
 
             if (Result.Equals("Invalid URL", StringComparison.OrdinalIgnoreCase))
