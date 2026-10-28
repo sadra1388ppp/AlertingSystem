@@ -35,9 +35,6 @@ public sealed class DatabaseSettings
                 DefaultCommandTimeout = 30
             };
 
-            // Local MariaDB instances commonly do not support the optional TLS
-            // negotiation expected by MySqlConnector's default SSL mode.
-            // Keep explicitly remote connections' SSL settings unchanged.
             if (IsLocalServer(environmentBuilder.Server))
             {
                 environmentBuilder.SslMode = MySqlSslMode.None;
@@ -51,7 +48,6 @@ public sealed class DatabaseSettings
 
         if (!File.Exists(settingsPath))
         {
-            // Local development defaults only. Credentials stay under LocalAppData, not in Git.
             File.WriteAllText(settingsPath, JsonSerializer.Serialize(new DatabaseSettings(), JsonOptions));
         }
 
@@ -87,9 +83,6 @@ public sealed class DatabaseSettings
             UserID = settings.UserId,
             Password = settings.Password ?? string.Empty,
             CharacterSet = "utf8mb4",
-            // This path is for local development against a local MariaDB instance.
-            // Some local servers close the connection during optional TLS negotiation.
-            // Environment-provided connection strings retain their explicitly chosen SSL mode.
             SslMode = MySqlSslMode.None,
             ConnectionTimeout = 5,
             DefaultCommandTimeout = 30
