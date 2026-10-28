@@ -169,6 +169,17 @@ public partial class LoginWindow : Window
         }
     }
 
+    private void RegisterInput_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        RegisterButton_Click(sender, e);
+    }
+
     private void LoginPasswordBox_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)

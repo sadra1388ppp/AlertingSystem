@@ -214,20 +214,20 @@
                                    Foreground="#A1B0C8" Margin="0,0,0,7"/>
                         <TextBox x:Name="RegisterDisplayNameTextBox"
                                  AutomationProperties.Name="Display name"
-                                 MaxLength="100" Margin="0,0,0,12"/>
+                                 MaxLength="100" Margin="0,0,0,12" PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
                         <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
                                    Foreground="#A1B0C8" Margin="0,0,0,7"/>
                         <TextBox x:Name="RegisterUsernameTextBox"
                                  AutomationProperties.Name="New username"
-                                 MaxLength="32" Margin="0,0,0,12"/>
+                                 MaxLength="32" Margin="0,0,0,12" PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
                         <TextBlock Text="PASSWORD (8+ CHARACTERS)" FontSize="10" FontWeight="Bold"
                                    Foreground="#A1B0C8" Margin="0,0,0,7"/>
                         <PasswordBox x:Name="RegisterPasswordBox"
-                                     AutomationProperties.Name="New password" Margin="0,0,0,12"/>
+                                     AutomationProperties.Name="New password" Margin="0,0,0,12" PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
                         <TextBlock Text="CONFIRM PASSWORD" FontSize="10" FontWeight="Bold"
                                    Foreground="#A1B0C8" Margin="0,0,0,7"/>
                         <PasswordBox x:Name="ConfirmPasswordBox"
-                                     AutomationProperties.Name="Confirm password" Margin="0,0,0,16"/>
+                                     AutomationProperties.Name="Confirm password" Margin="0,0,0,16" PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
                         <Button x:Name="RegisterButton" Content="Create account"
                                 Click="RegisterButton_Click" Height="44"
                                 HorizontalAlignment="Stretch"/>
