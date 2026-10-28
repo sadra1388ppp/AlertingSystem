@@ -175,7 +175,6 @@ public partial class MainWindow : Window
             .Where(entry => !_hiddenItems.IsHistoryEntryHidden(entry.Id))
             .ToList();
 
-        IncidentSearchTextBox.TextChanged += IncidentSearchTextBox_TextChanged;
         IncidentSeverityFilterComboBox.SelectionChanged += IncidentSeverityFilterComboBox_SelectionChanged;
         IncidentSortComboBox.SelectionChanged += IncidentSortComboBox_SelectionChanged;
         SelectedIncidentSeverityComboBox.SelectionChanged += SelectedIncidentSeverityComboBox_SelectionChanged;
@@ -1166,17 +1165,10 @@ public partial class MainWindow : Window
             3 => IncidentSeverity.Medium, 4 => IncidentSeverity.Low, _ => null
         };
         var matchingIncidents = _incidents
-            // A search should be able to find an incident by ID even when it is already Done.
-            // The Open/All buttons control the default queue only when the search box is empty.
+            // Searching takes precedence over queue and severity filters so IDs remain findable.
             .Where(item => hasSearchText || _showAllIncidents || item.Status == IncidentStatus.Open)
-            .Where(item => severityFilter is null || item.Severity == severityFilter.Value)
-            .Where(item => string.IsNullOrWhiteSpace(search) ||
-                (item.IncidentNumber ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                (item.Title ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                (item.EndpointUrl ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                (item.Details ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                (item.Reason ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                (item.ResolutionNote ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase))
+            .Where(item => hasSearchText || severityFilter is null || item.Severity == severityFilter.Value)
+            .Where(item => MatchesIncidentSearch(item, search))
             .ToList();
 
         var visibleIncidents = IncidentSortComboBox.SelectedIndex switch
@@ -1368,6 +1360,42 @@ public partial class MainWindow : Window
             IncidentDetailFeedbackText.Text = "Unsaved root-cause notes — save them before leaving this incident.";
         UpdateIncidentActionButtons();
     }
+
+    private static bool MatchesIncidentSearch(Incident incident, string search)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return true;
+        }
+
+        var incidentNumber = incident.IncidentNumber ?? string.Empty;
+        if (incidentNumber.Contains(search, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // Incident IDs contain separators (for example INC-20261028-123456-A1B2).
+        // Ignore those separators so partial or pasted IDs are still easy to match.
+        var normalizedSearch = NormalizeSearchToken(search);
+        if (normalizedSearch.Length > 0 &&
+            NormalizeSearchToken(incidentNumber).Contains(normalizedSearch, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return new[]
+        {
+            incident.Title,
+            incident.EndpointUrl,
+            incident.Details,
+            incident.Reason,
+            incident.ResolutionNote
+        }.Any(value => !string.IsNullOrEmpty(value) &&
+            value.Contains(search, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string NormalizeSearchToken(string value) =>
+        new(value.Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
 
     private void RefreshCheckHistoryUI()
     {
