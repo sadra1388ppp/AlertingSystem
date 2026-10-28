@@ -34,8 +34,8 @@ public sealed class Incident : INotifyPropertyChanged
     private DateTime? _resolvedAt;
     private int _occurrenceCount = 1;
 
-    private static readonly Brush CriticalSeverityBrush = CreateFrozenBrush(192, 132, 252); // #C084FC
-    private static readonly Brush LowSeverityBrush = CreateFrozenBrush(74, 222, 128); // #4ADE80
+    private static readonly Brush CriticalSeverityBrush = CreateFrozenBrush(192, 132, 252);
+    private static readonly Brush LowSeverityBrush = CreateFrozenBrush(74, 222, 128);
 
     public string IncidentNumber
     {
