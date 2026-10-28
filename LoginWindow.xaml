@@ -2,10 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="AlertingSystem | Secure access"
-        Width="1000" Height="700"
-        MinWidth="1000" MinHeight="700" MaxWidth="1000" MaxHeight="700"
+        Width="1040" Height="740"
+        MinWidth="900" MinHeight="620"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize"
+        ResizeMode="CanResize"
         Background="#080F1D"
         FontFamily="Segoe UI"
         UseLayoutRounding="True"
@@ -181,61 +181,81 @@
 
         <Border Grid.Column="1" Background="#111D30"
                 BorderBrush="#25354D" BorderThickness="1"
-                CornerRadius="20" Padding="38" Margin="16,0,0,0">
+                CornerRadius="20" Padding="30" Margin="16,0,0,0">
             <Grid>
-                <StackPanel VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0">
                     <TextBlock Text="ACCOUNT ACCESS" FontSize="10"
-                               FontWeight="Bold" Foreground="#79A2FF" Margin="0,0,0,12"/>
+                               FontWeight="Bold" Foreground="#79A2FF" Margin="0,0,0,10"/>
                     <TextBlock x:Name="HeadingText" Text="Welcome back"
-                               FontSize="27" FontWeight="Bold" Foreground="#F3F6FC"/>
+                               FontSize="27" FontWeight="Bold" Foreground="#F3F6FC"
+                               TextWrapping="Wrap"/>
                     <TextBlock x:Name="SubheadingText"
                                Text="Sign in to continue to your workspace."
                                FontSize="12" Foreground="#A1B0C8"
-                               TextWrapping="Wrap" Margin="0,7,0,22"/>
+                               TextWrapping="Wrap" Margin="0,7,0,16"/>
+                </StackPanel>
 
-                    <StackPanel x:Name="LoginFormPanel">
-                        <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
-                                   Foreground="#A1B0C8" Margin="0,0,0,7"/>
-                        <TextBox x:Name="LoginUsernameTextBox"
-                                 AutomationProperties.Name="Username"
-                                 MaxLength="32" Margin="0,0,0,16"/>
-                        <TextBlock Text="PASSWORD" FontSize="10" FontWeight="Bold"
-                                   Foreground="#A1B0C8" Margin="0,0,0,7"/>
-                        <PasswordBox x:Name="LoginPasswordBox"
-                                     AutomationProperties.Name="Password"
-                                     KeyDown="LoginPasswordBox_KeyDown" Margin="0,0,0,20"/>
-                        <Button x:Name="LoginButton" Content="Sign in"
-                                Click="LoginButton_Click" Height="44"
-                                HorizontalAlignment="Stretch"/>
-                    </StackPanel>
+                <ScrollViewer Grid.Row="1"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              CanContentScroll="False">
+                    <Grid>
+                        <StackPanel x:Name="LoginFormPanel">
+                            <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
+                                       Foreground="#A1B0C8" Margin="0,0,0,7"/>
+                            <TextBox x:Name="LoginUsernameTextBox"
+                                     AutomationProperties.Name="Username"
+                                     MaxLength="32" Margin="0,0,0,16"/>
+                            <TextBlock Text="PASSWORD" FontSize="10" FontWeight="Bold"
+                                       Foreground="#A1B0C8" Margin="0,0,0,7"/>
+                            <PasswordBox x:Name="LoginPasswordBox"
+                                         AutomationProperties.Name="Password"
+                                         KeyDown="LoginPasswordBox_KeyDown" Margin="0,0,0,20"/>
+                            <Button x:Name="LoginButton" Content="Sign in"
+                                    Click="LoginButton_Click" Height="44"
+                                    HorizontalAlignment="Stretch"/>
+                        </StackPanel>
 
-                    <StackPanel x:Name="RegisterFormPanel" Visibility="Collapsed">
-                        <TextBlock Text="DISPLAY NAME" FontSize="10" FontWeight="Bold"
-                                   Foreground="#A1B0C8" Margin="0,0,0,7"/>
-                        <TextBox x:Name="RegisterDisplayNameTextBox"
-                                 AutomationProperties.Name="Display name"
-                                 MaxLength="100" Margin="0,0,0,12" PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
-                        <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
-                                   Foreground="#A1B0C8" Margin="0,0,0,7"/>
-                        <TextBox x:Name="RegisterUsernameTextBox"
-                                 AutomationProperties.Name="New username"
-                                 MaxLength="32" Margin="0,0,0,12" PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
-                        <TextBlock Text="PASSWORD (8+ CHARACTERS)" FontSize="10" FontWeight="Bold"
-                                   Foreground="#A1B0C8" Margin="0,0,0,7"/>
-                        <PasswordBox x:Name="RegisterPasswordBox"
-                                     AutomationProperties.Name="New password" Margin="0,0,0,12" PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
-                        <TextBlock Text="CONFIRM PASSWORD" FontSize="10" FontWeight="Bold"
-                                   Foreground="#A1B0C8" Margin="0,0,0,7"/>
-                        <PasswordBox x:Name="ConfirmPasswordBox"
-                                     AutomationProperties.Name="Confirm password" Margin="0,0,0,16" PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
-                        <Button x:Name="RegisterButton" Content="Create account"
-                                Click="RegisterButton_Click" Height="44"
-                                HorizontalAlignment="Stretch"/>
-                    </StackPanel>
+                        <StackPanel x:Name="RegisterFormPanel" Visibility="Collapsed">
+                            <TextBlock Text="DISPLAY NAME" FontSize="10" FontWeight="Bold"
+                                       Foreground="#A1B0C8" Margin="0,0,0,7"/>
+                            <TextBox x:Name="RegisterDisplayNameTextBox"
+                                     AutomationProperties.Name="Display name"
+                                     MaxLength="100" Margin="0,0,0,12"
+                                     PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
+                            <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
+                                       Foreground="#A1B0C8" Margin="0,0,0,7"/>
+                            <TextBox x:Name="RegisterUsernameTextBox"
+                                     AutomationProperties.Name="New username"
+                                     MaxLength="32" Margin="0,0,0,12"
+                                     PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
+                            <TextBlock Text="PASSWORD (8+ CHARACTERS)" FontSize="10" FontWeight="Bold"
+                                       Foreground="#A1B0C8" Margin="0,0,0,7"/>
+                            <PasswordBox x:Name="RegisterPasswordBox"
+                                         AutomationProperties.Name="New password" Margin="0,0,0,12"
+                                         PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
+                            <TextBlock Text="CONFIRM PASSWORD" FontSize="10" FontWeight="Bold"
+                                       Foreground="#A1B0C8" Margin="0,0,0,7"/>
+                            <PasswordBox x:Name="ConfirmPasswordBox"
+                                         AutomationProperties.Name="Confirm password" Margin="0,0,0,16"
+                                         PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
+                            <Button x:Name="RegisterButton" Content="Create account"
+                                    Click="RegisterButton_Click" Height="44"
+                                    HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
 
+                <StackPanel Grid.Row="2" Margin="0,8,0,0">
                     <TextBlock x:Name="FeedbackText" Text=""
                                FontSize="11" Foreground="#FF718B"
-                               TextWrapping="Wrap" Margin="0,12,0,0"/>
+                               TextWrapping="Wrap"/>
                     <Button x:Name="ModeSwitchButton"
                             Content="New here? Create an account"
                             Click="ModeSwitchButton_Click"

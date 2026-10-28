@@ -724,7 +724,7 @@
                         <Grid Height="44">
                             <TextBox x:Name="IncidentSearchTextBox"
                                      Height="44"
-                                     MinWidth="220"
+                                     
                                      HorizontalAlignment="Stretch"
                                      VerticalAlignment="Stretch"
                                      VerticalContentAlignment="Center"
@@ -739,7 +739,7 @@
                                      TextChanged="IncidentSearchTextBox_TextChanged"
                                      ToolTip="Search incidents by ID, endpoint, title, or error"/>
                             <TextBlock x:Name="IncidentSearchPlaceholderText"
-                                       Text="Search by ID, endpoint, title or error…"
+                                       Text="Search ID, endpoint, title…"
                                        FontSize="11"
                                        Foreground="{DynamicResource MutedBrush}"
                                        VerticalAlignment="Center"
@@ -750,20 +750,20 @@
                         <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <Button x:Name="OpenIncidentsFilterButton" Content="Open" Style="{StaticResource SecondaryButton}" Click="OpenIncidentsFilterButton_Click" Margin="0,0,6,0" Padding="10,7" FontSize="11"/>
                             <Button x:Name="AllIncidentsFilterButton" Grid.Column="1" Content="All" Style="{StaticResource SecondaryButton}" Click="AllIncidentsFilterButton_Click" Margin="0,0,8,0" Padding="10,7" FontSize="11"/>
-                            <Grid Grid.Column="2" Height="34" MinWidth="105" Margin="0,0,5,0" HorizontalAlignment="Stretch">
+                            <Grid Grid.Column="2" Height="34" MinWidth="96" Margin="0,0,5,0" HorizontalAlignment="Stretch">
                                 <Border Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="7"/>
-                                <TextBlock Text="{Binding SelectedItem.Content, ElementName=IncidentSeverityFilterComboBox}" Foreground="{DynamicResource TextBrush}" FontSize="12" FontWeight="SemiBold" Margin="10,0,30,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                                <Path Data="M 0 0 L 4 4 L 8 0 Z" Width="9" Height="5" Stretch="Fill" Fill="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,11,0" IsHitTestVisible="False"/>
-                                <ComboBox x:Name="IncidentSeverityFilterComboBox" Height="34" MinWidth="105" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" Foreground="Transparent" BorderBrush="Transparent" BorderThickness="0" Opacity="0.01" SelectedIndex="0" ToolTip="Filter by severity" Style="{StaticResource IncidentComboBoxStyle}">
+                                <TextBlock Text="{Binding SelectedItem.Content, ElementName=IncidentSeverityFilterComboBox}" Foreground="{DynamicResource TextBrush}" FontSize="10.5" FontWeight="SemiBold" Margin="7,0,22,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                <Path Data="M 0 0 L 4 4 L 8 0 Z" Width="9" Height="5" Stretch="Fill" Fill="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" IsHitTestVisible="False"/>
+                                <ComboBox x:Name="IncidentSeverityFilterComboBox" Height="34" MinWidth="96" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" Foreground="Transparent" BorderBrush="Transparent" BorderThickness="0" Opacity="0.01" SelectedIndex="0" ToolTip="Filter by severity" Style="{StaticResource IncidentComboBoxStyle}">
                                 
                                 <ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="All severities"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Critical"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="High"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Medium"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Low"/>
                                 </ComboBox>
                             </Grid>
-                            <Grid Grid.Column="3" Height="34" MinWidth="105" HorizontalAlignment="Stretch">
+                            <Grid Grid.Column="3" Height="34" MinWidth="96" HorizontalAlignment="Stretch">
                                 <Border Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="7"/>
-                                <TextBlock Text="{Binding SelectedItem.Content, ElementName=IncidentSortComboBox}" Foreground="{DynamicResource TextBrush}" FontSize="12" FontWeight="SemiBold" Margin="10,0,30,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                                <Path Data="M 0 0 L 4 4 L 8 0 Z" Width="9" Height="5" Stretch="Fill" Fill="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,11,0" IsHitTestVisible="False"/>
-                                <ComboBox x:Name="IncidentSortComboBox" Height="34" MinWidth="105" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" Foreground="Transparent" BorderBrush="Transparent" BorderThickness="0" Opacity="0.01" SelectedIndex="0" ToolTip="Change incident queue order" Style="{StaticResource IncidentComboBoxStyle}">
+                                <TextBlock Text="{Binding SelectedItem.Content, ElementName=IncidentSortComboBox}" Foreground="{DynamicResource TextBrush}" FontSize="10.5" FontWeight="SemiBold" Margin="7,0,22,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                <Path Data="M 0 0 L 4 4 L 8 0 Z" Width="9" Height="5" Stretch="Fill" Fill="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" IsHitTestVisible="False"/>
+                                <ComboBox x:Name="IncidentSortComboBox" Height="34" MinWidth="96" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent" Foreground="Transparent" BorderBrush="Transparent" BorderThickness="0" Opacity="0.01" SelectedIndex="0" ToolTip="Change incident queue order" Style="{StaticResource IncidentComboBoxStyle}">
                                 
                                 <ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Priority first"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Newest first"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Most frequent"/>
                                 </ComboBox>
@@ -832,8 +832,8 @@
                                 </StackPanel>
                                 <Grid Grid.Column="1" Height="35" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                                     <Border Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="7"/>
-                                    <TextBlock Text="{Binding SelectedItem.Content, ElementName=SelectedIncidentSeverityComboBox, TargetNullValue='Select severity', FallbackValue='Select severity'}" Foreground="{DynamicResource TextBrush}" FontSize="12" FontWeight="SemiBold" Margin="10,0,30,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                                    <Path Data="M 0 0 L 4 4 L 8 0 Z" Width="9" Height="5" Stretch="Fill" Fill="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,11,0" IsHitTestVisible="False"/>
+                                    <TextBlock Text="{Binding SelectedItem.Content, ElementName=SelectedIncidentSeverityComboBox, TargetNullValue='Select severity', FallbackValue='Select severity'}" Foreground="{DynamicResource TextBrush}" FontSize="10.5" FontWeight="SemiBold" Margin="7,0,22,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                    <Path Data="M 0 0 L 4 4 L 8 0 Z" Width="9" Height="5" Stretch="Fill" Fill="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" IsHitTestVisible="False"/>
                                     <ComboBox x:Name="SelectedIncidentSeverityComboBox" Height="35" VerticalAlignment="Stretch" MinWidth="110" HorizontalAlignment="Stretch" Background="Transparent" Foreground="Transparent" BorderBrush="Transparent" BorderThickness="0" Opacity="0.01" ToolTip="Choose a new severity level" Style="{StaticResource IncidentComboBoxStyle}">
                                     
                                     <ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Critical"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="High"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Medium"/><ComboBoxItem Style="{StaticResource IncidentComboBoxItemStyle}" Content="Low"/>
@@ -1369,7 +1369,11 @@
                 <StackPanel>
                     <TextBlock Text="SIGNED-IN ACCOUNT" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource MutedBrush}"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,24,0,24">
+                    <Grid Margin="0,24,0,24">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
                         <Border Width="64" Height="64" CornerRadius="15"
                                 Background="{DynamicResource Hex20385FBrush}"
                                 BorderBrush="{DynamicResource NeutralBrush}" BorderThickness="1">
@@ -1377,15 +1381,16 @@
                                        FontWeight="Bold" Foreground="{DynamicResource TextBrush}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel VerticalAlignment="Center" Margin="16,0,0,0">
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
                             <TextBlock x:Name="AccountDisplayNameText" Text="Account name"
-                                       FontSize="21" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextBrush}"/>
+                                       FontSize="21" FontWeight="Bold" Foreground="{DynamicResource TextBrush}"
+                                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="56"/>
                             <TextBlock x:Name="AccountUsernameText" Text="@username"
                                        FontSize="13" Foreground="{DynamicResource MutedBrush}"
+                                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
                                        Margin="0,5,0,0"/>
                         </StackPanel>
-                    </StackPanel>
+                    </Grid>
 
                     <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,0,0,18"/>
                     <Grid Margin="0,0,0,15">
@@ -1522,8 +1527,10 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Text="{Binding DisplayName}" FontSize="12"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource TextBrush}"/>
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource TextBrush}"
+                                                    TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+                                                    MaxHeight="34"/>
                                         <TextBlock Text="{Binding Username, StringFormat='@{0}'}"
                                                    FontSize="10" Foreground="{DynamicResource MutedBrush}"
                                                    Margin="0,2,0,0"/>
