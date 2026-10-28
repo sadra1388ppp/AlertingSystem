@@ -1,6 +1,6 @@
 # MariaDB storage (EF Core)
 
-AlertingSystem stores incidents and endpoint-check history in MariaDB through Entity Framework Core. The app contains no handwritten SQL queries or table-creation scripts; EF Core sends the database commands.
+AlertingSystem stores incidents and endpoint-check history in MariaDB through Entity Framework Core. Account registration and authentication use the `Accounts` table through `AccountStore`.
 
 ## Local settings
 
@@ -21,6 +21,10 @@ These defaults match the local development account used by the earlier AlertingS
 You can override the connection string with the `ALERTINGSYSTEM_DB_CONNECTION_STRING` environment variable.
 
 The MariaDB server and the configured database account must already exist and be allowed to create tables. At startup, EF Core creates the mapped tables automatically when the database has no tables. The model deliberately maps to the existing `Incidents`, `AlertHistory`, and `AppMetadata` table layout, including the existing text-formatted timestamp columns.
+
+## Account records
+
+Account profiles are stored in the `Accounts` table, including password hashes and account lifecycle fields. If an existing database has the legacy `AppUsers` table and does not yet have `Accounts`, the app renames the table at startup. This preserves existing account rows and password hashes. Account deletion is a soft delete: `IsDeleted` and `DeletedAt` are updated, while the account row remains in MariaDB.
 
 ## Existing local data
 

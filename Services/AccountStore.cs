@@ -23,10 +23,12 @@ public sealed class AccountStore
         using var connection = new MySqlConnection(_connectionString);
         connection.Open();
 
+        RenameLegacyAccountsTableIfNeeded(connection);
+
         using (var command = connection.CreateCommand())
         {
             command.CommandText = """
-                CREATE TABLE IF NOT EXISTS AppUsers (
+                CREATE TABLE IF NOT EXISTS Accounts (
                     Id INT NOT NULL AUTO_INCREMENT,
                     DisplayName VARCHAR(100) NOT NULL,
                     Username VARCHAR(32) NOT NULL,
@@ -35,7 +37,7 @@ public sealed class AccountStore
                     IsDeleted TINYINT(1) NOT NULL DEFAULT 0,
                     DeletedAt DATETIME(6) NULL,
                     PRIMARY KEY (Id),
-                    UNIQUE KEY UX_AppUsers_Username (Username)
+                    UNIQUE KEY UX_Accounts_Username (Username)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
                 """;
             command.ExecuteNonQuery();
@@ -44,14 +46,14 @@ public sealed class AccountStore
         using (var command = connection.CreateCommand())
         {
             command.CommandText =
-                "ALTER TABLE AppUsers ADD COLUMN IF NOT EXISTS IsDeleted TINYINT(1) NOT NULL DEFAULT 0";
+                "ALTER TABLE Accounts ADD COLUMN IF NOT EXISTS IsDeleted TINYINT(1) NOT NULL DEFAULT 0";
             command.ExecuteNonQuery();
         }
 
         using (var command = connection.CreateCommand())
         {
             command.CommandText =
-                "ALTER TABLE AppUsers ADD COLUMN IF NOT EXISTS DeletedAt DATETIME(6) NULL";
+                "ALTER TABLE Accounts ADD COLUMN IF NOT EXISTS DeletedAt DATETIME(6) NULL";
             command.ExecuteNonQuery();
         }
     }
@@ -60,7 +62,7 @@ public sealed class AccountStore
     {
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
-        command.CommandText = "SELECT EXISTS(SELECT 1 FROM AppUsers WHERE IsDeleted = 0 LIMIT 1)";
+        command.CommandText = "SELECT EXISTS(SELECT 1 FROM Accounts WHERE IsDeleted = 0 LIMIT 1)";
         return Convert.ToInt32(command.ExecuteScalar()) == 1;
     }
 
@@ -70,7 +72,7 @@ public sealed class AccountStore
         using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT Id, DisplayName, Username, CreatedAt, IsDeleted, DeletedAt
-            FROM AppUsers
+            FROM Accounts
             ORDER BY IsDeleted ASC, CreatedAt DESC, Id DESC
             """;
 
@@ -97,7 +99,7 @@ public sealed class AccountStore
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
         command.CommandText =
-            "SELECT EXISTS(SELECT 1 FROM AppUsers WHERE Id = @id AND IsDeleted = 0 LIMIT 1)";
+            "SELECT EXISTS(SELECT 1 FROM Accounts WHERE Id = @id AND IsDeleted = 0 LIMIT 1)";
         command.Parameters.AddWithValue("@id", userId);
         return Convert.ToInt32(command.ExecuteScalar()) == 1;
     }
@@ -143,7 +145,7 @@ public sealed class AccountStore
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = """
-                    INSERT INTO AppUsers (DisplayName, Username, PasswordHash)
+                    INSERT INTO Accounts (DisplayName, Username, PasswordHash)
                     VALUES (@displayName, @username, @passwordHash)
                     """;
                 command.Parameters.AddWithValue("@displayName", displayName);
@@ -181,7 +183,7 @@ public sealed class AccountStore
         using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT Id, DisplayName, Username, PasswordHash, CreatedAt
-            FROM AppUsers
+            FROM Accounts
             WHERE Username = @username AND IsDeleted = 0
             LIMIT 1
             """;
@@ -220,7 +222,7 @@ public sealed class AccountStore
         {
             command.CommandText = """
                 SELECT PasswordHash, IsDeleted
-                FROM AppUsers
+                FROM Accounts
                 WHERE Id = @id
                 LIMIT 1
                 """;
@@ -251,7 +253,7 @@ public sealed class AccountStore
 
         using var updateCommand = connection.CreateCommand();
         updateCommand.CommandText = """
-            UPDATE AppUsers
+            UPDATE Accounts
             SET IsDeleted = 1, DeletedAt = UTC_TIMESTAMP(6)
             WHERE Id = @id AND IsDeleted = 0
             """;
@@ -264,6 +266,45 @@ public sealed class AccountStore
         }
 
         return true;
+    }
+
+    private static void RenameLegacyAccountsTableIfNeeded(MySqlConnection connection)
+    {
+        bool legacyTableExists;
+        bool accountsTableExists;
+
+        using (var checkCommand = connection.CreateCommand())
+        {
+            checkCommand.CommandText = """
+                SELECT
+                    EXISTS (
+                        SELECT 1
+                        FROM information_schema.tables
+                        WHERE table_schema = DATABASE() AND table_name = 'AppUsers'
+                    ),
+                    EXISTS (
+                        SELECT 1
+                        FROM information_schema.tables
+                        WHERE table_schema = DATABASE() AND table_name = 'Accounts'
+                    )
+                """;
+
+            using var reader = checkCommand.ExecuteReader();
+            if (!reader.Read())
+            {
+                return;
+            }
+
+            legacyTableExists = reader.GetBoolean(0);
+            accountsTableExists = reader.GetBoolean(1);
+        }
+
+        if (legacyTableExists && !accountsTableExists)
+        {
+            using var renameCommand = connection.CreateCommand();
+            renameCommand.CommandText = "RENAME TABLE AppUsers TO Accounts";
+            renameCommand.ExecuteNonQuery();
+        }
     }
 
     private MySqlConnection OpenConnection()
