@@ -530,10 +530,10 @@
             <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="0" Margin="0,0,8,0">
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Background="{DynamicResource WarningBrush}" CornerRadius="10,0,0,10"/>
+                    <Border Grid.Column="0" Background="{DynamicResource CriticalBrush}" CornerRadius="10,0,0,10"/>
                     <StackPanel Grid.Column="1" Margin="13,11,10,11">
                         <TextBlock Text="CRITICAL OPEN" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
-                        <TextBlock x:Name="CriticalIncidentCountText" Text="0" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}" Margin="0,3,0,0"/>
+                        <TextBlock x:Name="CriticalIncidentCountText" Text="0" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource CriticalBrush}" Margin="0,3,0,0"/>
                         <TextBlock Text="Highest severity" FontSize="10" Foreground="{DynamicResource MutedBrush}" Margin="0,1,0,0"/>
                     </StackPanel>
                 </Grid>
