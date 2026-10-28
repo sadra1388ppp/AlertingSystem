@@ -249,7 +249,7 @@ public partial class MainWindow : Window
 
         if (comboBox.Template.FindName("ContentSite", comboBox) is ContentPresenter selectedContent)
         {
-            TextElement.SetForeground(selectedContent, textBrush);
+            System.Windows.Documents.TextElement.SetForeground(selectedContent, textBrush);
         }
 
         if (comboBox.Template.FindName("PART_EditableTextBox", comboBox) is TextBox editableText)
@@ -1050,7 +1050,7 @@ public partial class MainWindow : Window
                 StringComparison.OrdinalIgnoreCase));
 
         var created = incident is null;
-        if (created)
+        if (incident is null)
         {
             incident = new Incident
             {
