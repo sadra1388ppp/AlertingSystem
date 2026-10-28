@@ -568,9 +568,30 @@
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <Grid Grid.Row="0" Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Incident queue" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/><TextBlock x:Name="IncidentFilterDescriptionText" Text="Showing open incidents" FontSize="10" Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0"/></StackPanel><Border Grid.Column="1" Background="{DynamicResource Hex0B1425Brush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="7" Padding="9,5" VerticalAlignment="Center"><TextBlock x:Name="IncidentQueueCountText" Text="0 items" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}"/></Border></Grid>
                     <StackPanel Grid.Row="1" Margin="0,0,0,10">
-                        <Grid Height="37">
-                            <TextBox x:Name="IncidentSearchTextBox" Height="37" Padding="10,8,36,8" FontSize="12" Foreground="{DynamicResource TextBrush}" CaretBrush="{DynamicResource TextBrush}" TextChanged="IncidentSearchTextBox_TextChanged" ToolTip="Search incident ID, title, endpoint, error details, or reason"/>
-                            <TextBlock x:Name="IncidentSearchPlaceholderText" Text="Search ID, endpoint, title, error, or reason" FontSize="11" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" Margin="12,0,36,0" IsHitTestVisible="False"/>
+                        <Grid Height="44">
+                            <TextBox x:Name="IncidentSearchTextBox"
+                                     Height="44"
+                                     MinWidth="220"
+                                     HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Stretch"
+                                     VerticalContentAlignment="Center"
+                                     Padding="10,3,36,3"
+                                     FontSize="13"
+                                     Foreground="{DynamicResource TextBrush}"
+                                     CaretBrush="{DynamicResource TextBrush}"
+                                     Background="{DynamicResource Hex0B1425Brush}"
+                                     BorderBrush="{DynamicResource BorderBrush}"
+                                     BorderThickness="1"
+                                     TextWrapping="NoWrap"
+                                     TextChanged="IncidentSearchTextBox_TextChanged"
+                                     ToolTip="Search incidents by ID, endpoint, title, or error"/>
+                            <TextBlock x:Name="IncidentSearchPlaceholderText"
+                                       Text="Search by ID, endpoint, title or error…"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource MutedBrush}"
+                                       VerticalAlignment="Center"
+                                       Margin="12,0,38,0"
+                                       IsHitTestVisible="False"/>
                             <Button x:Name="ClearIncidentSearchButton" Content="×" Width="26" Height="26" Padding="0" FontSize="17" FontWeight="Normal" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" ToolTip="Clear search" Visibility="Collapsed" Click="ClearIncidentSearchButton_Click"/>
                         </Grid>
                         <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
