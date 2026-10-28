@@ -4,10 +4,6 @@ using AlertingSystem.Models;
 
 namespace AlertingSystem.Services;
 
-/// <summary>
-/// Persists endpoint schedules in the user's local application data folder.
-/// Scheduler configuration does not change or migrate the MariaDB schema.
-/// </summary>
 public sealed class ScheduledEndpointStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -37,7 +33,6 @@ public sealed class ScheduledEndpointStore
                 return new ScheduleConfiguration();
             }
 
-            // Migrate schedules created by the previous minute-only version.
             using var document = JsonDocument.Parse(json);
             if (!document.RootElement.TryGetProperty(nameof(ScheduleConfiguration.IntervalSeconds), out _) &&
                 document.RootElement.TryGetProperty("IntervalMinutes", out var legacyMinutes) &&
@@ -59,7 +54,6 @@ public sealed class ScheduledEndpointStore
         catch (Exception exception) when (
             exception is IOException or UnauthorizedAccessException or JsonException)
         {
-            // A damaged local schedule must not prevent the application from opening.
             return new ScheduleConfiguration();
         }
     }
