@@ -178,6 +178,13 @@ public partial class MainWindow : Window
         IncidentSeverityFilterComboBox.SelectionChanged += IncidentSeverityFilterComboBox_SelectionChanged;
         IncidentSortComboBox.SelectionChanged += IncidentSortComboBox_SelectionChanged;
         SelectedIncidentSeverityComboBox.SelectionChanged += SelectedIncidentSeverityComboBox_SelectionChanged;
+
+        // Re-skin the real native popup after WPF opens it. Styling only the ComboBox
+        // and its items does not change the default popup's white surface.
+        IncidentSeverityFilterComboBox.DropDownOpened += IncidentComboBox_DropDownOpened;
+        IncidentSortComboBox.DropDownOpened += IncidentComboBox_DropDownOpened;
+        SelectedIncidentSeverityComboBox.DropDownOpened += IncidentComboBox_DropDownOpened;
+
         IncidentReasonTextBox.TextChanged += IncidentReasonTextBox_TextChanged;
         IncidentResolutionTextBox.TextChanged += IncidentResolutionTextBox_TextChanged;
 
@@ -193,6 +200,83 @@ public partial class MainWindow : Window
             _databaseSyncTimer.Stop();
             _scheduledCheckTimer.Stop();
         };
+    }
+
+    private void IncidentComboBox_DropDownOpened(object? sender, EventArgs e)
+    {
+        if (sender is not ComboBox comboBox)
+        {
+            return;
+        }
+
+        // The native template owns the actual dropdown surface. Update its Border
+        // after opening so WPF cannot leave the operating-system white brush behind.
+        ApplyIncidentDropdownPopupTheme(comboBox);
+
+        // Some WPF themes finish measuring the Popup on the next dispatcher pass.
+        // Apply once more after layout so the visible surface is consistently themed.
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.Loaded,
+            new Action(() => ApplyIncidentDropdownPopupTheme(comboBox)));
+    }
+
+    private void ApplyIncidentDropdownPopupTheme(ComboBox comboBox)
+    {
+        if (!comboBox.IsDropDownOpen)
+        {
+            return;
+        }
+
+        if (comboBox.Template.FindName("PART_Popup", comboBox)
+            is not System.Windows.Controls.Primitives.Popup popup)
+        {
+            return;
+        }
+
+        var surfaceBrush = (Brush)FindResource("CardBrush");
+        var outlineBrush = (Brush)FindResource("BorderBrush");
+
+        if (popup.Child is Panel popupPanel)
+        {
+            popupPanel.Background = surfaceBrush;
+        }
+
+        if (popup.Child is not DependencyObject popupRoot)
+        {
+            return;
+        }
+
+        var surface = FindFirstPopupBorder(popupRoot);
+        if (surface is null)
+        {
+            return;
+        }
+
+        surface.Background = surfaceBrush;
+        surface.BorderBrush = outlineBrush;
+        surface.BorderThickness = new Thickness(1);
+        surface.CornerRadius = new CornerRadius(8);
+    }
+
+    private static Border? FindFirstPopupBorder(DependencyObject parent)
+    {
+        var childCount = VisualTreeHelper.GetChildrenCount(parent);
+        for (var index = 0; index < childCount; index++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, index);
+            if (child is Border border)
+            {
+                return border;
+            }
+
+            var nestedBorder = FindFirstPopupBorder(child);
+            if (nestedBorder is not null)
+            {
+                return nestedBorder;
+            }
+        }
+
+        return null;
     }
 
     private static void AttachContextMenuHandler(Style? style, RoutedEventHandler handler)
@@ -1530,10 +1614,22 @@ public partial class MainWindow : Window
             Resources[key] = new SolidColorBrush(ParseThemeColor(color));
         }
 
-        // ComboBox dropdowns are hosted in a separate Popup visual tree.
-        // Window.Resources is not a reliable source for the popup's system brushes,
-        // so publish the active theme at Application scope for native WPF templates.
+        // Popup is hosted in a separate visual tree, so mirror theme brushes at
+        // application scope as well. This keeps item text and selected/hover states
+        // themed even when the Popup cannot inherit Window.Resources.
         var applicationResources = Application.Current.Resources;
+        foreach (var entry in ThemeRoleColors)
+        {
+            applicationResources[entry.Key] = Resources[entry.Key];
+        }
+
+        foreach (var darkColor in ThemeLiteralColors)
+        {
+            var key = "Hex" + darkColor.TrimStart('#') + "Brush";
+            applicationResources[key] = Resources[key];
+        }
+
+        // Also override system brushes used by the operating-system ComboBox template.
         applicationResources[SystemColors.WindowBrushKey] = new SolidColorBrush(
             ParseThemeColor(_isLightTheme ? "#FFFFFF" : "#121E33"));
         applicationResources[SystemColors.WindowTextBrushKey] = new SolidColorBrush(
