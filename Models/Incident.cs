@@ -34,6 +34,9 @@ public sealed class Incident : INotifyPropertyChanged
     private DateTime? _resolvedAt;
     private int _occurrenceCount = 1;
 
+    private static readonly Brush CriticalSeverityBrush = CreateFrozenBrush(192, 132, 252); // #C084FC
+    private static readonly Brush LowSeverityBrush = CreateFrozenBrush(74, 222, 128); // #4ADE80
+
     public string IncidentNumber
     {
         get => _incidentNumber;
@@ -148,9 +151,10 @@ public sealed class Incident : INotifyPropertyChanged
     [JsonIgnore]
     public Brush SeverityBrush => Severity switch
     {
-        IncidentSeverity.Critical => Brushes.Crimson,
+        IncidentSeverity.Critical => CriticalSeverityBrush,
         IncidentSeverity.High => Brushes.OrangeRed,
         IncidentSeverity.Medium => Brushes.Goldenrod,
+        IncidentSeverity.Low => LowSeverityBrush,
         _ => Brushes.SteelBlue
     };
 
@@ -162,6 +166,13 @@ public sealed class Incident : INotifyPropertyChanged
     [JsonIgnore]
     public string ActivityDisplay =>
         $"Started {FirstOccurredAt:yyyy-MM-dd HH:mm:ss}  •  Last failure {LastOccurredAt:yyyy-MM-dd HH:mm:ss}  •  {OccurrenceCount} occurrence(s)";
+
+    private static SolidColorBrush CreateFrozenBrush(byte red, byte green, byte blue)
+    {
+        var brush = new SolidColorBrush(Color.FromRgb(red, green, blue));
+        brush.Freeze();
+        return brush;
+    }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
