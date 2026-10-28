@@ -5,10 +5,6 @@ using System.Windows.Media;
 
 namespace AlertingSystem.Models;
 
-/// <summary>
-/// View-model for one endpoint in the scheduled-monitoring list.
-/// Runtime results are read from the current session; the endpoint list itself is persisted separately.
-/// </summary>
 public sealed class ScheduledEndpointStatus : INotifyPropertyChanged
 {
     private string _lastResult = "Not checked";
