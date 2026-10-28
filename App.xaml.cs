@@ -6,7 +6,6 @@ namespace AlertingSystem;
 
 public partial class App : Application
 {
-    // Create the main window directly so startup failures are caught and reported below.
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -44,7 +43,6 @@ public partial class App : Application
         }
         catch
         {
-            // Logging must never hide the original application error.
         }
 
         MessageBox.Show(
