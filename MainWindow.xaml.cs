@@ -59,6 +59,7 @@ public partial class MainWindow : Window
         ["TextBrush"] = ("#F1F5FC", "#182338"),
         ["MutedBrush"] = ("#9AAAC2", "#68758C"),
         ["SuccessBrush"] = ("#3DD9A0", "#16845D"),
+        ["CriticalBrush"] = ("#C084FC", "#7C3AED"),
         ["WarningBrush"] = ("#F6C65B", "#9A6700"),
         ["DangerBrush"] = ("#FF718B", "#C52F4B"),
         ["NeutralBrush"] = ("#72A7FF", "#2F65D5"),
