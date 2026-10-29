@@ -394,7 +394,7 @@ public partial class MainWindow : Window
         }
 
         CheckEndpointButton.IsEnabled = false;
-        CheckEndpointButton.Content = "Checking…";
+        CheckEndpointButtonText.Text = "Checking…";
 
         try
         {
@@ -403,7 +403,7 @@ public partial class MainWindow : Window
         finally
         {
             CheckEndpointButton.IsEnabled = true;
-            CheckEndpointButton.Content = "Check endpoint";
+            CheckEndpointButtonText.Text = "Check endpoint";
         }
     }
 
@@ -1487,7 +1487,6 @@ public partial class MainWindow : Window
         CriticalIncidentCountText.Text = criticalCount.ToString();
         TotalIncidentCountText.Text = _incidents.Count.ToString();
         DoneIncidentCountText.Text = doneCount.ToString();
-        OverviewOpenIncidentsCountText.Text = $"{openCount} open incident(s)";
 
         var selectedNumber = (IncidentsListBox.SelectedItem as Incident)?.IncidentNumber ?? _displayedIncidentNumber;
         var search = searchText.Trim();
