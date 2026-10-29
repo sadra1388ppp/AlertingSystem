@@ -41,10 +41,6 @@ public partial class LoginWindow : Window
         _isRegisterMode = registerMode;
         LoginFormPanel.Visibility = registerMode ? Visibility.Collapsed : Visibility.Visible;
         RegisterFormPanel.Visibility = registerMode ? Visibility.Visible : Visibility.Collapsed;
-        HeadingText.Text = registerMode ? "Create your account" : "Welcome back";
-        SubheadingText.Text = registerMode
-            ? "Create a workspace account with a unique username and password."
-            : "Sign in to continue to your incident workspace.";
 
         if (!_registrationOnly)
         {
