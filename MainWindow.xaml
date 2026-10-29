@@ -1695,11 +1695,13 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Text="{Binding DisplayName}" FontSize="12"
+                                                    Loaded="AccountDirectoryTextBlock_Loaded"
                                                     FontWeight="SemiBold"
                                                     Foreground="{DynamicResource TextBrush}"
                                                     TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
                                                     MaxHeight="34"/>
                                         <TextBlock Text="{Binding Username, StringFormat='@{0}'}"
+                                                   Loaded="AccountDirectoryTextBlock_Loaded"
                                                    FontSize="10" Foreground="{DynamicResource MutedBrush}"
                                                    Margin="0,2,0,0"/>
                                         <TextBlock Text="{Binding LifecycleDisplay}" FontSize="9"
