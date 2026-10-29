@@ -12,18 +12,18 @@
         TextOptions.TextFormattingMode="Display">
 
     <Window.Resources>
-        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0A1020"/>
-        <SolidColorBrush x:Key="SidebarBrush" Color="#0D1628"/>
-        <SolidColorBrush x:Key="CardBrush" Color="#121E33"/>
-        <SolidColorBrush x:Key="BorderBrush" Color="#263650"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#F1F5FC"/>
-        <SolidColorBrush x:Key="MutedBrush" Color="#9AAAC2"/>
-        <SolidColorBrush x:Key="SuccessBrush" Color="#3DD9A0"/>
-        <SolidColorBrush x:Key="WarningBrush" Color="#F6C65B"/>
-        <SolidColorBrush x:Key="DangerBrush" Color="#FF718B"/>
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0B0F14"/>
+        <SolidColorBrush x:Key="SidebarBrush" Color="#101720"/>
+        <SolidColorBrush x:Key="CardBrush" Color="#151F29"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#2A3845"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#F2F6F8"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#A4B2BD"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#35C795"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="#F0C56A"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#F27474"/>
         <SolidColorBrush x:Key="NeutralBrush" Color="#72A7FF"/>
-        <SolidColorBrush x:Key="SecondaryButtonBrush" Color="#1B2A44"/>
-        <SolidColorBrush x:Key="SelectedFilterBrush" Color="#477DFA"/>
+        <SolidColorBrush x:Key="SecondaryButtonBrush" Color="#202B36"/>
+        <SolidColorBrush x:Key="SelectedFilterBrush" Color="#169C98"/>
 
         
         <SolidColorBrush x:Key="Hex0A1020Brush" Color="#0A1020"/>
@@ -302,6 +302,9 @@
             <Setter Property="Padding" Value="0"/>
             <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.IsDeferredScrollingEnabled" Value="True"/>
+            <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True"/>
+            <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         </Style>
 
