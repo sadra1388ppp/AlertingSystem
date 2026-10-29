@@ -752,8 +752,8 @@
                         CornerRadius="16" Padding="22">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="0.92*"/>
                             <ColumnDefinition Width="1.08*"/>
+                            <ColumnDefinition Width="0.92*"/>
                         </Grid.ColumnDefinitions>
 
                         <Grid Grid.Column="0" Margin="0,0,24,0">
@@ -780,7 +780,12 @@
                                            Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,9"/>
                                 <TextBox x:Name="EndpointTextBox" Text="https://example.com"
                                          AutomationProperties.Name="Endpoint URL"
-                                         Height="48" KeyDown="EndpointTextBox_KeyDown"/>
+                                         Height="52" FontSize="14" Padding="14,0"
+                                         VerticalContentAlignment="Center"
+                                         TextWrapping="NoWrap"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                         KeyDown="EndpointTextBox_KeyDown"/>
                             </StackPanel>
 
                             <Button x:Name="CheckEndpointButton" Grid.Row="2"
