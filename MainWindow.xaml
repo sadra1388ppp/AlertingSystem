@@ -130,6 +130,7 @@
         <SolidColorBrush x:Key="NeutralBrush" Color="#55CDD6"/>
         <SolidColorBrush x:Key="SecondaryButtonBrush" Color="#16333F"/>
         <SolidColorBrush x:Key="SelectedFilterBrush" Color="#0EBAC8"/>
+        <SolidColorBrush x:Key="HistorySelectionBrush" Color="#104451"/>
 
         
         <SolidColorBrush x:Key="Hex0A1020Brush" Color="#07151D"/>
@@ -920,7 +921,7 @@
                                                                 </Trigger>
                                                                 <Trigger Property="IsSelected" Value="True">
                                                                     <Setter TargetName="HistoryItemSurface" Property="Background"
-                                                                            Value="{DynamicResource Hex162743Brush}"/>
+                                                                            Value="{DynamicResource HistorySelectionBrush}"/>
                                                                     <Setter TargetName="HistoryItemSurface" Property="BorderBrush"
                                                                             Value="{DynamicResource NeutralBrush}"/>
                                                                 </Trigger>
