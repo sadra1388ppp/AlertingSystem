@@ -157,13 +157,11 @@
         <SolidColorBrush x:Key="HexEEF3FABrush" Color="#E8F6F8"/>
         <SolidColorBrush x:Key="HexFDE68ABrush" Color="#FFE7A3"/>
 
-        <!-- Consistent themed scrollbars for the main workspace. -->
-        <Style TargetType="{x:Type ScrollBar}">
+        <!-- Explicitly applied to the Endpoint Checker history scrollbar. -->
+        <Style x:Key="ThemedEndpointHistoryScrollBarStyle" TargetType="{x:Type ScrollBar}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Focusable" Value="False"/>
-            <Setter Property="Width" Value="Auto"/>
-            <Setter Property="Height" Value="Auto"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ScrollBar}">
@@ -189,12 +187,13 @@
                                     </RepeatButton>
                                 </Track.DecreaseRepeatButton>
                                 <Track.Thumb>
-                                    <Thumb MinHeight="30" MinWidth="30" Focusable="False">
+                                    <Thumb x:Name="PART_Thumb" MinHeight="28" MinWidth="0"
+                                           Focusable="False">
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="{x:Type Thumb}">
                                                 <Border x:Name="HistoryScrollThumb"
                                                         Margin="1"
-                                                        Background="{DynamicResource Hex294568Brush}"
+                                                        Background="{DynamicResource Hex20385FBrush}"
                                                         BorderBrush="{DynamicResource BorderBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="4"/>
@@ -236,16 +235,20 @@
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="Orientation" Value="Vertical">
-                                <Setter Property="Width" Value="12"/>
-                                <Setter Property="MinWidth" Value="12"/>
+                                <Setter Property="Width" Value="10"/>
+                                <Setter Property="MinWidth" Value="10"/>
                                 <Setter Property="Height" Value="Auto"/>
                                 <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="True"/>
+                                <Setter TargetName="PART_Thumb" Property="MinHeight" Value="28"/>
+                                <Setter TargetName="PART_Thumb" Property="MinWidth" Value="0"/>
                             </Trigger>
                             <Trigger Property="Orientation" Value="Horizontal">
-                                <Setter Property="Height" Value="12"/>
-                                <Setter Property="MinHeight" Value="12"/>
+                                <Setter Property="Height" Value="10"/>
+                                <Setter Property="MinHeight" Value="10"/>
                                 <Setter Property="Width" Value="Auto"/>
                                 <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False"/>
+                                <Setter TargetName="PART_Thumb" Property="MinHeight" Value="0"/>
+                                <Setter TargetName="PART_Thumb" Property="MinWidth" Value="28"/>
                                 <Setter TargetName="DecreasePageButton" Property="Command" Value="{x:Static ScrollBar.PageLeftCommand}"/>
                                 <Setter TargetName="IncreasePageButton" Property="Command" Value="{x:Static ScrollBar.PageRightCommand}"/>
                             </Trigger>
@@ -990,7 +993,8 @@
                                              Background="Transparent" BorderThickness="0"
                                              Foreground="{DynamicResource TextBrush}"
                                              FontSize="11" Padding="0"
-                                             ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                             Loaded="HistoryList_Loaded"
+                                             ScrollViewer.VerticalScrollBarVisibility="Auto"
                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                         <ListBox.ItemContainerStyle>
                                             <Style TargetType="{x:Type ListBoxItem}">
