@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using AlertingSystem.Models;
 using AlertingSystem.Services;
@@ -15,6 +16,24 @@ namespace AlertingSystem;
 
 public partial class MainWindow : Window
 {
+
+    private void MinimizeWindowButton_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void MaximizeWindowButton_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+    }
+
+    private void CloseWindowButton_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
     private static readonly HttpClient HttpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(10)
