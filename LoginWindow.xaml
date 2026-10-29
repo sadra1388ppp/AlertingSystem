@@ -2,31 +2,26 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="AlertingSystem | Secure access"
-        Width="1000" Height="700"
-        MinWidth="820" MinHeight="580"
+        Width="900" Height="680"
+        MinWidth="420" MinHeight="540"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
-        Background="#080D18"
+        Background="#0A101B"
         FontFamily="Segoe UI"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
         TextOptions.TextFormattingMode="Display">
 
     <Window.Resources>
-        <SolidColorBrush x:Key="PageBrush" Color="#080D18"/>
-        <SolidColorBrush x:Key="PanelBrush" Color="#0E1727"/>
-        <SolidColorBrush x:Key="CardBrush" Color="#111D2F"/>
+        <SolidColorBrush x:Key="CardBrush" Color="#111B2B"/>
         <SolidColorBrush x:Key="FieldBrush" Color="#0B1422"/>
-        <SolidColorBrush x:Key="LineBrush" Color="#26364D"/>
+        <SolidColorBrush x:Key="LineBrush" Color="#2A3950"/>
         <SolidColorBrush x:Key="PrimaryBrush" Color="#4D7CFE"/>
-        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#638BFF"/>
         <SolidColorBrush x:Key="TextBrush" Color="#F4F7FC"/>
-        <SolidColorBrush x:Key="MutedBrush" Color="#9BAAC0"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="#45D6A0"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#A3B0C4"/>
 
         <Style TargetType="{x:Type TextBlock}">
             <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
         </Style>
 
         <Style TargetType="{x:Type TextBox}">
@@ -130,10 +125,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.88"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.78"/>
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.74"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#B7C9FF"/>
@@ -148,212 +143,146 @@
         </Style>
     </Window.Resources>
 
-    <Grid>
-        <Grid.Background>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#080D18" Offset="0"/>
-                <GradientStop Color="#0B1423" Offset="0.55"/>
-                <GradientStop Color="#101B2B" Offset="1"/>
-            </LinearGradientBrush>
-        </Grid.Background>
+    <Grid Margin="20">
+        <Border MaxWidth="440"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Center"
+                Background="{StaticResource CardBrush}"
+                BorderBrush="{StaticResource LineBrush}"
+                BorderThickness="1"
+                CornerRadius="16"
+                Padding="30">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-        <Grid Margin="24">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="0.88*"/>
-                <ColumnDefinition Width="1.12*"/>
-            </Grid.ColumnDefinitions>
+                <StackPanel Grid.Row="0" Margin="0,0,0,22">
+                    <TextBlock Text="Welcome"
+                               FontSize="30"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource TextBrush}"
+                               Margin="0,0,0,8"/>
+                    <TextBlock x:Name="HeadingText"
+                               Text="Welcome back"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextBrush}"/>
+                    <TextBlock x:Name="SubheadingText"
+                               Text="Sign in to continue to your workspace."
+                               FontSize="12"
+                               LineHeight="18"
+                               Foreground="{StaticResource MutedBrush}"
+                               Margin="0,7,0,0"/>
+                </StackPanel>
 
-            <!-- Brand panel -->
-            <Border Grid.Column="0"
-                    Background="{StaticResource PanelBrush}"
-                    BorderBrush="#223149"
-                    BorderThickness="1"
-                    CornerRadius="18"
-                    Padding="30">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                <ScrollViewer Grid.Row="1"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              CanContentScroll="False">
+                    <Grid>
+                        <StackPanel x:Name="LoginFormPanel">
+                            <TextBlock Text="Username"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       Margin="0,0,0,7"/>
+                            <TextBox x:Name="LoginUsernameTextBox"
+                                     AutomationProperties.Name="Username"
+                                     MaxLength="32"
+                                     HorizontalAlignment="Stretch"
+                                     Margin="0,0,0,16"/>
 
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="42" Height="42" CornerRadius="12">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#638BFF" Offset="0"/>
-                                    <GradientStop Color="#315FE5" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Grid>
-                                <Path Data="M 21,8 L 31,12 L 30,22 C 29,28 25,32 21,34 C 17,32 13,28 12,22 L 11,12 Z"
-                                      Stroke="White" StrokeThickness="1.8" StrokeLineJoin="Round"
-                                      Fill="#1AFFFFFF" Stretch="Uniform" Margin="10"/>
-                                <Path Data="M 16,21 L 20,25 L 27,17" Stroke="White" StrokeThickness="1.8"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                      StrokeLineJoin="Round" Fill="Transparent" Margin="10"/>
-                            </Grid>
-                        </Border>
-                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="AlertingSystem" FontSize="17" FontWeight="Bold"/>
-                            <TextBlock Text="INCIDENT OPERATIONS" FontSize="9" FontWeight="SemiBold"
-                                       Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0"/>
-                        </StackPanel>
-                    </StackPanel>
+                            <TextBlock Text="Password"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       Margin="0,0,0,7"/>
+                            <PasswordBox x:Name="LoginPasswordBox"
+                                         AutomationProperties.Name="Password"
+                                         KeyDown="LoginPasswordBox_KeyDown"
+                                         Margin="0,0,0,20"/>
 
-                    <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,24,0,24">
-                        <Border Background="#15233A" BorderBrush="#2A4264" BorderThickness="1"
-                                CornerRadius="20" Padding="10,6" HorizontalAlignment="Left"
-                                Margin="0,0,0,22">
-                            <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="7" Height="7" Fill="{StaticResource AccentBrush}"
-                                         VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBlock Text="MONITOR. RESPOND. RESOLVE."
-                                           FontSize="9" FontWeight="Bold" Foreground="#C9D7EC"/>
-                            </StackPanel>
-                        </Border>
-
-                        <TextBlock Text="Clarity when&#10;every second counts."
-                                   FontSize="30" FontWeight="Bold" LineHeight="38"
-                                   TextWrapping="Wrap"/>
-                        <TextBlock Text="A focused workspace for endpoint health, incident response, and reliable alert history."
-                                   FontSize="13" LineHeight="21" Foreground="{StaticResource MutedBrush}"
-                                   Margin="0,16,0,0"/>
-
-                        <Border Height="1" Background="#26364D" Margin="0,26,0,22"/>
-
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-                            <Border Width="30" Height="30" Background="#12332F" CornerRadius="9">
-                                <TextBlock Text="✓" Foreground="{StaticResource AccentBrush}"
-                                           FontSize="16" FontWeight="Bold" HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="One clear incident view" FontSize="12" FontWeight="SemiBold"/>
-                                <TextBlock Text="Track work from open to done" FontSize="11"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0"/>
-                            </StackPanel>
+                            <Button x:Name="LoginButton"
+                                    Content="Sign in"
+                                    Click="LoginButton_Click"
+                                    Height="46"
+                                    HorizontalAlignment="Stretch"/>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="30" Height="30" Background="#172A49" CornerRadius="9">
-                                <TextBlock Text="↗" Foreground="#8EAEFF" FontSize="16" FontWeight="Bold"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="Endpoint visibility" FontSize="12" FontWeight="SemiBold"/>
-                                <TextBlock Text="Manual and scheduled health checks" FontSize="11"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </StackPanel>
+                        <StackPanel x:Name="RegisterFormPanel" Visibility="Collapsed">
+                            <TextBlock Text="Display name"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       Margin="0,0,0,6"/>
+                            <TextBox x:Name="RegisterDisplayNameTextBox"
+                                     AutomationProperties.Name="Display name"
+                                     MaxLength="100"
+                                     Margin="0,0,0,11"
+                                     PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
 
-                    <StackPanel Grid.Row="2">
-                        <Border Height="1" Background="#26364D" Margin="0,0,0,15"/>
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="6" Height="6" Fill="{StaticResource AccentBrush}"
-                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="PRIVATE WORKSPACE" FontSize="9" FontWeight="Bold"
-                                       Foreground="{StaticResource MutedBrush}"/>
-                            <TextBlock Text="  •  " FontSize="10" Foreground="#52637B"/>
-                            <TextBlock Text="SECURE ACCESS" FontSize="9" FontWeight="Bold"
-                                       Foreground="{StaticResource MutedBrush}"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Grid>
-            </Border>
+                            <TextBlock Text="Username"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       Margin="0,0,0,6"/>
+                            <TextBox x:Name="RegisterUsernameTextBox"
+                                     AutomationProperties.Name="New username"
+                                     MaxLength="32"
+                                     Margin="0,0,0,11"
+                                     PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
 
-            <!-- Authentication panel -->
-            <Border Grid.Column="1"
-                    Background="{StaticResource CardBrush}"
-                    BorderBrush="#26364D"
-                    BorderThickness="1"
-                    CornerRadius="18"
-                    Padding="30"
-                    Margin="16,0,0,0">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Grid.Row="0" Margin="0,0,0,18">
-                        <TextBlock Text="YOUR WORKSPACE" FontSize="10" FontWeight="Bold"
-                                   Foreground="#8EAEFF" Margin="0,0,0,11"/>
-                        <TextBlock x:Name="HeadingText" Text="Welcome back"
-                                   FontSize="27" FontWeight="Bold" TextWrapping="Wrap"/>
-                        <TextBlock x:Name="SubheadingText"
-                                   Text="Sign in to continue to your incident workspace."
-                                   FontSize="12" Foreground="{StaticResource MutedBrush}"
-                                   Margin="0,8,0,0" LineHeight="18"/>
-                    </StackPanel>
-
-                    <ScrollViewer Grid.Row="1"
-                                  VerticalScrollBarVisibility="Auto"
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  CanContentScroll="False">
-                        <Grid>
-                            <StackPanel x:Name="LoginFormPanel">
-                                <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,7"/>
-                                <TextBox x:Name="LoginUsernameTextBox"
-                                         AutomationProperties.Name="Username"
-                                         MaxLength="32" Margin="0,0,0,17"/>
-                                <TextBlock Text="PASSWORD" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,7"/>
-                                <PasswordBox x:Name="LoginPasswordBox"
-                                             AutomationProperties.Name="Password"
-                                             KeyDown="LoginPasswordBox_KeyDown" Margin="0,0,0,22"/>
-                                <Button x:Name="LoginButton" Content="Sign in  →"
-                                        Click="LoginButton_Click" Height="46"
-                                        HorizontalAlignment="Stretch"/>
-                            </StackPanel>
-
-                            <StackPanel x:Name="RegisterFormPanel" Visibility="Collapsed">
-                                <TextBlock Text="DISPLAY NAME" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
-                                <TextBox x:Name="RegisterDisplayNameTextBox"
-                                         AutomationProperties.Name="Display name"
-                                         MaxLength="100" Margin="0,0,0,11"
+                            <TextBlock Text="Password (8+ characters)"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       Margin="0,0,0,6"/>
+                            <PasswordBox x:Name="RegisterPasswordBox"
+                                         AutomationProperties.Name="New password"
+                                         Margin="0,0,0,11"
                                          PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
-                                <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
-                                <TextBox x:Name="RegisterUsernameTextBox"
-                                         AutomationProperties.Name="New username"
-                                         MaxLength="32" Margin="0,0,0,11"
-                                         PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
-                                <TextBlock Text="PASSWORD · 8+ CHARACTERS" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
-                                <PasswordBox x:Name="RegisterPasswordBox"
-                                             AutomationProperties.Name="New password" Margin="0,0,0,11"
-                                             PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
-                                <TextBlock Text="CONFIRM PASSWORD" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
-                                <PasswordBox x:Name="ConfirmPasswordBox"
-                                             AutomationProperties.Name="Confirm password" Margin="0,0,0,15"
-                                             PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
-                                <Button x:Name="RegisterButton" Content="Create account  →"
-                                        Click="RegisterButton_Click" Height="46"
-                                        HorizontalAlignment="Stretch"/>
-                            </StackPanel>
-                        </Grid>
-                    </ScrollViewer>
 
-                    <StackPanel Grid.Row="2" Margin="0,14,0,0">
-                        <Border Height="1" Background="#26364D" Margin="0,0,0,12"/>
-                        <TextBlock x:Name="FeedbackText" Text=""
-                                   FontSize="11" Foreground="#FF879B"
-                                   TextWrapping="Wrap" Margin="0,0,0,3"/>
-                        <Button x:Name="ModeSwitchButton"
-                                Content="New here? Create an account"
-                                Click="ModeSwitchButton_Click"
-                                Background="Transparent" BorderBrush="Transparent"
-                                Foreground="#9BB6FF" HorizontalAlignment="Center"
-                                Padding="8,7" MinHeight="34" FontWeight="SemiBold"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </Grid>
+                            <TextBlock Text="Confirm password"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       Margin="0,0,0,6"/>
+                            <PasswordBox x:Name="ConfirmPasswordBox"
+                                         AutomationProperties.Name="Confirm password"
+                                         Margin="0,0,0,15"
+                                         PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
+
+                            <Button x:Name="RegisterButton"
+                                    Content="Create account"
+                                    Click="RegisterButton_Click"
+                                    Height="46"
+                                    HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+
+                <StackPanel Grid.Row="2" Margin="0,14,0,0">
+                    <TextBlock x:Name="FeedbackText"
+                               Text=""
+                               FontSize="11"
+                               Foreground="#FF879B"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,4"/>
+                    <Button x:Name="ModeSwitchButton"
+                            Content="New here? Create an account"
+                            Click="ModeSwitchButton_Click"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            Foreground="#9BB6FF"
+                            HorizontalAlignment="Center"
+                            Padding="8,7"
+                            MinHeight="34"
+                            FontWeight="SemiBold"/>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
