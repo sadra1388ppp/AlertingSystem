@@ -9,7 +9,6 @@
         ResizeMode="CanResize"
         Background="#0A0D19"
         WindowStyle="None"
-        ResizeMode="CanResize"
         FontFamily="Segoe UI"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
