@@ -1730,7 +1730,7 @@ public partial class MainWindow : Window
         HistoryList.Items.Clear();
         foreach (var entry in _checkHistory.Take(10))
         {
-            HistoryList.Items.Add(entry.DisplayText);
+            HistoryList.Items.Add(entry);
         }
 
         HistoryEntriesList.ItemsSource = _checkHistory
