@@ -63,19 +63,19 @@ public partial class MainWindow : Window
 
     private static readonly Dictionary<string, (string Dark, string Light)> ThemeRoleColors = new()
     {
-        ["AppBackgroundBrush"] = ("#0B0F14", "#F3F6FB"),
-        ["SidebarBrush"] = ("#101720", "#EAF0F8"),
-        ["CardBrush"] = ("#151F29", "#FFFFFF"),
-        ["BorderBrush"] = ("#2A3845", "#D9E2EF"),
-        ["TextBrush"] = ("#F2F6F8", "#172337"),
-        ["MutedBrush"] = ("#A4B2BD", "#68758C"),
-        ["SuccessBrush"] = ("#35C795", "#15825D"),
-        ["CriticalBrush"] = ("#C084FC", "#7C3AED"),
-        ["WarningBrush"] = ("#F0C56A", "#9A6700"),
-        ["DangerBrush"] = ("#F27474", "#C52F4B"),
-        ["NeutralBrush"] = ("#72A7FF", "#2F65D5"),
-        ["SecondaryButtonBrush"] = ("#202B36", "#E8EDF6"),
-        ["SelectedFilterBrush"] = ("#169C98", "#0D7F83")
+        ["AppBackgroundBrush"] = ("#0A0D19", "#F4F5FB"),
+        ["SidebarBrush"] = ("#111426", "#ECEEF8"),
+        ["CardBrush"] = ("#15192B", "#FFFFFF"),
+        ["BorderBrush"] = ("#30354F", "#DDE1EF"),
+        ["TextBrush"] = ("#F3F3FF", "#20243A"),
+        ["MutedBrush"] = ("#A5AAC5", "#6B7189"),
+        ["SuccessBrush"] = ("#41D6A0", "#16835D"),
+        ["CriticalBrush"] = ("#BE93FF", "#7C3AED"),
+        ["WarningBrush"] = ("#F3C66F", "#9D6A00"),
+        ["DangerBrush"] = ("#FF7D91", "#C43151"),
+        ["NeutralBrush"] = ("#9AA7FF", "#4C58C9"),
+        ["SecondaryButtonBrush"] = ("#20243A", "#E8EAF5"),
+        ["SelectedFilterBrush"] = ("#776AF5", "#6457DB")
     };
 
     private static readonly string[] ThemeLiteralColors =
@@ -106,52 +106,57 @@ public partial class MainWindow : Window
     };
 
     private static readonly Dictionary<string, string> DarkLiteralColorOverrides = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["#0A1020"] = "#0B0F14",
-        ["#0B1120"] = "#101720",
-        ["#0B1425"] = "#111B25",
-        ["#101A2B"] = "#151F29",
-        ["#101B2F"] = "#18232E",
-        ["#14233A"] = "#1B2934",
-        ["#162743"] = "#20313B",
-        ["#18253B"] = "#202B36",
-        ["#1A2942"] = "#222F3B",
-        ["#20385F"] = "#174A49",
-        ["#294568"] = "#246461",
-        ["#3B82F6"] = "#169C98",
-        ["#477DFA"] = "#169C98",
-        ["#5C8CFF"] = "#35B6AE",
-        ["#91A2BB"] = "#A4B2BD",
-        ["#D8E4F5"] = "#DDE6ED",
-        ["#EAF2FF"] = "#DDF5F1",
-        ["#EEF3FA"] = "#F2F6F8"
+    { 
+        ["#0A1020"] = "#0A0D19",
+        ["#0B1120"] = "#111426",
+        ["#0B1425"] = "#0D1223",
+        ["#101A2B"] = "#15192B",
+        ["#101B2F"] = "#191D33",
+        ["#14233A"] = "#20243D",
+        ["#162743"] = "#242947",
+        ["#18253B"] = "#20243A",
+        ["#1A2942"] = "#252944",
+        ["#20385F"] = "#332E67",
+        ["#294568"] = "#51499B",
+        ["#302713"] = "#342A4B",
+        ["#3B82F6"] = "#8D83FF",
+        ["#477DFA"] = "#776AF5",
+        ["#5C8CFF"] = "#A69FFF",
+        ["#64748B"] = "#77809B",
+        ["#71829C"] = "#8D95B1",
+        ["#75602A"] = "#54442B",
+        ["#91A2BB"] = "#A5AAC5",
+        ["#D8E4F5"] = "#E4E5F7",
+        ["#EAF2FF"] = "#ECEBFF",
+        ["#EEF3FA"] = "#F3F3FF",
+        ["#FDE68A"] = "#FFE7A3"
     };
 
     private static readonly Dictionary<string, string> LightLiteralColorOverrides = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["#0A1020"] = "#F4F7FB",
-        ["#477DFA"] = "#0D7F83",
-        ["#5C8CFF"] = "#0D7F83",
-        ["#91A2BB"] = "#68758C",
-        ["#18253B"] = "#E7ECF5",
-        ["#EEF3FA"] = "#182338",
-        ["#1A2942"] = "#E8EDF6",
-        ["#D8E4F5"] = "#2D3B53",
-        ["#14233A"] = "#E5F4F2",
-        ["#3B82F6"] = "#0D7F83",
-        ["#0B1425"] = "#F7F9FC",
-        ["#71829C"] = "#748198",
-        ["#20385F"] = "#DDF3F1",
-        ["#EAF2FF"] = "#244A9B",
-        ["#64748B"] = "#69778D",
-        ["#75602A"] = "#D6C17D",
-        ["#302713"] = "#FFF5D8",
-        ["#FDE68A"] = "#845A00",
-        ["#162743"] = "#E9F1FF",
-        ["#294568"] = "#B8DCD9",
+        ["#0A1020"] = "#F4F5FB",
+        ["#0B1120"] = "#20243A",
+        ["#0B1425"] = "#F8F9FD",
+        ["#101A2B"] = "#FFFFFF",
         ["#101B2F"] = "#FFFFFF",
-        ["#0B1120"] = "#182338",
-        ["#101A2B"] = "#FFFFFF"
+        ["#14233A"] = "#E9E9FC",
+        ["#162743"] = "#E4E5FA",
+        ["#18253B"] = "#E8EAF5",
+        ["#1A2942"] = "#E6E8F5",
+        ["#20385F"] = "#DDDAFF",
+        ["#294568"] = "#C9C4FF",
+        ["#302713"] = "#FFF5D8",
+        ["#3B82F6"] = "#695BE6",
+        ["#477DFA"] = "#6457DB",
+        ["#5C8CFF"] = "#6457DB",
+        ["#64748B"] = "#69748A",
+        ["#71829C"] = "#748198",
+        ["#75602A"] = "#D6C17D",
+        ["#91A2BB"] = "#6B7189",
+        ["#D8E4F5"] = "#2D334D",
+        ["#EAF2FF"] = "#34366A",
+        ["#EEF3FA"] = "#20243A",
+        ["#FDE68A"] = "#845A00"
     };
 
     public MainWindow(AccountUser currentUser)
