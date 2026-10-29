@@ -1726,6 +1726,48 @@ public partial class MainWindow : Window
     private static string NormalizeSearchToken(string value) =>
         new(value.Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
 
+    private void HistoryList_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not ListBox historyList)
+        {
+            return;
+        }
+
+        // Apply the themed template after WPF creates the ListBox's internal ScrollViewer and ScrollBars.
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.Loaded,
+            new Action(() =>
+            {
+                if (!historyList.IsLoaded)
+                {
+                    return;
+                }
+
+                ApplyHistoryScrollbarStyle(historyList);
+            }));
+    }
+
+    private void ApplyHistoryScrollbarStyle(DependencyObject parent)
+    {
+        if (parent is FrameworkElement element)
+        {
+            element.ApplyTemplate();
+        }
+
+        var childCount = VisualTreeHelper.GetChildrenCount(parent);
+        for (var index = 0; index < childCount; index++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, index);
+            if (child is System.Windows.Controls.Primitives.ScrollBar scrollBar)
+            {
+                scrollBar.Style = (Style)FindResource("ThemedEndpointHistoryScrollBarStyle");
+                scrollBar.ApplyTemplate();
+                continue;
+            }
+
+            ApplyHistoryScrollbarStyle(child);
+        }
+    }
     private void RefreshCheckHistoryUI()
     {
         HistoryList.Items.Clear();
