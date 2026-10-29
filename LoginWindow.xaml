@@ -6,19 +6,19 @@
         MinWidth="420" MinHeight="540"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
-        Background="#0A101B"
+        Background="#0B0F14"
         FontFamily="Segoe UI"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
         TextOptions.TextFormattingMode="Display">
 
     <Window.Resources>
-        <SolidColorBrush x:Key="CardBrush" Color="#111B2B"/>
-        <SolidColorBrush x:Key="FieldBrush" Color="#0B1422"/>
-        <SolidColorBrush x:Key="LineBrush" Color="#2A3950"/>
-        <SolidColorBrush x:Key="PrimaryBrush" Color="#4D7CFE"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#F4F7FC"/>
-        <SolidColorBrush x:Key="MutedBrush" Color="#A3B0C4"/>
+        <SolidColorBrush x:Key="CardBrush" Color="#151F29"/>
+        <SolidColorBrush x:Key="FieldBrush" Color="#101820"/>
+        <SolidColorBrush x:Key="LineBrush" Color="#2A3845"/>
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#169C98"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#F2F6F8"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#A4B2BD"/>
 
         <Style TargetType="{x:Type TextBlock}">
             <Setter Property="TextWrapping" Value="Wrap"/>
@@ -33,7 +33,7 @@
             <Setter Property="MinHeight" Value="44"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="CaretBrush" Value="White"/>
-            <Setter Property="SelectionBrush" Value="#315FE5"/>
+            <Setter Property="SelectionBrush" Value="#147F82"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -52,7 +52,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="InputBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-                                <Setter TargetName="InputBorder" Property="Background" Value="#101D31"/>
+                                <Setter TargetName="InputBorder" Property="Background" Value="#14252B"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="InputBorder" Property="Opacity" Value="0.5"/>
@@ -88,7 +88,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="PasswordBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-                                <Setter TargetName="PasswordBorder" Property="Background" Value="#101D31"/>
+                                <Setter TargetName="PasswordBorder" Property="Background" Value="#14252B"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="PasswordBorder" Property="Opacity" Value="0.5"/>
@@ -131,7 +131,7 @@
                                 <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.74"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#B7C9FF"/>
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#A6F0E8"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.42"/>
@@ -159,23 +159,11 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Margin="0,0,0,22">
+                <StackPanel Grid.Row="0" Margin="0,0,0,24">
                     <TextBlock Text="Welcome"
                                FontSize="30"
                                FontWeight="Bold"
-                               Foreground="{StaticResource TextBrush}"
-                               Margin="0,0,0,8"/>
-                    <TextBlock x:Name="HeadingText"
-                               Text="Welcome back"
-                               FontSize="17"
-                               FontWeight="SemiBold"
                                Foreground="{StaticResource TextBrush}"/>
-                    <TextBlock x:Name="SubheadingText"
-                               Text="Sign in to continue to your workspace."
-                               FontSize="12"
-                               LineHeight="18"
-                               Foreground="{StaticResource MutedBrush}"
-                               Margin="0,7,0,0"/>
                 </StackPanel>
 
                 <ScrollViewer Grid.Row="1"
@@ -276,7 +264,7 @@
                             Click="ModeSwitchButton_Click"
                             Background="Transparent"
                             BorderBrush="Transparent"
-                            Foreground="#9BB6FF"
+                            Foreground="#7BD8D1"
                             HorizontalAlignment="Center"
                             Padding="8,7"
                             MinHeight="34"
