@@ -160,7 +160,7 @@ public partial class LoginWindow : Window
     }
 
 
-    private void UsernameTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    private void TextInputDirection_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (sender is TextBox textBox)
         {
