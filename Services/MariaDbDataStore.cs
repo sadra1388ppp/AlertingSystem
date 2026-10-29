@@ -69,17 +69,52 @@ public sealed class MariaDbDataStore
 
     private void EnsureIncidentReasonColumn(AlertingDbContext db)
     {
-        if (_useSimplifiedIncidentTable)
+        var tableName = _useSimplifiedIncidentTable ? "incident_records" : "Incidents";
+        db.Database.ExecuteSqlRaw(
+            $"ALTER TABLE `{tableName}` ADD COLUMN IF NOT EXISTS Reason TEXT NULL");
+
+        // Avoid rewriting every incident row on every app startup. The backfill
+        // and NOT NULL alteration are needed only when the column is nullable.
+        var connection = db.Database.GetDbConnection();
+        var closeConnectionWhenDone = connection.State != ConnectionState.Open;
+        if (closeConnectionWhenDone)
         {
-            db.Database.ExecuteSqlRaw("ALTER TABLE incident_records ADD COLUMN IF NOT EXISTS Reason TEXT NULL");
-            db.Database.ExecuteSqlRaw("UPDATE incident_records SET Reason = '' WHERE Reason IS NULL");
-            db.Database.ExecuteSqlRaw("ALTER TABLE incident_records MODIFY COLUMN Reason TEXT NOT NULL");
+            db.Database.OpenConnection();
         }
-        else
+
+        try
         {
-            db.Database.ExecuteSqlRaw("ALTER TABLE Incidents ADD COLUMN IF NOT EXISTS Reason TEXT NULL");
-            db.Database.ExecuteSqlRaw("UPDATE Incidents SET Reason = '' WHERE Reason IS NULL");
-            db.Database.ExecuteSqlRaw("ALTER TABLE Incidents MODIFY COLUMN Reason TEXT NOT NULL");
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT IS_NULLABLE
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = @tableName
+                  AND COLUMN_NAME = 'Reason'
+                LIMIT 1
+                """;
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@tableName";
+            parameter.Value = tableName;
+            command.Parameters.Add(parameter);
+
+            var isNullable = Convert.ToString(command.ExecuteScalar());
+            if (!string.Equals(isNullable, "YES", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            db.Database.ExecuteSqlRaw(
+                $"UPDATE `{tableName}` SET Reason = '' WHERE Reason IS NULL");
+            db.Database.ExecuteSqlRaw(
+                $"ALTER TABLE `{tableName}` MODIFY COLUMN Reason TEXT NOT NULL");
+        }
+        finally
+        {
+            if (closeConnectionWhenDone)
+            {
+                db.Database.CloseConnection();
+            }
         }
     }
 
@@ -143,11 +178,19 @@ public sealed class MariaDbDataStore
         return true;
     }
 
-    public HashSet<long> LoadCheckHistoryIds()
+    public HashSet<long> LoadCheckHistoryIds(IEnumerable<long> idsToCheck)
     {
+        ArgumentNullException.ThrowIfNull(idsToCheck);
+        var ids = idsToCheck.Where(id => id > 0).Distinct().ToArray();
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
         using var db = CreateContext();
         return db.CheckHistory
             .AsNoTracking()
+            .Where(entry => ids.Contains(entry.Id))
             .Select(entry => entry.Id)
             .ToHashSet();
     }
