@@ -94,7 +94,8 @@ public partial class MainWindow : Window
         ["DangerBrush"] = ("#FF6E82", "#BF394D"),
         ["NeutralBrush"] = ("#55CDD6", "#127F90"),
         ["SecondaryButtonBrush"] = ("#16333F", "#E4F1F4"),
-        ["SelectedFilterBrush"] = ("#0EBAC8", "#0C9EA9")
+        ["SelectedFilterBrush"] = ("#0EBAC8", "#0C9EA9"),
+        ["HistorySelectionBrush"] = ("#104451", "#C5F0F2")
     };
 
     private static readonly string[] ThemeLiteralColors =
