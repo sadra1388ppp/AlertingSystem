@@ -197,8 +197,7 @@
                         <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="AlertingSystem" FontSize="17" FontWeight="Bold"/>
                             <TextBlock Text="INCIDENT OPERATIONS" FontSize="9" FontWeight="SemiBold"
-                                       Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0"
-                                       CharacterSpacing="90"/>
+                                       Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0"/>
                         </StackPanel>
                     </StackPanel>
 
@@ -210,8 +209,7 @@
                                 <Ellipse Width="7" Height="7" Fill="{StaticResource AccentBrush}"
                                          VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <TextBlock Text="MONITOR. RESPOND. RESOLVE."
-                                           FontSize="9" FontWeight="Bold" Foreground="#C9D7EC"
-                                           CharacterSpacing="45"/>
+                                           FontSize="9" FontWeight="Bold" Foreground="#C9D7EC"/>
                             </StackPanel>
                         </Border>
 
@@ -256,10 +254,10 @@
                             <Ellipse Width="6" Height="6" Fill="{StaticResource AccentBrush}"
                                      VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBlock Text="PRIVATE WORKSPACE" FontSize="9" FontWeight="Bold"
-                                       Foreground="{StaticResource MutedBrush}" CharacterSpacing="65"/>
+                                       Foreground="{StaticResource MutedBrush}"/>
                             <TextBlock Text="  •  " FontSize="10" Foreground="#52637B"/>
                             <TextBlock Text="SECURE ACCESS" FontSize="9" FontWeight="Bold"
-                                       Foreground="{StaticResource MutedBrush}" CharacterSpacing="65"/>
+                                       Foreground="{StaticResource MutedBrush}"/>
                         </StackPanel>
                     </StackPanel>
                 </Grid>
@@ -282,7 +280,7 @@
 
                     <StackPanel Grid.Row="0" Margin="0,0,0,18">
                         <TextBlock Text="YOUR WORKSPACE" FontSize="10" FontWeight="Bold"
-                                   Foreground="#8EAEFF" CharacterSpacing="85" Margin="0,0,0,11"/>
+                                   Foreground="#8EAEFF" Margin="0,0,0,11"/>
                         <TextBlock x:Name="HeadingText" Text="Welcome back"
                                    FontSize="27" FontWeight="Bold" TextWrapping="Wrap"/>
                         <TextBlock x:Name="SubheadingText"
@@ -298,14 +296,12 @@
                         <Grid>
                             <StackPanel x:Name="LoginFormPanel">
                                 <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,7"
-                                           CharacterSpacing="55"/>
+                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,7"/>
                                 <TextBox x:Name="LoginUsernameTextBox"
                                          AutomationProperties.Name="Username"
                                          MaxLength="32" Margin="0,0,0,17"/>
                                 <TextBlock Text="PASSWORD" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,7"
-                                           CharacterSpacing="55"/>
+                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,7"/>
                                 <PasswordBox x:Name="LoginPasswordBox"
                                              AutomationProperties.Name="Password"
                                              KeyDown="LoginPasswordBox_KeyDown" Margin="0,0,0,22"/>
@@ -316,28 +312,24 @@
 
                             <StackPanel x:Name="RegisterFormPanel" Visibility="Collapsed">
                                 <TextBlock Text="DISPLAY NAME" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"
-                                           CharacterSpacing="55"/>
+                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
                                 <TextBox x:Name="RegisterDisplayNameTextBox"
                                          AutomationProperties.Name="Display name"
                                          MaxLength="100" Margin="0,0,0,11"
                                          PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
                                 <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"
-                                           CharacterSpacing="55"/>
+                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
                                 <TextBox x:Name="RegisterUsernameTextBox"
                                          AutomationProperties.Name="New username"
                                          MaxLength="32" Margin="0,0,0,11"
                                          PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
                                 <TextBlock Text="PASSWORD · 8+ CHARACTERS" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"
-                                           CharacterSpacing="35"/>
+                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
                                 <PasswordBox x:Name="RegisterPasswordBox"
                                              AutomationProperties.Name="New password" Margin="0,0,0,11"
                                              PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
                                 <TextBlock Text="CONFIRM PASSWORD" FontSize="10" FontWeight="Bold"
-                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"
-                                           CharacterSpacing="55"/>
+                                           Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/>
                                 <PasswordBox x:Name="ConfirmPasswordBox"
                                              AutomationProperties.Name="Confirm password" Margin="0,0,0,15"
                                              PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
