@@ -1,18 +1,124 @@
 <Window x:Class="AlertingSystem.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="AlertingSystem | Secure access"
         Width="900" Height="680"
         MinWidth="420" MinHeight="540"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
         Background="#0A0D19"
+        WindowStyle="None"
+        ResizeMode="CanResize"
         FontFamily="Segoe UI"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
         TextOptions.TextFormattingMode="Display">
 
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="42"
+                            ResizeBorderThickness="6"
+                            GlassFrameThickness="0"
+                            CornerRadius="0"
+                            UseAeroCaptionButtons="False"/>
+    </shell:WindowChrome.WindowChrome>
+
     <Window.Resources>
+
+        <!-- Subtle circuit/signal traces: a visual reference to endpoint monitoring and alert flow. -->
+        <DrawingBrush x:Key="SignalPatternBrush"
+                      TileMode="Tile"
+                      Viewport="0,0,180,100"
+                      ViewportUnits="Absolute"
+                      Viewbox="0,0,180,100"
+                      ViewboxUnits="Absolute"
+                      Stretch="None">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Geometry="M 0,24 L 30,24 L 42,36 L 76,36 L 88,24 L 125,24">
+                        <GeometryDrawing.Pen><Pen Brush="#35517F" Thickness="1.1"/></GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                    <GeometryDrawing Geometry="M 180,68 L 148,68 L 136,56 L 102,56 L 90,68 L 54,68">
+                        <GeometryDrawing.Pen><Pen Brush="#35517F" Thickness="1.1"/></GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                    <GeometryDrawing Geometry="M 34,0 L 34,12 L 46,24">
+                        <GeometryDrawing.Pen><Pen Brush="#2A4169" Thickness="1"/></GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                    <GeometryDrawing Geometry="M 118,24 L 118,12 L 130,12">
+                        <GeometryDrawing.Pen><Pen Brush="#2A4169" Thickness="1"/></GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                    <GeometryDrawing Geometry="M 76,36 L 76,48 L 64,60">
+                        <GeometryDrawing.Pen><Pen Brush="#2A4169" Thickness="1"/></GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                    <GeometryDrawing Geometry="M 148,68 L 148,82 L 136,94">
+                        <GeometryDrawing.Pen><Pen Brush="#2A4169" Thickness="1"/></GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="#776AF5">
+                        <GeometryDrawing.Geometry><EllipseGeometry Center="42,36" RadiusX="2.2" RadiusY="2.2"/></GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="#776AF5">
+                        <GeometryDrawing.Geometry><EllipseGeometry Center="136,56" RadiusX="2.2" RadiusY="2.2"/></GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+
+        <Style x:Key="TitleBarButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Width" Value="44"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="ChromeButton"
+                                Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ChromeButton" Property="Background" Value="#2A3150"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ChromeButton" Property="Opacity" Value="0.72"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CloseTitleBarButtonStyle"
+               TargetType="{x:Type Button}"
+               BasedOn="{StaticResource TitleBarButtonStyle}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="ChromeButton"
+                                Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ChromeButton" Property="Background" Value="#D9485F"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ChromeButton" Property="Opacity" Value="0.72"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <SolidColorBrush x:Key="CardBrush" Color="#15192B"/>
         <SolidColorBrush x:Key="FieldBrush" Color="#0D1223"/>
         <SolidColorBrush x:Key="LineBrush" Color="#30354F"/>
@@ -169,7 +275,65 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="20">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="42"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Height="42"
+                Background="#101426"
+                BorderBrush="#30354F"
+                BorderThickness="0,0,0,1"
+                ClipToBounds="True">
+            <Grid>
+                <Border Background="{StaticResource SignalPatternBrush}" Opacity="0.65" IsHitTestVisible="False"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0"
+                                Orientation="Horizontal"
+                                Margin="18,0,0,0"
+                                VerticalAlignment="Center"
+                                IsHitTestVisible="False">
+                        <Border Width="23" Height="23" CornerRadius="7"
+                                Background="#776AF5" Margin="0,0,10,0">
+                            <TextBlock Text="A" Foreground="White" FontSize="15"
+                                       FontWeight="Bold" HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="ALERTINGSYSTEM" Foreground="#F3F3FF"
+                                   FontSize="11" FontWeight="Bold"
+                                   VerticalAlignment="Center" />
+                        <Border Width="1" Height="16" Background="#404765" Margin="13,0"/>
+                        <Ellipse Width="6" Height="6" Fill="#41D6A0" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                        <TextBlock Text="SECURE MONITORING" Foreground="#A5AAC5"
+                                   FontSize="9" FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                        <Button Style="{StaticResource TitleBarButtonStyle}"
+                                shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                                Content="—" ToolTip="Minimize"
+                                Click="MinimizeWindowButton_Click"/>
+                        <Button Style="{StaticResource TitleBarButtonStyle}"
+                                shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                                Content="□" ToolTip="Maximize / restore"
+                                Click="MaximizeWindowButton_Click"/>
+                        <Button Style="{StaticResource CloseTitleBarButtonStyle}"
+                                shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                                Content="×" ToolTip="Close"
+                                Click="CloseWindowButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="20" Background="#0A0D19">
+            <Border Background="{StaticResource SignalPatternBrush}" Opacity="0.35" IsHitTestVisible="False"/>
         <Border MaxWidth="440"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Center"
@@ -300,5 +464,6 @@
                 </StackPanel>
             </Grid>
         </Border>
+        </Grid>
     </Grid>
 </Window>
