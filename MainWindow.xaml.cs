@@ -40,8 +40,10 @@ public partial class MainWindow : Window
     private string _lastScheduledScanSummary = string.Empty;
     private readonly DispatcherTimer _databaseSyncTimer = new()
     {
-        Interval = TimeSpan.FromSeconds(3)
+        // Poll less often; the full database read now runs away from the UI thread.
+        Interval = TimeSpan.FromSeconds(10)
     };
+    private bool _databaseSyncRunning;
     private readonly DispatcherTimer _securityAlertToastTimer = new()
     {
         Interval = TimeSpan.FromSeconds(8)
@@ -61,19 +63,19 @@ public partial class MainWindow : Window
 
     private static readonly Dictionary<string, (string Dark, string Light)> ThemeRoleColors = new()
     {
-        ["AppBackgroundBrush"] = ("#080F1D", "#F3F6FB"),
-        ["SidebarBrush"] = ("#0B1424", "#EAF0F8"),
-        ["CardBrush"] = ("#111D30", "#FFFFFF"),
-        ["BorderBrush"] = ("#25354D", "#D9E2EF"),
-        ["TextBrush"] = ("#F3F6FC", "#172337"),
-        ["MutedBrush"] = ("#9AAAC2", "#68758C"),
-        ["SuccessBrush"] = ("#34D399", "#15825D"),
+        ["AppBackgroundBrush"] = ("#0B0F14", "#F3F6FB"),
+        ["SidebarBrush"] = ("#101720", "#EAF0F8"),
+        ["CardBrush"] = ("#151F29", "#FFFFFF"),
+        ["BorderBrush"] = ("#2A3845", "#D9E2EF"),
+        ["TextBrush"] = ("#F2F6F8", "#172337"),
+        ["MutedBrush"] = ("#A4B2BD", "#68758C"),
+        ["SuccessBrush"] = ("#35C795", "#15825D"),
         ["CriticalBrush"] = ("#C084FC", "#7C3AED"),
-        ["WarningBrush"] = ("#F6C65B", "#9A6700"),
-        ["DangerBrush"] = ("#FB7185", "#C52F4B"),
-        ["NeutralBrush"] = ("#60A5FA", "#2F65D5"),
-        ["SecondaryButtonBrush"] = ("#18263C", "#E8EDF6"),
-        ["SelectedFilterBrush"] = ("#315FE5", "#2F63E0")
+        ["WarningBrush"] = ("#F0C56A", "#9A6700"),
+        ["DangerBrush"] = ("#F27474", "#C52F4B"),
+        ["NeutralBrush"] = ("#72A7FF", "#2F65D5"),
+        ["SecondaryButtonBrush"] = ("#202B36", "#E8EDF6"),
+        ["SelectedFilterBrush"] = ("#169C98", "#0D7F83")
     };
 
     private static readonly string[] ThemeLiteralColors =
@@ -105,47 +107,48 @@ public partial class MainWindow : Window
 
     private static readonly Dictionary<string, string> DarkLiteralColorOverrides = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["#0A1020"] = "#080F1D",
-        ["#0B1120"] = "#0B1424",
-        ["#0B1425"] = "#0D1729",
-        ["#101A2B"] = "#111D30",
-        ["#101B2F"] = "#142037",
-        ["#14233A"] = "#172742",
-        ["#162743"] = "#1A2D4B",
-        ["#18253B"] = "#1A2940",
-        ["#1A2942"] = "#1C2D47",
-        ["#20385F"] = "#294A78",
-        ["#294568"] = "#35557F",
-        ["#3B82F6"] = "#4F83FF",
-        ["#477DFA"] = "#4F83FF",
-        ["#5C8CFF"] = "#79A2FF",
-        ["#91A2BB"] = "#A1B0C8",
-        ["#D8E4F5"] = "#DEE7F6",
-        ["#EEF3FA"] = "#F2F6FC"
+        ["#0A1020"] = "#0B0F14",
+        ["#0B1120"] = "#101720",
+        ["#0B1425"] = "#111B25",
+        ["#101A2B"] = "#151F29",
+        ["#101B2F"] = "#18232E",
+        ["#14233A"] = "#1B2934",
+        ["#162743"] = "#20313B",
+        ["#18253B"] = "#202B36",
+        ["#1A2942"] = "#222F3B",
+        ["#20385F"] = "#174A49",
+        ["#294568"] = "#246461",
+        ["#3B82F6"] = "#169C98",
+        ["#477DFA"] = "#169C98",
+        ["#5C8CFF"] = "#35B6AE",
+        ["#91A2BB"] = "#A4B2BD",
+        ["#D8E4F5"] = "#DDE6ED",
+        ["#EAF2FF"] = "#DDF5F1",
+        ["#EEF3FA"] = "#F2F6F8"
     };
 
     private static readonly Dictionary<string, string> LightLiteralColorOverrides = new(StringComparer.OrdinalIgnoreCase)
     {
         ["#0A1020"] = "#F4F7FB",
-        ["#477DFA"] = "#2F63E0",
-        ["#5C8CFF"] = "#2F63E0",
+        ["#477DFA"] = "#0D7F83",
+        ["#5C8CFF"] = "#0D7F83",
         ["#91A2BB"] = "#68758C",
         ["#18253B"] = "#E7ECF5",
         ["#EEF3FA"] = "#182338",
         ["#1A2942"] = "#E8EDF6",
         ["#D8E4F5"] = "#2D3B53",
-        ["#14233A"] = "#E5EDFC",
-        ["#3B82F6"] = "#2F63E0",
+        ["#14233A"] = "#E5F4F2",
+        ["#3B82F6"] = "#0D7F83",
         ["#0B1425"] = "#F7F9FC",
         ["#71829C"] = "#748198",
-        ["#20385F"] = "#DDE8FF",
+        ["#20385F"] = "#DDF3F1",
         ["#EAF2FF"] = "#244A9B",
         ["#64748B"] = "#69778D",
         ["#75602A"] = "#D6C17D",
         ["#302713"] = "#FFF5D8",
         ["#FDE68A"] = "#845A00",
         ["#162743"] = "#E9F1FF",
-        ["#294568"] = "#C7D7F0",
+        ["#294568"] = "#B8DCD9",
         ["#101B2F"] = "#FFFFFF",
         ["#0B1120"] = "#182338",
         ["#101A2B"] = "#FFFFFF"
@@ -173,12 +176,11 @@ public partial class MainWindow : Window
             DeleteHistoryEntryMenuItem_Click);
 
         var databaseIncidents = _dataStore.LoadIncidents();
-        var databaseHistory = _dataStore.LoadCheckHistory()
-            .OrderByDescending(entry => entry.Timestamp)
-            .Take(200)
-            .ToList();
+        var databaseHistory = _dataStore.LoadCheckHistory();
 
-        _hiddenItems.Reconcile(databaseIncidents, _dataStore.LoadCheckHistoryIds());
+        _hiddenItems.Reconcile(
+            databaseIncidents,
+            _dataStore.LoadCheckHistoryIds(_hiddenItems.GetHiddenHistoryIds()));
 
         var migratedIncidentData = false;
         foreach (var incident in databaseIncidents)
@@ -223,7 +225,7 @@ public partial class MainWindow : Window
         RefreshIncidentUI();
         RefreshCheckHistoryUI();
 
-        _databaseSyncTimer.Tick += (_, _) => SyncFromDatabase();
+        _databaseSyncTimer.Tick += DatabaseSyncTimer_Tick;
         _databaseSyncTimer.Start();
         _securityAlertToastTimer.Tick += (_, _) =>
         {
@@ -395,7 +397,7 @@ public partial class MainWindow : Window
                 ResponseTimeSummaryText.Text = "—";
             }
 
-            RecordCheck(string.IsNullOrWhiteSpace(address) ? "(empty URL)" : address,
+            await RecordCheckAsync(string.IsNullOrWhiteSpace(address) ? "(empty URL)" : address,
                 "Invalid URL", details, null);
             IncrementChecksRun();
             return ("Invalid URL", null);
@@ -425,7 +427,7 @@ public partial class MainWindow : Window
 
             if (response.IsSuccessStatusCode)
             {
-                var resolvedIncident = MarkMatchingIncidentDone(uri,
+                var resolvedIncident = await MarkMatchingIncidentDoneAsync(uri,
                     $"Endpoint returned HTTP {statusCode}.");
                 var details = resolvedIncident is null
                     ? $"Successful response ({response.ReasonPhrase})."
@@ -442,14 +444,14 @@ public partial class MainWindow : Window
                     ResponseTimeSummaryText.Text = $"{elapsed} ms";
                 }
 
-                RecordCheck(uri.AbsoluteUri, $"HTTP {statusCode}", details, elapsed);
+                await RecordCheckAsync(uri.AbsoluteUri, $"HTTP {statusCode}", details, elapsed);
                 return ("Healthy", elapsed);
             }
 
             var severity = GetHttpFailureSeverity(statusCode);
             var title = GetHttpFailureTitle(statusCode);
             var responseDetails = $"Endpoint returned HTTP {statusCode} ({response.ReasonPhrase}).";
-            var incident = UpsertIncident(uri, title, severity, responseDetails);
+            var incident = await UpsertIncidentAsync(uri, title, severity, responseDetails);
             var historyDetails = $"{responseDetails} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
 
             if (updateManualUi)
@@ -461,14 +463,14 @@ public partial class MainWindow : Window
                 ResponseTimeSummaryText.Text = $"{elapsed} ms";
             }
 
-            RecordCheck(uri.AbsoluteUri, $"HTTP {statusCode}", historyDetails, elapsed);
+            await RecordCheckAsync(uri.AbsoluteUri, $"HTTP {statusCode}", historyDetails, elapsed);
             return ($"HTTP {statusCode}", elapsed);
         }
         catch (OperationCanceledException)
         {
             stopwatch.Stop();
             const string details = "The endpoint did not respond within the 10-second timeout.";
-            var incident = UpsertIncident(uri, "Endpoint timed out", IncidentSeverity.High, details);
+            var incident = await UpsertIncidentAsync(uri, "Endpoint timed out", IncidentSeverity.High, details);
             var historyDetails = $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
 
             if (updateManualUi)
@@ -480,14 +482,14 @@ public partial class MainWindow : Window
                 LastResultSummaryText.Text = "Timed out";
             }
 
-            RecordCheck(uri.AbsoluteUri, "Timed out", historyDetails, null);
+            await RecordCheckAsync(uri.AbsoluteUri, "Timed out", historyDetails, null);
             return ("Timed out", null);
         }
         catch (HttpRequestException exception)
         {
             stopwatch.Stop();
             var details = $"Could not connect to the endpoint. {exception.Message}";
-            var incident = UpsertIncident(uri, "Endpoint unreachable", IncidentSeverity.High, details);
+            var incident = await UpsertIncidentAsync(uri, "Endpoint unreachable", IncidentSeverity.High, details);
             var historyDetails = $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
 
             if (updateManualUi)
@@ -499,14 +501,14 @@ public partial class MainWindow : Window
                 LastResultSummaryText.Text = "Unreachable";
             }
 
-            RecordCheck(uri.AbsoluteUri, "Unreachable", historyDetails, null);
+            await RecordCheckAsync(uri.AbsoluteUri, "Unreachable", historyDetails, null);
             return ("Unreachable", null);
         }
         catch (Exception exception)
         {
             stopwatch.Stop();
             var details = $"The check could not be completed. {exception.Message}";
-            var incident = UpsertIncident(uri, "Endpoint check failed", IncidentSeverity.High, details);
+            var incident = await UpsertIncidentAsync(uri, "Endpoint check failed", IncidentSeverity.High, details);
             var historyDetails = $"{details} Incident {incident.IncidentNumber} ({incident.SeverityDisplay}).";
 
             if (updateManualUi)
@@ -518,7 +520,7 @@ public partial class MainWindow : Window
                 ResponseTimeSummaryText.Text = "—";
             }
 
-            RecordCheck(uri.AbsoluteUri, "Check failed", historyDetails, null);
+            await RecordCheckAsync(uri.AbsoluteUri, "Check failed", historyDetails, null);
             return ("Check failed", null);
         }
         finally
@@ -1009,7 +1011,11 @@ public partial class MainWindow : Window
         : statusCode >= 400 ? $"Unexpected HTTP response (HTTP {statusCode})"
         : $"Unexpected HTTP status ({statusCode})";
 
-    private Incident UpsertIncident(Uri uri, string title, IncidentSeverity severity, string details)
+    private async Task<Incident> UpsertIncidentAsync(
+        Uri uri,
+        string title,
+        IncidentSeverity severity,
+        string details)
     {
         var endpointKey = NormalizeEndpoint(uri);
         var incident = _incidents.FirstOrDefault(item =>
@@ -1054,12 +1060,13 @@ public partial class MainWindow : Window
             }
         }
 
-        PersistIncident(incident, allowInsert: created);
+        // The MariaDB write no longer blocks the dispatcher during endpoint checks.
+        await PersistIncidentAsync(incident, allowInsert: created);
         RefreshIncidentUI();
         return incident;
     }
 
-    private string? MarkMatchingIncidentDone(Uri uri, string recoveryDetails)
+    private async Task<string?> MarkMatchingIncidentDoneAsync(Uri uri, string recoveryDetails)
     {
         var endpointKey = NormalizeEndpoint(uri);
         var incident = _incidents.FirstOrDefault(item =>
@@ -1075,7 +1082,7 @@ public partial class MainWindow : Window
         incident.Status = IncidentStatus.Done;
         incident.ResolvedAt = DateTime.Now;
         incident.ResolutionNote = $"Automatically marked Done at {DateTime.Now:yyyy-MM-dd HH:mm:ss}. {recoveryDetails}";
-        PersistIncident(incident);
+        await PersistIncidentAsync(incident);
         RefreshIncidentUI();
         return incident.IncidentNumber;
     }
@@ -1089,7 +1096,11 @@ public partial class MainWindow : Window
             : endpoint.Trim();
     }
 
-    private void RecordCheck(string endpoint, string result, string details, long? responseTimeMs)
+    private async Task RecordCheckAsync(
+        string endpoint,
+        string result,
+        string details,
+        long? responseTimeMs)
     {
         var entry = new CheckHistoryEntry
         {
@@ -1106,8 +1117,21 @@ public partial class MainWindow : Window
             _checkHistory.RemoveRange(200, _checkHistory.Count - 200);
         }
 
-        PersistCheckHistory(entry);
+        await PersistCheckHistoryAsync(entry);
         RefreshCheckHistoryUI();
+    }
+
+    private async Task PersistCheckHistoryAsync(CheckHistoryEntry entry)
+    {
+        try
+        {
+            await Task.Run(() => _dataStore.SaveCheckHistoryEntry(entry));
+        }
+        catch (Exception exception) when (
+            exception is DbException or DbUpdateException or IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            ShowStorageWarning(exception);
+        }
     }
 
     private void IncrementChecksRun()
@@ -1143,6 +1167,20 @@ public partial class MainWindow : Window
         }
     }
 
+    private async Task<bool> PersistIncidentAsync(Incident incident, bool allowInsert = false)
+    {
+        try
+        {
+            return await Task.Run(() => _dataStore.SaveIncident(incident, allowInsert));
+        }
+        catch (Exception exception) when (
+            exception is DbException or DbUpdateException or IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            ShowStorageWarning(exception);
+            return false;
+        }
+    }
+
     private void ShowStorageWarning(Exception exception)
     {
         if (_storageWarningShown)
@@ -1156,11 +1194,56 @@ public partial class MainWindow : Window
             "MariaDB storage warning", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
-    private void SyncFromDatabase()
+    private async void DatabaseSyncTimer_Tick(object? sender, EventArgs e)
     {
+        await SyncFromDatabaseAsync();
+    }
+
+    private async Task SyncFromDatabaseAsync()
+    {
+        if (_sessionEnding || _databaseSyncRunning)
+        {
+            return;
+        }
+
+        _databaseSyncRunning = true;
         try
         {
-            if (!_sessionEnding && !_accountStore.IsActiveAccount(_currentUser.Id))
+            // Only hidden history IDs need reconciliation. Snapshot this tiny set
+            // on the UI thread before querying MariaDB in the background.
+            var hiddenHistoryIds = _hiddenItems.GetHiddenHistoryIds();
+
+            var snapshot = await Task.Run(() =>
+            {
+                var accountIsActive = _accountStore.IsActiveAccount(_currentUser.Id);
+                if (!accountIsActive)
+                {
+                    return (
+                        AccountIsActive: false,
+                        Incidents: new List<Incident>(),
+                        History: new List<CheckHistoryEntry>(),
+                        ExistingHiddenHistoryIds: new HashSet<long>());
+                }
+
+                var incidents = _dataStore.LoadIncidents();
+                var history = _dataStore.LoadCheckHistory();
+                var existingHiddenHistoryIds = _dataStore.LoadCheckHistoryIds(hiddenHistoryIds);
+
+                return (
+                    AccountIsActive: true,
+                    Incidents: incidents,
+                    History: history,
+                    ExistingHiddenHistoryIds: existingHiddenHistoryIds);
+            });
+
+            // If the user signed out while the query was in progress, do not
+            // mutate or notify a closing window.
+            if (_sessionEnding)
+            {
+                return;
+            }
+
+            if (!snapshot.AccountIsActive)
             {
                 _sessionEnding = true;
                 _securityAuditLogger.RecordSessionRevoked(
@@ -1178,13 +1261,9 @@ public partial class MainWindow : Window
                 return;
             }
 
-            var databaseIncidents = _dataStore.LoadIncidents();
-            var databaseHistory = _dataStore.LoadCheckHistory()
-                .OrderByDescending(entry => entry.Timestamp)
-                .Take(200)
-                .ToList();
-
-            _hiddenItems.Reconcile(databaseIncidents, _dataStore.LoadCheckHistoryIds());
+            var databaseIncidents = snapshot.Incidents;
+            var databaseHistory = snapshot.History;
+            _hiddenItems.Reconcile(databaseIncidents, snapshot.ExistingHiddenHistoryIds);
 
             var visibleIncidents = databaseIncidents
                 .Where(incident => !_hiddenItems.IsIncidentHidden(incident.IncidentNumber))
@@ -1258,6 +1337,10 @@ public partial class MainWindow : Window
         catch (Exception exception)
         {
             ShowStorageWarning(exception);
+        }
+        finally
+        {
+            _databaseSyncRunning = false;
         }
     }
 
