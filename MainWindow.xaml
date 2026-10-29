@@ -35,27 +35,27 @@
             <DrawingBrush.Drawing>
                 <DrawingGroup>
                     <GeometryDrawing Geometry="M 0,24 L 30,24 L 42,36 L 76,36 L 88,24 L 125,24">
-                        <GeometryDrawing.Pen><Pen Brush="#35517F" Thickness="1.1"/></GeometryDrawing.Pen>
+                        <GeometryDrawing.Pen><Pen Brush="#1B5663" Thickness="1.1"/></GeometryDrawing.Pen>
                     </GeometryDrawing>
                     <GeometryDrawing Geometry="M 180,68 L 148,68 L 136,56 L 102,56 L 90,68 L 54,68">
-                        <GeometryDrawing.Pen><Pen Brush="#35517F" Thickness="1.1"/></GeometryDrawing.Pen>
+                        <GeometryDrawing.Pen><Pen Brush="#1B5663" Thickness="1.1"/></GeometryDrawing.Pen>
                     </GeometryDrawing>
                     <GeometryDrawing Geometry="M 34,0 L 34,12 L 46,24">
-                        <GeometryDrawing.Pen><Pen Brush="#2A4169" Thickness="1"/></GeometryDrawing.Pen>
+                        <GeometryDrawing.Pen><Pen Brush="#204450" Thickness="1"/></GeometryDrawing.Pen>
                     </GeometryDrawing>
                     <GeometryDrawing Geometry="M 118,24 L 118,12 L 130,12">
-                        <GeometryDrawing.Pen><Pen Brush="#2A4169" Thickness="1"/></GeometryDrawing.Pen>
+                        <GeometryDrawing.Pen><Pen Brush="#204450" Thickness="1"/></GeometryDrawing.Pen>
                     </GeometryDrawing>
                     <GeometryDrawing Geometry="M 76,36 L 76,48 L 64,60">
-                        <GeometryDrawing.Pen><Pen Brush="#2A4169" Thickness="1"/></GeometryDrawing.Pen>
+                        <GeometryDrawing.Pen><Pen Brush="#204450" Thickness="1"/></GeometryDrawing.Pen>
                     </GeometryDrawing>
                     <GeometryDrawing Geometry="M 148,68 L 148,82 L 136,94">
-                        <GeometryDrawing.Pen><Pen Brush="#2A4169" Thickness="1"/></GeometryDrawing.Pen>
+                        <GeometryDrawing.Pen><Pen Brush="#204450" Thickness="1"/></GeometryDrawing.Pen>
                     </GeometryDrawing>
-                    <GeometryDrawing Brush="#776AF5">
+                    <GeometryDrawing Brush="#0EBAC8">
                         <GeometryDrawing.Geometry><EllipseGeometry Center="42,36" RadiusX="2.2" RadiusY="2.2"/></GeometryDrawing.Geometry>
                     </GeometryDrawing>
-                    <GeometryDrawing Brush="#776AF5">
+                    <GeometryDrawing Brush="#0EBAC8">
                         <GeometryDrawing.Geometry><EllipseGeometry Center="136,56" RadiusX="2.2" RadiusY="2.2"/></GeometryDrawing.Geometry>
                     </GeometryDrawing>
                 </DrawingGroup>
@@ -84,7 +84,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ChromeButton" Property="Background" Value="#2A3150"/>
+                                <Setter TargetName="ChromeButton" Property="Background" Value="#193A45"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="ChromeButton" Property="Opacity" Value="0.72"/>
@@ -118,42 +118,42 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0A0D19"/>
-        <SolidColorBrush x:Key="SidebarBrush" Color="#111426"/>
-        <SolidColorBrush x:Key="CardBrush" Color="#15192B"/>
-        <SolidColorBrush x:Key="BorderBrush" Color="#30354F"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#F3F3FF"/>
-        <SolidColorBrush x:Key="MutedBrush" Color="#A5AAC5"/>
-        <SolidColorBrush x:Key="SuccessBrush" Color="#41D6A0"/>
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#07151D"/>
+        <SolidColorBrush x:Key="SidebarBrush" Color="#0B1C25"/>
+        <SolidColorBrush x:Key="CardBrush" Color="#102630"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#26434D"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#E8F6F8"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#91ADB6"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#47D7AA"/>
         <SolidColorBrush x:Key="WarningBrush" Color="#F3C66F"/>
-        <SolidColorBrush x:Key="DangerBrush" Color="#FF7D91"/>
-        <SolidColorBrush x:Key="NeutralBrush" Color="#9AA7FF"/>
-        <SolidColorBrush x:Key="SecondaryButtonBrush" Color="#20243A"/>
-        <SolidColorBrush x:Key="SelectedFilterBrush" Color="#776AF5"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#FF6E82"/>
+        <SolidColorBrush x:Key="NeutralBrush" Color="#55CDD6"/>
+        <SolidColorBrush x:Key="SecondaryButtonBrush" Color="#16333F"/>
+        <SolidColorBrush x:Key="SelectedFilterBrush" Color="#0EBAC8"/>
 
         
-        <SolidColorBrush x:Key="Hex0A1020Brush" Color="#0A0D19"/>
-        <SolidColorBrush x:Key="Hex0B1120Brush" Color="#111426"/>
-        <SolidColorBrush x:Key="Hex0B1425Brush" Color="#0D1223"/>
-        <SolidColorBrush x:Key="Hex101A2BBrush" Color="#15192B"/>
+        <SolidColorBrush x:Key="Hex0A1020Brush" Color="#07151D"/>
+        <SolidColorBrush x:Key="Hex0B1120Brush" Color="#0B1C25"/>
+        <SolidColorBrush x:Key="Hex0B1425Brush" Color="#0A1B24"/>
+        <SolidColorBrush x:Key="Hex101A2BBrush" Color="#102630"/>
         <SolidColorBrush x:Key="Hex101B2FBrush" Color="#191D33"/>
         <SolidColorBrush x:Key="Hex14233ABrush" Color="#20243D"/>
         <SolidColorBrush x:Key="Hex162743Brush" Color="#242947"/>
-        <SolidColorBrush x:Key="Hex18253BBrush" Color="#20243A"/>
+        <SolidColorBrush x:Key="Hex18253BBrush" Color="#16333F"/>
         <SolidColorBrush x:Key="Hex1A2942Brush" Color="#252944"/>
         <SolidColorBrush x:Key="Hex20385FBrush" Color="#332E67"/>
         <SolidColorBrush x:Key="Hex294568Brush" Color="#51499B"/>
         <SolidColorBrush x:Key="Hex302713Brush" Color="#342A4B"/>
         <SolidColorBrush x:Key="Hex3B82F6Brush" Color="#8D83FF"/>
-        <SolidColorBrush x:Key="Hex477DFABrush" Color="#776AF5"/>
+        <SolidColorBrush x:Key="Hex477DFABrush" Color="#0EBAC8"/>
         <SolidColorBrush x:Key="Hex5C8CFFBrush" Color="#A69FFF"/>
         <SolidColorBrush x:Key="Hex64748BBrush" Color="#77809B"/>
         <SolidColorBrush x:Key="Hex71829CBrush" Color="#8D95B1"/>
         <SolidColorBrush x:Key="Hex75602ABrush" Color="#54442B"/>
-        <SolidColorBrush x:Key="Hex91A2BBBrush" Color="#A5AAC5"/>
+        <SolidColorBrush x:Key="Hex91A2BBBrush" Color="#91ADB6"/>
         <SolidColorBrush x:Key="HexD8E4F5Brush" Color="#E4E5F7"/>
         <SolidColorBrush x:Key="HexEAF2FFBrush" Color="#ECEBFF"/>
-        <SolidColorBrush x:Key="HexEEF3FABrush" Color="#F3F3FF"/>
+        <SolidColorBrush x:Key="HexEEF3FABrush" Color="#E8F6F8"/>
         <SolidColorBrush x:Key="HexFDE68ABrush" Color="#FFE7A3"/>
 
         <Style TargetType="Button">
@@ -518,7 +518,7 @@
                         <TextBlock Text="ALERTINGSYSTEM" Foreground="{DynamicResource TextBrush}"
                                    FontSize="11" FontWeight="Bold"
                                    VerticalAlignment="Center" />
-                        <Border Width="1" Height="16" Background="#404765" Margin="13,0"/>
+                        <Border Width="1" Height="16" Background="#31505D" Margin="13,0"/>
                         <Ellipse Width="6" Height="6" Fill="{DynamicResource SuccessBrush}" VerticalAlignment="Center" Margin="0,0,7,0"/>
                         <TextBlock Text="SECURE MONITORING" Foreground="{DynamicResource MutedBrush}"
                                    FontSize="9" FontWeight="SemiBold"
