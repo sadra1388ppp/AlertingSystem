@@ -11,6 +11,7 @@ public partial class LoginWindow : Window
     private readonly SecurityAuditLogger _securityAuditLogger = new();
     private readonly bool _registrationOnly;
     private bool _isRegisterMode;
+    private bool _loginInProgress;
 
     public AccountUser? AuthenticatedUser { get; private set; }
 
@@ -58,43 +59,61 @@ public partial class LoginWindow : Window
         SetMode(!_isRegisterMode);
     }
 
-    private void LoginButton_Click(object sender, RoutedEventArgs e)
+    private async void LoginButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_registrationOnly)
+        if (_registrationOnly || _loginInProgress)
         {
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(LoginUsernameTextBox.Text) ||
-            string.IsNullOrEmpty(LoginPasswordBox.Password))
-        {
-            _securityAuditLogger.RecordFailedLogin(
-                LoginUsernameTextBox.Text,
-                "Incomplete credentials",
-                "The sign-in form was submitted with a missing username or password. Credential validation was not attempted.",
-                IncidentSeverity.Low);
-            FeedbackText.Text = "Enter both your username and password.";
-            LoginPasswordBox.Clear();
-            return;
-        }
+        _loginInProgress = true;
+        LoginButton.Content = "Signing in…";
+        LoginButton.Background = (System.Windows.Media.Brush)FindResource("PrimaryHoverBrush");
+        LoginButton.BorderBrush = (System.Windows.Media.Brush)FindResource("PrimaryHoverBrush");
+        FeedbackText.Text = string.Empty;
 
         try
         {
-            if (_accountStore.TryAuthenticate(
-                    LoginUsernameTextBox.Text,
-                    LoginPasswordBox.Password,
-                    out var user) &&
-                user is not null)
+            // Yield so the click animation and busy label can paint before work begins.
+            await Task.Yield();
+
+            if (string.IsNullOrWhiteSpace(LoginUsernameTextBox.Text) ||
+                string.IsNullOrEmpty(LoginPasswordBox.Password))
             {
-                _securityAuditLogger.RecordSuccessfulLogin(user);
-                AuthenticatedUser = user;
+                _securityAuditLogger.RecordFailedLogin(
+                    LoginUsernameTextBox.Text,
+                    "Incomplete credentials",
+                    "The sign-in form was submitted with a missing username or password. Credential validation was not attempted.",
+                    IncidentSeverity.Low);
+                FeedbackText.Text = "Enter both your username and password.";
+                LoginPasswordBox.Clear();
+
+                // Keep the click feedback visible briefly even for an empty submission.
+                await Task.Delay(160);
+                return;
+            }
+
+            var username = LoginUsernameTextBox.Text;
+            var password = LoginPasswordBox.Password;
+
+            var authentication = await Task.Run(() =>
+            {
+                var isAuthenticated = _accountStore.TryAuthenticate(
+                    username, password, out var authenticatedUser);
+                return (IsAuthenticated: isAuthenticated, User: authenticatedUser);
+            });
+
+            if (authentication.IsAuthenticated && authentication.User is not null)
+            {
+                _securityAuditLogger.RecordSuccessfulLogin(authentication.User);
+                AuthenticatedUser = authentication.User;
                 DialogResult = true;
                 Close();
                 return;
             }
 
             _securityAuditLogger.RecordFailedLogin(
-                LoginUsernameTextBox.Text,
+                username,
                 "Invalid credentials",
                 "The submitted username/password pair did not match a registered account. For privacy, the application does not disclose which field was incorrect.");
             FeedbackText.Text = "Username or password is incorrect.";
@@ -108,6 +127,16 @@ public partial class LoginWindow : Window
                 $"Authentication could not complete because the account store raised {exception.GetType().Name}: {exception.Message}. No password was recorded.",
                 IncidentSeverity.High);
             FeedbackText.Text = $"Account storage is unavailable: {exception.Message}";
+        }
+        finally
+        {
+            _loginInProgress = false;
+            if (IsLoaded && AuthenticatedUser is null)
+            {
+                LoginButton.Content = "Sign in";
+                LoginButton.ClearValue(Control.BackgroundProperty);
+                LoginButton.ClearValue(Control.BorderBrushProperty);
+            }
         }
     }
 
@@ -176,12 +205,32 @@ public partial class LoginWindow : Window
         RegisterButton_Click(sender, e);
     }
 
+    private void LoginUsernameTextBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        SubmitLoginOnEnter(e);
+    }
+
     private void LoginPasswordBox_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter)
+        SubmitLoginOnEnter(e);
+    }
+
+    private void SubmitLoginOnEnter(KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
         {
-            LoginButton_Click(sender, e);
-            e.Handled = true;
+            return;
         }
+
+        e.Handled = true;
+        if (_loginInProgress)
+        {
+            return;
+        }
+
+        // Raise the real button click so the press animation runs for Enter too.
+        LoginButton.RaiseEvent(new RoutedEventArgs(
+            System.Windows.Controls.Primitives.ButtonBase.ClickEvent,
+            LoginButton));
     }
 }
