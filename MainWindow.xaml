@@ -863,56 +863,106 @@
                             <Border Grid.Row="1" Background="{DynamicResource Hex0B1425Brush}"
                                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                                     CornerRadius="12" Padding="10" Margin="0,16,0,0">
-                                <ListBox x:Name="HistoryList"
-                                         Background="Transparent" BorderThickness="0"
-                                         Foreground="{DynamicResource TextBrush}"
-                                         FontSize="11" Padding="0"
-                                         ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                    <ListBox.ItemContainerStyle>
-                                        <Style TargetType="{x:Type ListBoxItem}">
-                                            <Setter Property="Padding" Value="12,11"/>
-                                            <Setter Property="Margin" Value="0,0,0,8"/>
-                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                            <Setter Property="Background" Value="{DynamicResource Hex0B1425Brush}"/>
-                                            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-                                            <Setter Property="BorderThickness" Value="1"/>
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
-                                                        <Border x:Name="HistoryItemSurface"
-                                                                Background="{TemplateBinding Background}"
-                                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                                CornerRadius="9"
-                                                                Padding="{TemplateBinding Padding}">
-                                                            <ContentPresenter VerticalAlignment="Center"
-                                                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
-                                                        </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="HistoryItemSurface" Property="BorderBrush"
-                                                                        Value="{DynamicResource NeutralBrush}"/>
-                                                            </Trigger>
-                                                            <Trigger Property="IsSelected" Value="True">
-                                                                <Setter TargetName="HistoryItemSurface" Property="Background"
-                                                                        Value="{DynamicResource Hex162743Brush}"/>
-                                                                <Setter TargetName="HistoryItemSurface" Property="BorderBrush"
-                                                                        Value="{DynamicResource NeutralBrush}"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </ListBox.ItemContainerStyle>
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding}" FontSize="11"
-                                                       Foreground="{DynamicResource TextBrush}"
-                                                       TextWrapping="Wrap"/>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Grid Grid.Row="0" Margin="12,0,30,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="68"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="56"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="TIME" FontSize="9"
+                                                   FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
+                                        <TextBlock Grid.Column="1" Text="ENDPOINT" FontSize="9"
+                                                   FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
+                                        <TextBlock Grid.Column="2" Text="RESULT" FontSize="9"
+                                                   FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"/>
+                                        <TextBlock Grid.Column="3" Text="LATENCY" FontSize="9"
+                                                   FontWeight="Bold" Foreground="{DynamicResource MutedBrush}"
+                                                   TextAlignment="Right"/>
+                                    </Grid>
+
+                                    <ListBox x:Name="HistoryList" Grid.Row="1"
+                                             Background="Transparent" BorderThickness="0"
+                                             Foreground="{DynamicResource TextBrush}"
+                                             FontSize="11" Padding="0"
+                                             ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="{x:Type ListBoxItem}">
+                                                <Setter Property="Padding" Value="12,11"/>
+                                                <Setter Property="Margin" Value="0,0,0,8"/>
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                                <Setter Property="Background" Value="{DynamicResource Hex0B1425Brush}"/>
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                                                <Setter Property="BorderThickness" Value="1"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                                            <Border x:Name="HistoryItemSurface"
+                                                                    Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                                    CornerRadius="9"
+                                                                    Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter VerticalAlignment="Center"
+                                                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="HistoryItemSurface" Property="BorderBrush"
+                                                                            Value="{DynamicResource NeutralBrush}"/>
+                                                                </Trigger>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <Setter TargetName="HistoryItemSurface" Property="Background"
+                                                                            Value="{DynamicResource Hex162743Brush}"/>
+                                                                    <Setter TargetName="HistoryItemSurface" Property="BorderBrush"
+                                                                            Value="{DynamicResource NeutralBrush}"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="68"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="100"/>
+                                                        <ColumnDefinition Width="56"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding Timestamp, StringFormat={}{0:HH:mm:ss}}"
+                                                               FontSize="10" Foreground="{DynamicResource MutedBrush}"
+                                                               VerticalAlignment="Center" TextWrapping="NoWrap"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Endpoint}"
+                                                               FontSize="11" Foreground="{DynamicResource TextBrush}"
+                                                               VerticalAlignment="Center" TextWrapping="NoWrap"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               ToolTip="{Binding Endpoint}" Margin="0,0,10,0"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Result}"
+                                                               FontSize="10" FontWeight="SemiBold"
+                                                               Foreground="{Binding ResultBrush}"
+                                                               VerticalAlignment="Center" TextWrapping="NoWrap"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               ToolTip="{Binding Result}" Margin="0,0,8,0"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding ResponseTimeDisplay}"
+                                                               FontSize="10" Foreground="{DynamicResource NeutralBrush}"
+                                                               VerticalAlignment="Center" TextAlignment="Right"
+                                                               TextWrapping="NoWrap"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Grid>
                             </Border>
                         </Grid>
                     </Grid>
