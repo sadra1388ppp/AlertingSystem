@@ -6,19 +6,20 @@
         MinWidth="420" MinHeight="540"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
-        Background="#0B0F14"
+        Background="#0A0D19"
         FontFamily="Segoe UI"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
         TextOptions.TextFormattingMode="Display">
 
     <Window.Resources>
-        <SolidColorBrush x:Key="CardBrush" Color="#151F29"/>
-        <SolidColorBrush x:Key="FieldBrush" Color="#101820"/>
-        <SolidColorBrush x:Key="LineBrush" Color="#2A3845"/>
-        <SolidColorBrush x:Key="PrimaryBrush" Color="#169C98"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#F2F6F8"/>
-        <SolidColorBrush x:Key="MutedBrush" Color="#A4B2BD"/>
+        <SolidColorBrush x:Key="CardBrush" Color="#15192B"/>
+        <SolidColorBrush x:Key="FieldBrush" Color="#0D1223"/>
+        <SolidColorBrush x:Key="LineBrush" Color="#30354F"/>
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#776AF5"/>
+        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#9186FF"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#F3F3FF"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#A5AAC5"/>
 
         <Style TargetType="{x:Type TextBlock}">
             <Setter Property="TextWrapping" Value="Wrap"/>
@@ -33,7 +34,7 @@
             <Setter Property="MinHeight" Value="44"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="CaretBrush" Value="White"/>
-            <Setter Property="SelectionBrush" Value="#147F82"/>
+            <Setter Property="SelectionBrush" Value="#5E51D9"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -52,7 +53,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="InputBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-                                <Setter TargetName="InputBorder" Property="Background" Value="#14252B"/>
+                                <Setter TargetName="InputBorder" Property="Background" Value="#171D36"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="InputBorder" Property="Opacity" Value="0.5"/>
@@ -88,7 +89,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="PasswordBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-                                <Setter TargetName="PasswordBorder" Property="Background" Value="#14252B"/>
+                                <Setter TargetName="PasswordBorder" Property="Background" Value="#171D36"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="PasswordBorder" Property="Opacity" Value="0.5"/>
@@ -125,13 +126,14 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.88"/>
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{StaticResource PrimaryHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.74"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#A6F0E8"/>
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#C4BEFF"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.42"/>
@@ -140,6 +142,30 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+        <Style x:Key="LoginSubmitButtonStyle"
+               TargetType="{x:Type Button}"
+               BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <EventTrigger RoutedEvent="ButtonBase.Click">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation
+                                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                To="0.96" Duration="0:0:0.08" AutoReverse="True"/>
+                            <DoubleAnimation
+                                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                To="0.96" Duration="0:0:0.08" AutoReverse="True"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
@@ -160,8 +186,8 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Margin="0,0,0,24">
-                    <TextBlock Text="Welcome"
-                               FontSize="30"
+                    <TextBlock Text="Welcome to the AlertingSystem"
+                               FontSize="23"
                                FontWeight="Bold"
                                Foreground="{StaticResource TextBrush}"/>
                 </StackPanel>
@@ -181,6 +207,7 @@
                                      AutomationProperties.Name="Username"
                                      MaxLength="32"
                                      HorizontalAlignment="Stretch"
+                                     KeyDown="LoginUsernameTextBox_KeyDown"
                                      Margin="0,0,0,16"/>
 
                             <TextBlock Text="Password"
@@ -194,6 +221,7 @@
                                          Margin="0,0,0,20"/>
 
                             <Button x:Name="LoginButton"
+                                    Style="{StaticResource LoginSubmitButtonStyle}"
                                     Content="Sign in"
                                     Click="LoginButton_Click"
                                     Height="46"
@@ -264,7 +292,7 @@
                             Click="ModeSwitchButton_Click"
                             Background="Transparent"
                             BorderBrush="Transparent"
-                            Foreground="#7BD8D1"
+                            Foreground="#AAA2FF"
                             HorizontalAlignment="Center"
                             Padding="8,7"
                             MinHeight="34"
