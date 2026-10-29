@@ -134,8 +134,8 @@ public partial class LoginWindow : Window
             if (IsLoaded && AuthenticatedUser is null)
             {
                 LoginButton.Content = "Sign in";
-                LoginButton.ClearValue(Control.BackgroundProperty);
-                LoginButton.ClearValue(Control.BorderBrushProperty);
+                LoginButton.ClearValue(System.Windows.Controls.Control.BackgroundProperty);
+                LoginButton.ClearValue(System.Windows.Controls.Control.BorderBrushProperty);
             }
         }
     }
