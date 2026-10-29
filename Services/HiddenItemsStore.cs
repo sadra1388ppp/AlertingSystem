@@ -24,6 +24,9 @@ public sealed class HiddenItemsStore
 
     public bool IsHistoryEntryHidden(long id) => id > 0 && _historyIds.Contains(id);
 
+    // Only hidden history IDs need reconciliation during periodic sync.
+    public long[] GetHiddenHistoryIds() => _historyIds.ToArray();
+
     public void HideIncident(string incidentNumber)
     {
         if (_incidentNumbers.Add(incidentNumber))
