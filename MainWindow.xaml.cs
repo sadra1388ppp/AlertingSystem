@@ -82,19 +82,19 @@ public partial class MainWindow : Window
 
     private static readonly Dictionary<string, (string Dark, string Light)> ThemeRoleColors = new()
     {
-        ["AppBackgroundBrush"] = ("#0A0D19", "#F4F5FB"),
-        ["SidebarBrush"] = ("#111426", "#ECEEF8"),
-        ["CardBrush"] = ("#15192B", "#FFFFFF"),
-        ["BorderBrush"] = ("#30354F", "#DDE1EF"),
-        ["TextBrush"] = ("#F3F3FF", "#20243A"),
-        ["MutedBrush"] = ("#A5AAC5", "#6B7189"),
-        ["SuccessBrush"] = ("#41D6A0", "#16835D"),
-        ["CriticalBrush"] = ("#BE93FF", "#7C3AED"),
-        ["WarningBrush"] = ("#F3C66F", "#9D6A00"),
-        ["DangerBrush"] = ("#FF7D91", "#C43151"),
-        ["NeutralBrush"] = ("#9AA7FF", "#4C58C9"),
-        ["SecondaryButtonBrush"] = ("#20243A", "#E8EAF5"),
-        ["SelectedFilterBrush"] = ("#776AF5", "#6457DB")
+        ["AppBackgroundBrush"] = ("#07151D", "#F3F8FA"),
+        ["SidebarBrush"] = ("#0B1C25", "#E9F2F5"),
+        ["CardBrush"] = ("#102630", "#FFFFFF"),
+        ["BorderBrush"] = ("#26434D", "#D3E2E8"),
+        ["TextBrush"] = ("#E8F6F8", "#172D37"),
+        ["MutedBrush"] = ("#91ADB6", "#617A84"),
+        ["SuccessBrush"] = ("#47D7AA", "#168567"),
+        ["CriticalBrush"] = ("#FF7B85", "#BF3A4A"),
+        ["WarningBrush"] = ("#F0C26D", "#936400"),
+        ["DangerBrush"] = ("#FF6E82", "#BF394D"),
+        ["NeutralBrush"] = ("#55CDD6", "#127F90"),
+        ["SecondaryButtonBrush"] = ("#16333F", "#E4F1F4"),
+        ["SelectedFilterBrush"] = ("#0EBAC8", "#0C9EA9")
     };
 
     private static readonly string[] ThemeLiteralColors =
@@ -125,57 +125,57 @@ public partial class MainWindow : Window
     };
 
     private static readonly Dictionary<string, string> DarkLiteralColorOverrides = new(StringComparer.OrdinalIgnoreCase)
-    { 
-        ["#0A1020"] = "#0A0D19",
-        ["#0B1120"] = "#111426",
-        ["#0B1425"] = "#0D1223",
-        ["#101A2B"] = "#15192B",
-        ["#101B2F"] = "#191D33",
-        ["#14233A"] = "#20243D",
-        ["#162743"] = "#242947",
-        ["#18253B"] = "#20243A",
-        ["#1A2942"] = "#252944",
-        ["#20385F"] = "#332E67",
-        ["#294568"] = "#51499B",
-        ["#302713"] = "#342A4B",
-        ["#3B82F6"] = "#8D83FF",
-        ["#477DFA"] = "#776AF5",
-        ["#5C8CFF"] = "#A69FFF",
-        ["#64748B"] = "#77809B",
-        ["#71829C"] = "#8D95B1",
-        ["#75602A"] = "#54442B",
-        ["#91A2BB"] = "#A5AAC5",
-        ["#D8E4F5"] = "#E4E5F7",
-        ["#EAF2FF"] = "#ECEBFF",
-        ["#EEF3FA"] = "#F3F3FF",
-        ["#FDE68A"] = "#FFE7A3"
+    {
+        ["#0A1020"] = "#07151D",
+        ["#0B1120"] = "#0B1C25",
+        ["#0B1425"] = "#0A1B24",
+        ["#101A2B"] = "#102630",
+        ["#101B2F"] = "#142E39",
+        ["#14233A"] = "#173642",
+        ["#162743"] = "#1B414D",
+        ["#18253B"] = "#16333F",
+        ["#1A2942"] = "#183743",
+        ["#20385F"] = "#104451",
+        ["#294568"] = "#177080",
+        ["#302713"] = "#3A3421",
+        ["#3B82F6"] = "#2AC9D5",
+        ["#477DFA"] = "#0EBAC8",
+        ["#5C8CFF"] = "#46D6DE",
+        ["#64748B"] = "#617C8A",
+        ["#71829C"] = "#7897A3",
+        ["#75602A"] = "#6D5A2D",
+        ["#91A2BB"] = "#91ADB6",
+        ["#D8E4F5"] = "#CFE9EE",
+        ["#EAF2FF"] = "#EAF9FC",
+        ["#EEF3FA"] = "#E8F6F8",
+        ["#FDE68A"] = "#F7DB91"
     };
 
     private static readonly Dictionary<string, string> LightLiteralColorOverrides = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["#0A1020"] = "#F4F5FB",
-        ["#0B1120"] = "#20243A",
-        ["#0B1425"] = "#F8F9FD",
+        ["#0A1020"] = "#F3F8FA",
+        ["#0B1120"] = "#1A3642",
+        ["#0B1425"] = "#F8FBFC",
         ["#101A2B"] = "#FFFFFF",
         ["#101B2F"] = "#FFFFFF",
-        ["#14233A"] = "#E9E9FC",
-        ["#162743"] = "#E4E5FA",
-        ["#18253B"] = "#E8EAF5",
-        ["#1A2942"] = "#E6E8F5",
-        ["#20385F"] = "#DDDAFF",
-        ["#294568"] = "#C9C4FF",
-        ["#302713"] = "#FFF5D8",
-        ["#3B82F6"] = "#695BE6",
-        ["#477DFA"] = "#6457DB",
-        ["#5C8CFF"] = "#6457DB",
-        ["#64748B"] = "#69748A",
-        ["#71829C"] = "#748198",
-        ["#75602A"] = "#D6C17D",
-        ["#91A2BB"] = "#6B7189",
-        ["#D8E4F5"] = "#2D334D",
-        ["#EAF2FF"] = "#34366A",
-        ["#EEF3FA"] = "#20243A",
-        ["#FDE68A"] = "#845A00"
+        ["#14233A"] = "#E5F1F4",
+        ["#162743"] = "#DDEEF2",
+        ["#18253B"] = "#E4F1F4",
+        ["#1A2942"] = "#DCEBF0",
+        ["#20385F"] = "#C5F0F2",
+        ["#294568"] = "#95DDE3",
+        ["#302713"] = "#FFF3D2",
+        ["#3B82F6"] = "#0E8695",
+        ["#477DFA"] = "#0C9EA9",
+        ["#5C8CFF"] = "#0C8C9A",
+        ["#64748B"] = "#6A818B",
+        ["#71829C"] = "#758D97",
+        ["#75602A"] = "#D6C184",
+        ["#91A2BB"] = "#617A84",
+        ["#D8E4F5"] = "#294A56",
+        ["#EAF2FF"] = "#254C58",
+        ["#EEF3FA"] = "#172D37",
+        ["#FDE68A"] = "#805900"
     };
 
     public MainWindow(AccountUser currentUser)
@@ -2018,17 +2018,17 @@ public partial class MainWindow : Window
         }
 
         applicationResources[SystemColors.WindowBrushKey] = new SolidColorBrush(
-            ParseThemeColor(_isLightTheme ? "#FFFFFF" : "#121E33"));
+            ParseThemeColor(_isLightTheme ? "#FFFFFF" : "#07151D"));
         applicationResources[SystemColors.WindowTextBrushKey] = new SolidColorBrush(
-            ParseThemeColor(_isLightTheme ? "#182338" : "#F1F5FC"));
+            ParseThemeColor(_isLightTheme ? "#172D37" : "#E8F6F8"));
         applicationResources[SystemColors.ControlBrushKey] = new SolidColorBrush(
-            ParseThemeColor(_isLightTheme ? "#E8EDF6" : "#1B2A44"));
+            ParseThemeColor(_isLightTheme ? "#E4F1F4" : "#16333F"));
         applicationResources[SystemColors.ControlTextBrushKey] = new SolidColorBrush(
-            ParseThemeColor(_isLightTheme ? "#182338" : "#F1F5FC"));
+            ParseThemeColor(_isLightTheme ? "#172D37" : "#E8F6F8"));
         applicationResources[SystemColors.HighlightBrushKey] = new SolidColorBrush(
-            ParseThemeColor(_isLightTheme ? "#DDE8FF" : "#20385F"));
+            ParseThemeColor(_isLightTheme ? "#C5F0F2" : "#104451"));
         applicationResources[SystemColors.HighlightTextBrushKey] = new SolidColorBrush(
-            ParseThemeColor(_isLightTheme ? "#182338" : "#F1F5FC"));
+            ParseThemeColor(_isLightTheme ? "#172D37" : "#E8F6F8"));
 
 
         StatusIndicator.Fill = (Brush)FindResource(_currentStatusBrushKey);
