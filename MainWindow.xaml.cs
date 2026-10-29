@@ -184,10 +184,13 @@ public partial class MainWindow : Window
         InitializeComponent();
         AccountInitialText.Text = _currentUser.DisplayName[..1].ToUpperInvariant();
         AccountDisplayNameText.Text = _currentUser.DisplayName;
+        ApplyTextDirection(AccountDisplayNameText, _currentUser.DisplayName);
         AccountUsernameText.Text = "@" + _currentUser.Username;
+        ApplyTextDirection(AccountUsernameText, _currentUser.Username);
         AccountIdText.Text = _currentUser.Id.ToString();
         AccountCreatedText.Text = _currentUser.CreatedAt.ToString("yyyy-MM-dd");
         SidebarCurrentUserText.Text = _currentUser.DisplayName;
+        ApplyTextDirection(SidebarCurrentUserText, _currentUser.DisplayName);
         PreviewKeyDown += MainWindow_PreviewKeyDown;
         LoadThemePreference();
         ShowPage(OverviewPage, OverviewNavButton);
@@ -1789,6 +1792,55 @@ public partial class MainWindow : Window
         RefreshAccountDirectory();
         ShowPage(AccountPage, AccountNavButton);
     }
+
+
+    private void AccountDirectoryTextBlock_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is TextBlock textBlock)
+        {
+            // Bound values in the account directory can be Persian or English.
+            ApplyTextDirection(textBlock, textBlock.Text);
+        }
+    }
+
+    private static void ApplyTextDirection(TextBlock textBlock, string? value)
+    {
+        var direction = ResolveTextDirection(value);
+        textBlock.FlowDirection = direction;
+        textBlock.TextAlignment = direction == FlowDirection.RightToLeft
+            ? TextAlignment.Right
+            : TextAlignment.Left;
+    }
+
+    private static FlowDirection ResolveTextDirection(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return FlowDirection.LeftToRight;
+        }
+
+        // Ignore @, digits and punctuation; use the first letter to choose direction.
+        foreach (var character in value)
+        {
+            if (!char.IsLetter(character))
+            {
+                continue;
+            }
+
+            return IsRightToLeftLetter(character)
+                ? FlowDirection.RightToLeft
+                : FlowDirection.LeftToRight;
+        }
+
+        return FlowDirection.LeftToRight;
+    }
+
+    private static bool IsRightToLeftLetter(char character) =>
+        (character >= '\u0600' && character <= '\u06FF') ||
+        (character >= '\u0750' && character <= '\u077F') ||
+        (character >= '\u08A0' && character <= '\u08FF') ||
+        (character >= '\uFB50' && character <= '\uFDFF') ||
+        (character >= '\uFE70' && character <= '\uFEFF');
 
     private void RefreshAccountDirectoryButton_Click(object sender, RoutedEventArgs e)
     {
