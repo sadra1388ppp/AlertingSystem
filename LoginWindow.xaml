@@ -371,6 +371,7 @@
                                      MaxLength="32"
                                      HorizontalAlignment="Stretch"
                                      KeyDown="LoginUsernameTextBox_KeyDown"
+                                     TextChanged="UsernameTextBox_TextChanged"
                                      Margin="0,0,0,16"/>
 
                             <TextBlock Text="Password"
@@ -401,6 +402,7 @@
                                      AutomationProperties.Name="Display name"
                                      MaxLength="100"
                                      Margin="0,0,0,11"
+                                     TextChanged="UsernameTextBox_TextChanged"
                                      PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
 
                             <TextBlock Text="Username"
@@ -412,6 +414,7 @@
                                      AutomationProperties.Name="New username"
                                      MaxLength="32"
                                      Margin="0,0,0,11"
+                                     TextChanged="UsernameTextBox_TextChanged"
                                      PreviewKeyDown="RegisterInput_PreviewKeyDown"/>
 
                             <TextBlock Text="Password (8+ characters)"
