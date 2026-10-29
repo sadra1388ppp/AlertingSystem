@@ -7,6 +7,24 @@ namespace AlertingSystem;
 
 public partial class LoginWindow : Window
 {
+
+    private void MinimizeWindowButton_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void MaximizeWindowButton_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+    }
+
+    private void CloseWindowButton_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
     private readonly AccountStore _accountStore;
     private readonly SecurityAuditLogger _securityAuditLogger = new();
     private readonly bool _registrationOnly;
