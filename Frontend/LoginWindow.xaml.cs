@@ -164,48 +164,9 @@ public partial class LoginWindow : Window
     {
         if (sender is TextBox textBox)
         {
-            ApplyTextDirection(textBox, textBox.Text);
+            TextDirectionHelper.Apply(textBox, textBox.Text);
         }
     }
-
-    private static void ApplyTextDirection(TextBox textBox, string? value)
-    {
-        var direction = ResolveTextDirection(value);
-        textBox.FlowDirection = direction;
-        textBox.TextAlignment = direction == FlowDirection.RightToLeft
-            ? TextAlignment.Right
-            : TextAlignment.Left;
-    }
-
-    private static FlowDirection ResolveTextDirection(string? value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return FlowDirection.LeftToRight;
-        }
-
-        // Ignore prefixes, digits and punctuation; use the first letter to decide direction.
-        foreach (var character in value)
-        {
-            if (!char.IsLetter(character))
-            {
-                continue;
-            }
-
-            return IsRightToLeftLetter(character)
-                ? FlowDirection.RightToLeft
-                : FlowDirection.LeftToRight;
-        }
-
-        return FlowDirection.LeftToRight;
-    }
-
-    private static bool IsRightToLeftLetter(char character) =>
-        (character >= '\u0600' && character <= '\u06FF') ||
-        (character >= '\u0750' && character <= '\u077F') ||
-        (character >= '\u08A0' && character <= '\u08FF') ||
-        (character >= '\uFB50' && character <= '\uFDFF') ||
-        (character >= '\uFE70' && character <= '\uFEFF');
 
     private void RegisterButton_Click(object sender, RoutedEventArgs e)
     {
