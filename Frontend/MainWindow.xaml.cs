@@ -185,13 +185,13 @@ public partial class MainWindow : Window
         InitializeComponent();
         AccountInitialText.Text = _currentUser.DisplayName[..1].ToUpperInvariant();
         AccountDisplayNameText.Text = _currentUser.DisplayName;
-        ApplyTextDirection(AccountDisplayNameText, _currentUser.DisplayName);
+        TextDirectionHelper.Apply(AccountDisplayNameText, _currentUser.DisplayName);
         AccountUsernameText.Text = "@" + _currentUser.Username;
-        ApplyTextDirection(AccountUsernameText, _currentUser.Username);
+        TextDirectionHelper.Apply(AccountUsernameText, _currentUser.Username);
         AccountIdText.Text = _currentUser.Id.ToString();
         AccountCreatedText.Text = _currentUser.CreatedAt.ToString("yyyy-MM-dd");
         SidebarCurrentUserText.Text = _currentUser.DisplayName;
-        ApplyTextDirection(SidebarCurrentUserText, _currentUser.DisplayName);
+        TextDirectionHelper.Apply(SidebarCurrentUserText, _currentUser.DisplayName);
         PreviewKeyDown += MainWindow_PreviewKeyDown;
         LoadThemePreference();
         ShowPage(OverviewPage, OverviewNavButton);
