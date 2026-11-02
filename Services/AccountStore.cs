@@ -214,7 +214,7 @@ public sealed class AccountStore
 
         if (needsUpgrade)
         {
-            var upgradedHash = CreatePasswordHash(password);
+            var upgradedHash = AccountPasswordHasher.Create(password);
             using var upgradeCommand = connection.CreateCommand();
             upgradeCommand.CommandText = """
                 UPDATE Accounts
