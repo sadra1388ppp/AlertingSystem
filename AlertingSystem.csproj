@@ -15,4 +15,12 @@
     <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.3.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Page Remove="Frontend\App.xaml" />
+    <ApplicationDefinition Include="Frontend\App.xaml" />
+    <Compile Update="Frontend\App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>
