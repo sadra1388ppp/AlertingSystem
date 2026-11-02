@@ -6,6 +6,7 @@ namespace AlertingSystem.Services;
 
 public sealed class HiddenItemsStore
 {
+    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private readonly string _path = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "AlertingSystem",
@@ -72,8 +73,7 @@ public sealed class HiddenItemsStore
 
         try
         {
-            var document = JsonSerializer.Deserialize<HiddenItemsDocument>(
-                File.ReadAllText(_path));
+            var document = JsonSerializer.Deserialize<HiddenItemsDocument>(File.ReadAllText(_path), JsonOptions);
 
             if (document is null)
             {
@@ -99,10 +99,7 @@ public sealed class HiddenItemsStore
         };
 
         var temporaryPath = _path + ".tmp";
-        File.WriteAllText(temporaryPath, JsonSerializer.Serialize(document, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        }));
+        File.WriteAllText(temporaryPath, JsonSerializer.Serialize(document, JsonOptions));
         File.Move(temporaryPath, _path, overwrite: true);
     }
 

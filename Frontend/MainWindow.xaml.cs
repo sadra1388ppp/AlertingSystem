@@ -1182,19 +1182,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void PersistCheckHistory(CheckHistoryEntry entry)
-    {
-        try
-        {
-            _dataStore.SaveCheckHistoryEntry(entry);
-        }
-        catch (Exception exception) when (
-            exception is DbException or DbUpdateException or IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
-        {
-            ShowStorageWarning(exception);
-        }
-    }
-
     private async Task<bool> PersistIncidentAsync(Incident incident, bool allowInsert = false)
     {
         try
@@ -1986,7 +1973,7 @@ public partial class MainWindow : Window
 
             MessageBox.Show(
                 this,
-                "Your account has been marked as deleted. Its AppUsers row remains in MariaDB with IsDeleted = 1 and DeletedAt set. Your incidents and alert history have not been removed.",
+                "Your account has been marked as deleted. Its Accounts row remains in MariaDB with IsDeleted = 1 and DeletedAt set. Your incidents and alert history have not been removed.",
                 "Account deleted",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);

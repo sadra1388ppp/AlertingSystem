@@ -24,107 +24,43 @@ public sealed class SecurityAuditLogger
         _pendingFilePath = Path.Combine(directory, "security-audit-pending.json");
     }
 
-    public void RecordSuccessfulLogin(AccountUser user, string? context = null)
-    {
-        var now = DateTime.Now;
-        var details = BuildBaseDetails(now, user.Username) +
-            Environment.NewLine + "Event: Login succeeded." +
-            (string.IsNullOrWhiteSpace(context)
-                ? string.Empty
-                : Environment.NewLine + "Context: " + context);
+    public void RecordSuccessfulLogin(AccountUser user, string? context = null) =>
+        RecordHistory(user, "LOGIN SUCCESS", "Login succeeded.", FormatContext(context));
 
-        Record(new PendingSecurityAuditEvent
-        {
-            HistoryEntry = new CheckHistoryEntry
-            {
-                Timestamp = now,
-                Endpoint = $"Authentication / @{user.Username}",
-                Result = "LOGIN SUCCESS",
-                Details = details
-            }
-        });
-    }
+    public void RecordAccountCreated(AccountUser user) =>
+        RecordHistory(user, "ACCOUNT CREATED", "Account registration succeeded.",
+            Environment.NewLine + $"Account ID: {user.Id}");
 
-    public void RecordAccountCreated(AccountUser user)
-    {
-        var now = DateTime.Now;
-        var details = BuildBaseDetails(now, user.Username) +
-            Environment.NewLine + "Event: Account registration succeeded." +
-            Environment.NewLine + $"Account ID: {user.Id}";
+    public void RecordSuccessfulLogout(AccountUser user, string? context = null) =>
+        RecordHistory(user, "SIGN OUT", "Sign-out completed.", FormatContext(context));
 
-        Record(new PendingSecurityAuditEvent
-        {
-            HistoryEntry = new CheckHistoryEntry
-            {
-                Timestamp = now,
-                Endpoint = $"Authentication / @{user.Username}",
-                Result = "ACCOUNT CREATED",
-                Details = details
-            }
-        });
-    }
-
-    public void RecordSuccessfulLogout(AccountUser user, string? context = null)
-    {
-        var now = DateTime.Now;
-        var details = BuildBaseDetails(now, user.Username) +
-            Environment.NewLine + "Event: Sign-out completed." +
-            (string.IsNullOrWhiteSpace(context)
-                ? string.Empty
-                : Environment.NewLine + "Context: " + context);
-
-        Record(new PendingSecurityAuditEvent
-        {
-            HistoryEntry = new CheckHistoryEntry
-            {
-                Timestamp = now,
-                Endpoint = $"Authentication / @{user.Username}",
-                Result = "SIGN OUT",
-                Details = details
-            }
-        });
-    }
-
-    public void RecordAccountDeleted(AccountUser user)
-    {
-        var now = DateTime.Now;
-        var details = BuildBaseDetails(now, user.Username) +
-            Environment.NewLine + "Event: Account soft-deleted by its owner." +
+    public void RecordAccountDeleted(AccountUser user) =>
+        RecordHistory(user, "ACCOUNT DELETED", "Account soft-deleted by its owner.",
             Environment.NewLine + $"Account ID: {user.Id}" +
-            Environment.NewLine + "Database retention: the AppUsers row remains and is marked IsDeleted = 1 with DeletedAt set." +
-            Environment.NewLine + "Related incidents and alert history were not deleted.";
+            Environment.NewLine + "Database retention: the Accounts row remains and is marked IsDeleted = 1 with DeletedAt set." +
+            Environment.NewLine + "Related incidents and alert history were not deleted.");
 
-        Record(new PendingSecurityAuditEvent
-        {
-            HistoryEntry = new CheckHistoryEntry
-            {
-                Timestamp = now,
-                Endpoint = $"Authentication / @{user.Username}",
-                Result = "ACCOUNT DELETED",
-                Details = details
-            }
-        });
-    }
+    public void RecordSessionRevoked(AccountUser user, string context) =>
+        RecordHistory(user, "SESSION REVOKED", "Session access was revoked.",
+            Environment.NewLine + "Reason: " + context);
 
-    public void RecordSessionRevoked(AccountUser user, string context)
+    private void RecordHistory(AccountUser user, string result, string eventName, string extraDetails = "")
     {
         var now = DateTime.Now;
         var details = BuildBaseDetails(now, user.Username) +
-            Environment.NewLine + "Event: Session access was revoked." +
-            Environment.NewLine + "Reason: " + context;
+            Environment.NewLine + "Event: " + eventName + extraDetails;
 
         Record(new PendingSecurityAuditEvent
         {
-            HistoryEntry = new CheckHistoryEntry
-            {
-                Timestamp = now,
-                Endpoint = $"Authentication / @{user.Username}",
-                Result = "SESSION REVOKED",
-                Details = details
-            }
+            HistoryEntry = CreateHistoryEntry(now, $"Authentication / @{user.Username}", result, details)
         });
     }
 
+    private static string FormatContext(string? context) =>
+        string.IsNullOrWhiteSpace(context) ? string.Empty : Environment.NewLine + "Context: " + context;
+
+    private static CheckHistoryEntry CreateHistoryEntry(DateTime timestamp, string endpoint, string result, string details) =>
+        new() { Timestamp = timestamp, Endpoint = endpoint, Result = result, Details = details };
     public void RecordFailedLogin(
         string? attemptedUsername,
         string category,
@@ -157,13 +93,7 @@ public sealed class SecurityAuditLogger
             OccurrenceCount = 1
         };
 
-        var historyEntry = new CheckHistoryEntry
-        {
-            Timestamp = now,
-            Endpoint = $"Authentication / {label}",
-            Result = "LOGIN FAILED",
-            Details = details
-        };
+        var historyEntry = CreateHistoryEntry(now, $"Authentication / {label}", "LOGIN FAILED", details);
 
         Record(new PendingSecurityAuditEvent
         {
