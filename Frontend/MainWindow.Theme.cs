@@ -1,20 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
-using AlertingSystem.Models;
-using AlertingSystem.Services;
-using Microsoft.EntityFrameworkCore;
+
 namespace AlertingSystem;
 
 public partial class MainWindow
@@ -62,38 +52,28 @@ public partial class MainWindow
         _isLightTheme = string.Equals(theme, "Light", StringComparison.OrdinalIgnoreCase);
         _selectedTheme = _isLightTheme ? "Light" : "Dark";
 
+        var applicationResources = Application.Current.Resources;
+
         foreach (var entry in ThemeRoleColors)
         {
             var color = _isLightTheme ? entry.Value.Light : entry.Value.Dark;
-            Resources[entry.Key] = new SolidColorBrush(ParseThemeColor(color));
+            var brush = new SolidColorBrush(ParseThemeColor(color));
+            Resources[entry.Key] = brush;
+            applicationResources[entry.Key] = brush;
         }
 
         foreach (var darkColor in ThemeLiteralColors)
         {
             var color = darkColor;
             if (_isLightTheme && LightLiteralColorOverrides.TryGetValue(darkColor, out var lightColor))
-            {
                 color = lightColor;
-            }
             else if (!_isLightTheme && DarkLiteralColorOverrides.TryGetValue(darkColor, out var darkOverride))
-            {
                 color = darkOverride;
-            }
 
             var key = "Hex" + darkColor.TrimStart('#') + "Brush";
-            Resources[key] = new SolidColorBrush(ParseThemeColor(color));
-        }
-
-        var applicationResources = Application.Current.Resources;
-        foreach (var entry in ThemeRoleColors)
-        {
-            applicationResources[entry.Key] = Resources[entry.Key];
-        }
-
-        foreach (var darkColor in ThemeLiteralColors)
-        {
-            var key = "Hex" + darkColor.TrimStart('#') + "Brush";
-            applicationResources[key] = Resources[key];
+            var brush = new SolidColorBrush(ParseThemeColor(color));
+            Resources[key] = brush;
+            applicationResources[key] = brush;
         }
 
         applicationResources[SystemColors.WindowBrushKey] = new SolidColorBrush(
