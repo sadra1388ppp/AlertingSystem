@@ -1,15 +1,11 @@
-using System.Diagnostics;
-using System.Data.Common;
-using System.IO;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using AlertingSystem.Models;
 using AlertingSystem.Services;
-using Microsoft.EntityFrameworkCore;
-using System.Windows.Threading;
 
 namespace AlertingSystem;
 
