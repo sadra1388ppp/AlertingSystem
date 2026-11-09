@@ -161,7 +161,6 @@ public partial class MainWindow
     private void ShowPage(Grid selectedPage, Button selectedButton)
     {
         OverviewPage.Visibility = Visibility.Collapsed;
-        ScheduledChecksPage.Visibility = Visibility.Collapsed;
         IncidentsPage.Visibility = Visibility.Collapsed;
         AlertHistoryPage.Visibility = Visibility.Collapsed;
         SettingsPage.Visibility = Visibility.Collapsed;
@@ -180,7 +179,7 @@ public partial class MainWindow
             return;
         }
 
-        foreach (var button in new[] { OverviewNavButton, ScheduledChecksNavButton, IncidentsNavButton, AlertHistoryNavButton, AccountNavButton, SettingsNavButton })
+        foreach (var button in new[] { OverviewNavButton, IncidentsNavButton, AlertHistoryNavButton, AccountNavButton, SettingsNavButton })
         {
             var isSelected = button == _activeNavButton;
             button.Tag = isSelected;
