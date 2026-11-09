@@ -1,20 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using AlertingSystem.Models;
-using AlertingSystem.Services;
-using Microsoft.EntityFrameworkCore;
+
 namespace AlertingSystem;
 
 public partial class MainWindow
