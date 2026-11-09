@@ -38,24 +38,18 @@ public partial class MainWindow
             .Where(item => MatchesIncidentSearch(item, search))
             .ToList();
 
+        var openFirst = matchingIncidents
+            .OrderByDescending(item => item.Status == IncidentStatus.Open);
+
         var visibleIncidents = IncidentSortComboBox.SelectedIndex switch
         {
-            1 => matchingIncidents
-                .OrderByDescending(item => item.Status == IncidentStatus.Open)
-                .ThenByDescending(item => item.LastOccurredAt)
-                .ThenBy(item => item.Severity)
-                .ToList(),
-            2 => matchingIncidents
-                .OrderByDescending(item => item.Status == IncidentStatus.Open)
-                .ThenByDescending(item => item.OccurrenceCount)
-                .ThenBy(item => item.Severity)
-                .ThenByDescending(item => item.LastOccurredAt)
-                .ToList(),
-            _ => matchingIncidents
-                .OrderByDescending(item => item.Status == IncidentStatus.Open)
-                .ThenBy(item => item.Severity)
-                .ThenByDescending(item => item.LastOccurredAt)
-                .ToList()
+            1 => openFirst.ThenByDescending(item => item.LastOccurredAt)
+                          .ThenBy(item => item.Severity).ToList(),
+            2 => openFirst.ThenByDescending(item => item.OccurrenceCount)
+                          .ThenBy(item => item.Severity)
+                          .ThenByDescending(item => item.LastOccurredAt).ToList(),
+            _ => openFirst.ThenBy(item => item.Severity)
+                          .ThenByDescending(item => item.LastOccurredAt).ToList()
         };
 
         IncidentsListBox.ItemsSource = visibleIncidents;
