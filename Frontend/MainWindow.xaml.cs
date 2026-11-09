@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Data.Common;
 using System.IO;
-using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
@@ -47,16 +46,6 @@ public partial class MainWindow : Window
     private readonly List<Incident> _incidents;
     private readonly List<CheckHistoryEntry> _checkHistory;
     private readonly HiddenItemsStore _hiddenItems = new();
-    private readonly ScheduledEndpointStore _scheduledEndpointStore = new();
-    private readonly ObservableCollection<ScheduledEndpointStatus> _scheduledEndpointStatuses = [];
-    private ScheduleConfiguration _scheduleConfiguration = new();
-    private readonly DispatcherTimer _scheduledCheckTimer = new()
-    {
-        Interval = TimeSpan.FromSeconds(1)
-    };
-    private bool _scheduledBatchRunning;
-    private bool _scheduleIntervalIsMinutes = true;
-    private string _lastScheduledScanSummary = string.Empty;
     private readonly DispatcherTimer _databaseSyncTimer = new()
     {
         // Poll less often; the full database read now runs away from the UI thread.
@@ -267,12 +256,9 @@ public partial class MainWindow : Window
                 SecurityAlertToastBorder.Visibility = Visibility.Collapsed;
             }
         };
-        _scheduledCheckTimer.Tick += ScheduledCheckTimer_Tick;
-        InitializeScheduledChecks();
         Closed += (_, _) =>
         {
             _databaseSyncTimer.Stop();
-            _scheduledCheckTimer.Stop();
             _securityAlertToastTimer.Stop();
         };
     }
