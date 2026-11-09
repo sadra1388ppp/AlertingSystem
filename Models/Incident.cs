@@ -78,11 +78,9 @@ public sealed class Incident : INotifyPropertyChanged
         get => _severity;
         set
         {
-            if (SetField(ref _severity, value))
-            {
-                OnPropertyChanged(nameof(SeverityDisplay));
-                OnPropertyChanged(nameof(SeverityBrush));
-            }
+            if (!SetField(ref _severity, value)) return;
+            OnPropertyChanged(nameof(SeverityDisplay));
+            OnPropertyChanged(nameof(SeverityBrush));
         }
     }
 
@@ -91,11 +89,9 @@ public sealed class Incident : INotifyPropertyChanged
         get => _status;
         set
         {
-            if (SetField(ref _status, value))
-            {
-                OnPropertyChanged(nameof(StatusDisplay));
-                OnPropertyChanged(nameof(StatusBrush));
-            }
+            if (!SetField(ref _status, value)) return;
+            OnPropertyChanged(nameof(StatusDisplay));
+            OnPropertyChanged(nameof(StatusBrush));
         }
     }
 
@@ -105,9 +101,7 @@ public sealed class Incident : INotifyPropertyChanged
         set
         {
             if (SetField(ref _firstOccurredAt, value))
-            {
                 OnPropertyChanged(nameof(ActivityDisplay));
-            }
         }
     }
 
@@ -117,9 +111,7 @@ public sealed class Incident : INotifyPropertyChanged
         set
         {
             if (SetField(ref _lastOccurredAt, value))
-            {
                 OnPropertyChanged(nameof(ActivityDisplay));
-            }
         }
     }
 
@@ -135,9 +127,7 @@ public sealed class Incident : INotifyPropertyChanged
         set
         {
             if (SetField(ref _occurrenceCount, value))
-            {
                 OnPropertyChanged(nameof(ActivityDisplay));
-            }
         }
     }
 
@@ -164,7 +154,7 @@ public sealed class Incident : INotifyPropertyChanged
 
     [JsonIgnore]
     public string ActivityDisplay =>
-        $"Started {FirstOccurredAt:yyyy-MM-dd HH:mm:ss}  •  Last failure {LastOccurredAt:yyyy-MM-dd HH:mm:ss}  •  {OccurrenceCount} occurrence(s)";
+        $"Started {FirstOccurredAt:yyyy-MM-dd HH:mm:ss} - Last failure {LastOccurredAt:yyyy-MM-dd HH:mm:ss} - {OccurrenceCount} occurrence(s)";
 
     private static SolidColorBrush CreateFrozenBrush(byte red, byte green, byte blue)
     {
@@ -175,10 +165,7 @@ public sealed class Incident : INotifyPropertyChanged
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (EqualityComparer<T>.Default.Equals(field, value))
-        {
-            return false;
-        }
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
 
         field = value;
         OnPropertyChanged(propertyName);
