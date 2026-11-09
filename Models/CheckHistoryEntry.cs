@@ -39,6 +39,6 @@ public sealed class CheckHistoryEntry
 
     [JsonIgnore]
     public string DisplayText =>
-        $"{Timestamp:HH:mm:ss}  •  {Endpoint}  •  {Result}" +
-        (ResponseTimeMs is long ms ? $"  •  {ms} ms" : string.Empty);
+        $"{Timestamp:HH:mm:ss} - {Endpoint} - {Result}" +
+        (ResponseTimeMs is long ms ? $" - {ms} ms" : string.Empty);
 }
