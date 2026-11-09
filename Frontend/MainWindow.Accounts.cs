@@ -24,12 +24,6 @@ public partial class MainWindow
         ShowPage(OverviewPage, OverviewNavButton);
     }
 
-    private void ScheduledChecksNavButton_Click(object sender, RoutedEventArgs e)
-    {
-        UpdateScheduledChecksUI();
-        ShowPage(ScheduledChecksPage, ScheduledChecksNavButton);
-    }
-
     private void IncidentsNavButton_Click(object sender, RoutedEventArgs e)
     {
         _showAllIncidents = false;
@@ -182,7 +176,6 @@ public partial class MainWindow
     private void EndSessionAndRequireLogin()
     {
         _databaseSyncTimer.Stop();
-        _scheduledCheckTimer.Stop();
         _securityAlertToastTimer.Stop();
 
         var loginWindow = new LoginWindow();
