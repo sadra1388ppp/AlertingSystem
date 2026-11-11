@@ -191,8 +191,6 @@ public sealed class AccountStore
         string storedHash;
         DateTime createdAt;
 
-        // Copy the account data before verifying so the reader is closed before
-        // the optional hash-upgrade UPDATE runs on this connection.
         using (var reader = command.ExecuteReader())
         {
             if (!reader.Read())
@@ -207,24 +205,9 @@ public sealed class AccountStore
             createdAt = reader.GetDateTime(4);
         }
 
-        if (!AccountPasswordHasher.Verify(password, storedHash, out var needsUpgrade))
+        if (!AccountPasswordHasher.Verify(password, storedHash))
         {
             return false;
-        }
-
-        if (needsUpgrade)
-        {
-            var upgradedHash = AccountPasswordHasher.Create(password);
-            using var upgradeCommand = connection.CreateCommand();
-            upgradeCommand.CommandText = """
-                UPDATE Accounts
-                SET PasswordHash = @newHash
-                WHERE Id = @id AND PasswordHash = @oldHash
-                """;
-            upgradeCommand.Parameters.AddWithValue("@newHash", upgradedHash);
-            upgradeCommand.Parameters.AddWithValue("@id", userId);
-            upgradeCommand.Parameters.AddWithValue("@oldHash", storedHash);
-            upgradeCommand.ExecuteNonQuery();
         }
 
         user = new AccountUser
@@ -342,6 +325,4 @@ public sealed class AccountStore
 
     private static string NormalizeUsername(string username) =>
         (username ?? string.Empty).Trim().ToLowerInvariant();
-
-
 }
