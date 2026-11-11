@@ -7,6 +7,43 @@ namespace AlertingSystem;
 
 public partial class MainWindow
 {
+    private static void ApplyTextDirection(FrameworkElement element, string? value)
+    {
+        var direction = FlowDirection.LeftToRight;
+
+        foreach (var character in value ?? string.Empty)
+        {
+            if (!char.IsLetter(character))
+            {
+                continue;
+            }
+
+            direction = character is >= '\u0600' and <= '\u06FF' or
+                >= '\u0750' and <= '\u077F' or
+                >= '\u08A0' and <= '\u08FF' or
+                >= '\uFB50' and <= '\uFDFF' or
+                >= '\uFE70' and <= '\uFEFF'
+                ? FlowDirection.RightToLeft
+                : FlowDirection.LeftToRight;
+
+            break;
+        }
+
+        element.FlowDirection = direction;
+        var alignment = direction == FlowDirection.RightToLeft
+            ? TextAlignment.Right
+            : TextAlignment.Left;
+
+        if (element is TextBlock textBlock)
+        {
+            textBlock.TextAlignment = alignment;
+        }
+        else if (element is TextBox textBox)
+        {
+            textBox.TextAlignment = alignment;
+        }
+    }
+
     private void OverviewNavButton_Click(object sender, RoutedEventArgs e)
     {
         ShowPage(OverviewPage, OverviewNavButton);
@@ -36,7 +73,7 @@ public partial class MainWindow
         if (sender is TextBlock textBlock)
         {
             // Bound values in the account directory can be Persian or English.
-            TextDirectionHelper.Apply(textBlock, textBlock.Text);
+            ApplyTextDirection(textBlock, textBlock.Text);
         }
     }
 
