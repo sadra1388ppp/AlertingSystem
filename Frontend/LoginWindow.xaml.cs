@@ -162,35 +162,10 @@ public partial class LoginWindow : Window
 
     private void TextInputDirection_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (sender is not TextBox textBox)
+        if (sender is TextBox textBox)
         {
-            return;
+            TextDirectionHelper.Apply(textBox, textBox.Text);
         }
-
-        var direction = FlowDirection.LeftToRight;
-
-        foreach (var character in textBox.Text)
-        {
-            if (!char.IsLetter(character))
-            {
-                continue;
-            }
-
-            direction = character is >= '\u0600' and <= '\u06FF' or
-                >= '\u0750' and <= '\u077F' or
-                >= '\u08A0' and <= '\u08FF' or
-                >= '\uFB50' and <= '\uFDFF' or
-                >= '\uFE70' and <= '\uFEFF'
-                ? FlowDirection.RightToLeft
-                : FlowDirection.LeftToRight;
-
-            break;
-        }
-
-        textBox.FlowDirection = direction;
-        textBox.TextAlignment = direction == FlowDirection.RightToLeft
-            ? TextAlignment.Right
-            : TextAlignment.Left;
     }
 
     private void RegisterButton_Click(object sender, RoutedEventArgs e)
