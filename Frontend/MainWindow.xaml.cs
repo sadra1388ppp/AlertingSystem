@@ -191,10 +191,6 @@ public partial class MainWindow : Window
         var databaseIncidents = _dataStore.LoadIncidents();
         var databaseHistory = _dataStore.LoadCheckHistory();
 
-        _hiddenItems.Reconcile(
-            databaseIncidents,
-            _dataStore.LoadCheckHistoryIds(_hiddenItems.GetHiddenHistoryIds()));
-
         var migratedIncidentData = false;
         foreach (var incident in databaseIncidents)
         {

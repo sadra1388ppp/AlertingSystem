@@ -208,10 +208,6 @@ public partial class MainWindow
         _databaseSyncRunning = true;
         try
         {
-            // Only hidden history IDs need reconciliation. Snapshot this tiny set
-            // on the UI thread before querying MariaDB in the background.
-            var hiddenHistoryIds = _hiddenItems.GetHiddenHistoryIds();
-
             var snapshot = await Task.Run(() =>
             {
                 var accountIsActive = _accountStore.IsActiveAccount(_currentUser.Id);
@@ -220,19 +216,16 @@ public partial class MainWindow
                     return (
                         AccountIsActive: false,
                         Incidents: new List<Incident>(),
-                        History: new List<CheckHistoryEntry>(),
-                        ExistingHiddenHistoryIds: new HashSet<long>());
+                        History: new List<CheckHistoryEntry>());
                 }
 
                 var incidents = _dataStore.LoadIncidents();
                 var history = _dataStore.LoadCheckHistory();
-                var existingHiddenHistoryIds = _dataStore.LoadCheckHistoryIds(hiddenHistoryIds);
 
                 return (
                     AccountIsActive: true,
                     Incidents: incidents,
-                    History: history,
-                    ExistingHiddenHistoryIds: existingHiddenHistoryIds);
+                    History: history);
             });
 
             // If the user signed out while the query was in progress, do not
@@ -262,8 +255,6 @@ public partial class MainWindow
 
             var databaseIncidents = snapshot.Incidents;
             var databaseHistory = snapshot.History;
-            _hiddenItems.Reconcile(databaseIncidents, snapshot.ExistingHiddenHistoryIds);
-
             var visibleIncidents = databaseIncidents
                 .Where(incident => !_hiddenItems.IsIncidentHidden(incident.IncidentNumber))
                 .ToList();

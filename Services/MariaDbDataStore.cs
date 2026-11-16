@@ -178,23 +178,6 @@ public sealed class MariaDbDataStore
         return true;
     }
 
-    public HashSet<long> LoadCheckHistoryIds(IEnumerable<long> idsToCheck)
-    {
-        ArgumentNullException.ThrowIfNull(idsToCheck);
-        var ids = idsToCheck.Where(id => id > 0).Distinct().ToArray();
-        if (ids.Length == 0)
-        {
-            return [];
-        }
-
-        using var db = CreateContext();
-        return db.CheckHistory
-            .AsNoTracking()
-            .Where(entry => ids.Contains(entry.Id))
-            .Select(entry => entry.Id)
-            .ToHashSet();
-    }
-
     public void SaveCheckHistory(IEnumerable<CheckHistoryEntry> history)
     {
         using var db = CreateContext();

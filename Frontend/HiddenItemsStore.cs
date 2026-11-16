@@ -1,8 +1,6 @@
 using System.IO;
 using System.Text.Json;
-using AlertingSystem.Models;
-
-namespace AlertingSystem.Services;
+namespace AlertingSystem;
 
 public sealed class HiddenItemsStore
 {
@@ -25,9 +23,6 @@ public sealed class HiddenItemsStore
 
     public bool IsHistoryEntryHidden(long id) => id > 0 && _historyIds.Contains(id);
 
-    // Only hidden history IDs need reconciliation during periodic sync.
-    public long[] GetHiddenHistoryIds() => _historyIds.ToArray();
-
     public void HideIncident(string incidentNumber)
     {
         if (_incidentNumbers.Add(incidentNumber))
@@ -39,26 +34,6 @@ public sealed class HiddenItemsStore
     public void HideHistoryEntry(long id)
     {
         if (id > 0 && _historyIds.Add(id))
-        {
-            Save();
-        }
-    }
-
-    public void Reconcile(
-        IEnumerable<Incident> databaseIncidents,
-        IEnumerable<long> databaseHistoryIds)
-    {
-        var incidentNumbers = databaseIncidents
-            .Select(item => item.IncidentNumber)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var historyIds = databaseHistoryIds.ToHashSet();
-
-        var removedIncidents = _incidentNumbers.RemoveWhere(
-            incidentNumber => !incidentNumbers.Contains(incidentNumber));
-        var removedHistory = _historyIds.RemoveWhere(
-            id => !historyIds.Contains(id));
-
-        if (removedIncidents > 0 || removedHistory > 0)
         {
             Save();
         }
