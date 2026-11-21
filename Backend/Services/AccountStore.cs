@@ -1,103 +1,40 @@
-using System.IO;
+using System.Data.Common;
 using AlertingSystem.Backend.Models;
-using MySqlConnector;
+using Microsoft.EntityFrameworkCore;
 
 namespace AlertingSystem.Backend.Services;
 
 public sealed class AccountStore
 {
-    private readonly string _connectionString;
+    private readonly AlertingDbContextFactory _contextFactory;
 
-    public AccountStore()
+    public AccountStore(AlertingDbContextFactory contextFactory)
     {
-        var directory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AlertingSystem");
-        Directory.CreateDirectory(directory);
-        _connectionString = DatabaseSettings.LoadConnectionString(directory);
-
-        using var connection = new MySqlConnection(_connectionString);
-        connection.Open();
-
-        RenameLegacyAccountsTableIfNeeded(connection);
-
-        using (var command = connection.CreateCommand())
-        {
-            command.CommandText = """
-                CREATE TABLE IF NOT EXISTS Accounts (
-                    Id INT NOT NULL AUTO_INCREMENT,
-                    DisplayName VARCHAR(100) NOT NULL,
-                    Username VARCHAR(32) NOT NULL,
-                    PasswordHash VARCHAR(255) NOT NULL,
-                    CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-                    IsDeleted TINYINT(1) NOT NULL DEFAULT 0,
-                    DeletedAt DATETIME(6) NULL,
-                    PRIMARY KEY (Id),
-                    UNIQUE KEY UX_Accounts_Username (Username)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-                """;
-            command.ExecuteNonQuery();
-        }
-
-        using (var command = connection.CreateCommand())
-        {
-            command.CommandText =
-                "ALTER TABLE Accounts ADD COLUMN IF NOT EXISTS IsDeleted TINYINT(1) NOT NULL DEFAULT 0";
-            command.ExecuteNonQuery();
-        }
-
-        using (var command = connection.CreateCommand())
-        {
-            command.CommandText =
-                "ALTER TABLE Accounts ADD COLUMN IF NOT EXISTS DeletedAt DATETIME(6) NULL";
-            command.ExecuteNonQuery();
-        }
+        _contextFactory = contextFactory;
     }
 
     public bool HasAccounts()
     {
-        using var connection = OpenConnection();
-        using var command = connection.CreateCommand();
-        command.CommandText = "SELECT EXISTS(SELECT 1 FROM Accounts WHERE IsDeleted = 0 LIMIT 1)";
-        return Convert.ToInt32(command.ExecuteScalar()) == 1;
+        using var db = _contextFactory.CreateContext();
+        return db.Accounts.AsNoTracking().Any(account => !account.IsDeleted);
     }
 
     public List<AccountUser> GetAllAccounts()
     {
-        using var connection = OpenConnection();
-        using var command = connection.CreateCommand();
-        command.CommandText = """
-            SELECT Id, DisplayName, Username, CreatedAt, IsDeleted, DeletedAt
-            FROM Accounts
-            ORDER BY IsDeleted ASC, CreatedAt DESC, Id DESC
-            """;
-
-        using var reader = command.ExecuteReader();
-        var accounts = new List<AccountUser>();
-        while (reader.Read())
-        {
-            accounts.Add(new AccountUser
-            {
-                Id = reader.GetInt32(0),
-                DisplayName = reader.GetString(1),
-                Username = reader.GetString(2),
-                CreatedAt = reader.GetDateTime(3),
-                IsDeleted = reader.GetBoolean(4),
-                DeletedAt = reader.IsDBNull(5) ? null : reader.GetDateTime(5)
-            });
-        }
-
-        return accounts;
+        using var db = _contextFactory.CreateContext();
+        return db.Accounts
+            .AsNoTracking()
+            .OrderBy(account => account.IsDeleted)
+            .ThenByDescending(account => account.CreatedAt)
+            .ThenByDescending(account => account.Id)
+            .ToList();
     }
 
     public bool IsActiveAccount(int userId)
     {
-        using var connection = OpenConnection();
-        using var command = connection.CreateCommand();
-        command.CommandText =
-            "SELECT EXISTS(SELECT 1 FROM Accounts WHERE Id = @id AND IsDeleted = 0 LIMIT 1)";
-        command.Parameters.AddWithValue("@id", userId);
-        return Convert.ToInt32(command.ExecuteScalar()) == 1;
+        using var db = _contextFactory.CreateContext();
+        return db.Accounts.Any(account =>
+            account.Id == userId && !account.IsDeleted);
     }
 
     public bool TryCreateAccount(
@@ -109,7 +46,7 @@ public sealed class AccountStore
     {
         createdUser = null;
         error = string.Empty;
-        displayName = displayName.Trim();
+        displayName = (displayName ?? string.Empty).Trim();
         username = NormalizeUsername(username);
 
         if (displayName.Length is < 2 or > 100)
@@ -133,37 +70,31 @@ public sealed class AccountStore
             return false;
         }
 
-        var passwordHash = AccountPasswordHasher.Create(password);
+        using var db = _contextFactory.CreateContext();
+
+        if (db.Accounts.Any(account => account.Username == username))
+        {
+            error = "That username is already registered. Choose another username.";
+            return false;
+        }
+
+        var account = new AccountUser
+        {
+            DisplayName = displayName,
+            Username = username,
+            PasswordHash = AccountPasswordHasher.Create(password),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.Accounts.Add(account);
 
         try
         {
-            using var connection = OpenConnection();
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText = """
-                    INSERT INTO Accounts (DisplayName, Username, PasswordHash)
-                    VALUES (@displayName, @username, @passwordHash)
-                    """;
-                command.Parameters.AddWithValue("@displayName", displayName);
-                command.Parameters.AddWithValue("@username", username);
-                command.Parameters.AddWithValue("@passwordHash", passwordHash);
-                command.ExecuteNonQuery();
-            }
-
-            using var idCommand = connection.CreateCommand();
-            idCommand.CommandText = "SELECT LAST_INSERT_ID()";
-            var id = Convert.ToInt32(idCommand.ExecuteScalar());
-
-            createdUser = new AccountUser
-            {
-                Id = id,
-                DisplayName = displayName,
-                Username = username,
-                CreatedAt = DateTime.UtcNow
-            };
+            db.SaveChanges();
+            createdUser = account;
             return true;
         }
-        catch (MySqlException exception) when (exception.Number == 1062)
+        catch (DbUpdateException exception) when (IsUniqueConstraintViolation(exception))
         {
             error = "That username is already registered. Choose another username.";
             return false;
@@ -175,100 +106,51 @@ public sealed class AccountStore
         user = null;
         username = NormalizeUsername(username);
 
-        using var connection = OpenConnection();
-        using var command = connection.CreateCommand();
-        command.CommandText = """
-            SELECT Id, DisplayName, Username, PasswordHash, CreatedAt
-            FROM Accounts
-            WHERE Username = @username AND IsDeleted = 0
-            LIMIT 1
-            """;
-        command.Parameters.AddWithValue("@username", username);
+        using var db = _contextFactory.CreateContext();
+        var account = db.Accounts
+            .AsNoTracking()
+            .FirstOrDefault(item =>
+                item.Username == username && !item.IsDeleted);
 
-        int userId;
-        string displayName;
-        string normalizedUsername;
-        string storedHash;
-        DateTime createdAt;
-
-        using (var reader = command.ExecuteReader())
-        {
-            if (!reader.Read())
-            {
-                return false;
-            }
-
-            userId = reader.GetInt32(0);
-            displayName = reader.GetString(1);
-            normalizedUsername = reader.GetString(2);
-            storedHash = reader.GetString(3);
-            createdAt = reader.GetDateTime(4);
-        }
-
-        if (!AccountPasswordHasher.Verify(password, storedHash))
+        if (account is null ||
+            !AccountPasswordHasher.Verify(password, account.PasswordHash))
         {
             return false;
         }
 
-        user = new AccountUser
-        {
-            Id = userId,
-            DisplayName = displayName,
-            Username = normalizedUsername,
-            CreatedAt = createdAt
-        };
+        user = account;
         return true;
     }
 
     public bool TrySoftDeleteAccount(int userId, string password, out string error)
     {
         error = string.Empty;
-        string passwordHash;
-        bool isDeleted;
 
-        using var connection = OpenConnection();
-        using (var command = connection.CreateCommand())
+        using var db = _contextFactory.CreateContext();
+        var account = db.Accounts.FirstOrDefault(item => item.Id == userId);
+
+        if (account is null)
         {
-            command.CommandText = """
-                SELECT PasswordHash, IsDeleted
-                FROM Accounts
-                WHERE Id = @id
-                LIMIT 1
-                """;
-            command.Parameters.AddWithValue("@id", userId);
-
-            using var reader = command.ExecuteReader();
-            if (!reader.Read())
-            {
-                error = "This account could not be found in MariaDB.";
-                return false;
-            }
-
-            passwordHash = reader.GetString(0);
-            isDeleted = reader.GetBoolean(1);
+            error = "This account could not be found in MariaDB.";
+            return false;
         }
 
-        if (isDeleted)
+        if (account.IsDeleted)
         {
             error = "This account has already been deleted.";
             return false;
         }
 
-        if (!AccountPasswordHasher.Verify(password, passwordHash))
+        if (!AccountPasswordHasher.Verify(password, account.PasswordHash))
         {
             error = "The password is incorrect. The account was not changed.";
             return false;
         }
 
-        using var updateCommand = connection.CreateCommand();
-        updateCommand.CommandText = """
-            UPDATE Accounts
-            SET IsDeleted = 1, DeletedAt = UTC_TIMESTAMP(6)
-            WHERE Id = @id AND IsDeleted = 0
-            """;
-        updateCommand.Parameters.AddWithValue("@id", userId);
+        account.IsDeleted = true;
+        account.DeletedAt = DateTime.UtcNow;
 
-        if (updateCommand.ExecuteNonQuery() != 1)
+        if (db.SaveChanges() != 1)
         {
             error = "The account could not be marked as deleted. Refresh the account list and try again.";
             return false;
@@ -277,52 +159,10 @@ public sealed class AccountStore
         return true;
     }
 
-    private static void RenameLegacyAccountsTableIfNeeded(MySqlConnection connection)
-    {
-        bool legacyTableExists;
-        bool accountsTableExists;
+    private static bool IsUniqueConstraintViolation(DbUpdateException exception) =>
+        exception.InnerException is DbException databaseException &&
+        string.Equals(databaseException.SqlState, "23000", StringComparison.Ordinal);
 
-        using (var checkCommand = connection.CreateCommand())
-        {
-            checkCommand.CommandText = """
-                SELECT
-                    EXISTS (
-                        SELECT 1
-                        FROM information_schema.tables
-                        WHERE table_schema = DATABASE() AND table_name = 'AppUsers'
-                    ),
-                    EXISTS (
-                        SELECT 1
-                        FROM information_schema.tables
-                        WHERE table_schema = DATABASE() AND table_name = 'Accounts'
-                    )
-                """;
-
-            using var reader = checkCommand.ExecuteReader();
-            if (!reader.Read())
-            {
-                return;
-            }
-
-            legacyTableExists = reader.GetBoolean(0);
-            accountsTableExists = reader.GetBoolean(1);
-        }
-
-        if (legacyTableExists && !accountsTableExists)
-        {
-            using var renameCommand = connection.CreateCommand();
-            renameCommand.CommandText = "RENAME TABLE AppUsers TO Accounts";
-            renameCommand.ExecuteNonQuery();
-        }
-    }
-
-    private MySqlConnection OpenConnection()
-    {
-        var connection = new MySqlConnection(_connectionString);
-        connection.Open();
-        return connection;
-    }
-
-    private static string NormalizeUsername(string username) =>
+    private static string NormalizeUsername(string? username) =>
         (username ?? string.Empty).Trim().ToLowerInvariant();
 }
