@@ -1,6 +1,6 @@
+using System.Data.Common;
 using System.IO;
 using System.Text.Json;
-using MySqlConnector;
 
 namespace AlertingSystem.Backend.Services;
 
@@ -29,15 +29,21 @@ public sealed class DatabaseSettings
 
         if (!string.IsNullOrWhiteSpace(environmentConnectionString))
         {
-            var environmentBuilder = new MySqlConnectionStringBuilder(environmentConnectionString)
+            var environmentBuilder = new DbConnectionStringBuilder
             {
-                ConnectionTimeout = 5,
-                DefaultCommandTimeout = 30
+                ConnectionString = environmentConnectionString
             };
 
-            if (IsLocalServer(environmentBuilder.Server))
+            ApplyTimeouts(environmentBuilder);
+
+            var serverKey = environmentBuilder.ContainsKey("Server")
+                ? "Server"
+                : environmentBuilder.ContainsKey("Host") ? "Host" : null;
+
+            if (serverKey is not null &&
+                IsLocalServer(Convert.ToString(environmentBuilder[serverKey]) ?? string.Empty))
             {
-                environmentBuilder.SslMode = MySqlSslMode.None;
+                environmentBuilder["SslMode"] = "None";
             }
 
             return environmentBuilder.ConnectionString;
@@ -48,7 +54,9 @@ public sealed class DatabaseSettings
 
         if (!File.Exists(settingsPath))
         {
-            File.WriteAllText(settingsPath, JsonSerializer.Serialize(new DatabaseSettings(), JsonOptions));
+            File.WriteAllText(
+                settingsPath,
+                JsonSerializer.Serialize(new DatabaseSettings(), JsonOptions));
         }
 
         DatabaseSettings settings;
@@ -75,19 +83,24 @@ public sealed class DatabaseSettings
                 $"Server, Port, Database, and UserId must be filled in the MariaDB settings file:{Environment.NewLine}{settingsPath}");
         }
 
-        var builder = new MySqlConnectionStringBuilder
+        var builder = new DbConnectionStringBuilder
         {
-            Server = settings.Server,
-            Port = settings.Port,
-            Database = settings.Database,
-            UserID = settings.UserId,
-            Password = settings.Password ?? string.Empty,
-            CharacterSet = "utf8mb4",
-            SslMode = MySqlSslMode.None,
-            ConnectionTimeout = 5,
-            DefaultCommandTimeout = 30
+            ["Server"] = settings.Server,
+            ["Port"] = settings.Port,
+            ["Database"] = settings.Database,
+            ["User ID"] = settings.UserId,
+            ["Password"] = settings.Password ?? string.Empty,
+            ["Character Set"] = "utf8mb4",
+            ["SslMode"] = "None"
         };
 
+        ApplyTimeouts(builder);
         return builder.ConnectionString;
+    }
+
+    private static void ApplyTimeouts(DbConnectionStringBuilder builder)
+    {
+        builder["Connection Timeout"] = 5;
+        builder["Default Command Timeout"] = 30;
     }
 }
