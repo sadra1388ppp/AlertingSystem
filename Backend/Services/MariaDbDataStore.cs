@@ -1,9 +1,7 @@
 using System.IO;
-using System.Data;
 using System.Text.Json;
 using AlertingSystem.Backend.Models;
 using Microsoft.EntityFrameworkCore;
-using MySqlConnector;
 
 namespace AlertingSystem.Backend.Services;
 
@@ -18,104 +16,17 @@ public sealed class MariaDbDataStore
     };
 
     private readonly string _directory;
-    private readonly string _connectionString;
-    private readonly bool _useSimplifiedIncidentTable;
-    private readonly bool _useSimplifiedHistoryTable;
-    private readonly bool _useSimplifiedMetadataTable;
-    private bool _hasMetadataTable;
+    private readonly AlertingDbContextFactory _contextFactory;
+    private readonly bool _hasMetadataTable;
 
-    public MariaDbDataStore()
+    public MariaDbDataStore(AlertingDbContextFactory contextFactory)
     {
-        _directory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AlertingSystem");
-
-        Directory.CreateDirectory(_directory);
-        _connectionString = DatabaseSettings.LoadConnectionString(_directory);
-
-        var existingTables = ReadTableNames(_connectionString);
-        if (existingTables.Contains("checks") && !existingTables.Contains("AlertHistory"))
-        {
-            using var migrationContext = new AlertingDbContext(
-                _connectionString,
-                useSimplifiedIncidentTable: ChooseSimplifiedTable(
-                    existingTables, "incident_records", "Incidents"),
-                useSimplifiedHistoryTable: true,
-                useSimplifiedMetadataTable: ChooseSimplifiedTable(
-                    existingTables, "settings", "AppMetadata"));
-            migrationContext.Database.Migrate();
-            existingTables = ReadTableNames(_connectionString);
-        }
-
-        _useSimplifiedIncidentTable = ChooseSimplifiedTable(
-            existingTables, "incident_records", "Incidents");
-        _useSimplifiedHistoryTable = ChooseSimplifiedTable(
-            existingTables, "checks", "AlertHistory");
-        _useSimplifiedMetadataTable = ChooseSimplifiedTable(
-            existingTables, "settings", "AppMetadata");
-        _hasMetadataTable = existingTables.Contains("AppMetadata") || existingTables.Contains("settings");
+        _contextFactory = contextFactory;
+        _directory = contextFactory.DataDirectory;
+        _hasMetadataTable = contextFactory.HasMetadataTable;
 
         using var db = CreateContext();
-        var databaseCreated = db.Database.EnsureCreated();
-
-        if (databaseCreated)
-        {
-            _hasMetadataTable = true;
-        }
-
-        EnsureIncidentReasonColumn(db);
         ImportLegacyJsonOnce(db);
-    }
-
-    private void EnsureIncidentReasonColumn(AlertingDbContext db)
-    {
-        var tableName = _useSimplifiedIncidentTable ? "incident_records" : "Incidents";
-        db.Database.ExecuteSqlRaw(
-            $"ALTER TABLE `{tableName}` ADD COLUMN IF NOT EXISTS Reason TEXT NULL");
-
-        // Avoid rewriting every incident row on every app startup. The backfill
-        // and NOT NULL alteration are needed only when the column is nullable.
-        var connection = db.Database.GetDbConnection();
-        var closeConnectionWhenDone = connection.State != ConnectionState.Open;
-        if (closeConnectionWhenDone)
-        {
-            db.Database.OpenConnection();
-        }
-
-        try
-        {
-            using var command = connection.CreateCommand();
-            command.CommandText = """
-                SELECT IS_NULLABLE
-                FROM information_schema.COLUMNS
-                WHERE TABLE_SCHEMA = DATABASE()
-                  AND TABLE_NAME = @tableName
-                  AND COLUMN_NAME = 'Reason'
-                LIMIT 1
-                """;
-            var parameter = command.CreateParameter();
-            parameter.ParameterName = "@tableName";
-            parameter.Value = tableName;
-            command.Parameters.Add(parameter);
-
-            var isNullable = Convert.ToString(command.ExecuteScalar());
-            if (!string.Equals(isNullable, "YES", StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            db.Database.ExecuteSqlRaw(
-                $"UPDATE `{tableName}` SET Reason = '' WHERE Reason IS NULL");
-            db.Database.ExecuteSqlRaw(
-                $"ALTER TABLE `{tableName}` MODIFY COLUMN Reason TEXT NOT NULL");
-        }
-        finally
-        {
-            if (closeConnectionWhenDone)
-            {
-                db.Database.CloseConnection();
-            }
-        }
     }
 
     public List<Incident> LoadIncidents()
@@ -182,7 +93,8 @@ public sealed class MariaDbDataStore
     {
         using var db = CreateContext();
 
-        foreach (var item in history.OrderByDescending(entry => entry.Timestamp)
+        foreach (var item in history
+                     .OrderByDescending(entry => entry.Timestamp)
                      .Take(MaximumHistoryEntries))
         {
             if (item.Id > 0)
@@ -193,7 +105,7 @@ public sealed class MariaDbDataStore
                     db.Entry(stored).CurrentValues.SetValues(item);
                 }
             }
-            else if (item.Id == 0)
+            else
             {
                 db.CheckHistory.Add(item);
             }
@@ -209,7 +121,6 @@ public sealed class MariaDbDataStore
         if (entry.Id > 0)
         {
             var stored = db.CheckHistory.Find(entry.Id);
-
             if (stored is null)
             {
                 return;
@@ -225,55 +136,12 @@ public sealed class MariaDbDataStore
         db.SaveChanges();
     }
 
-    private AlertingDbContext CreateContext() => new(
-        _connectionString,
-        _useSimplifiedIncidentTable,
-        _useSimplifiedHistoryTable,
-        _useSimplifiedMetadataTable);
-
-    private static bool ChooseSimplifiedTable(
-        HashSet<string> existingTables,
-        string simplifiedName,
-        string originalName)
-    {
-        return existingTables.Contains(simplifiedName) && !existingTables.Contains(originalName);
-    }
-
-    private static HashSet<string> ReadTableNames(string connectionString)
-    {
-        var builder = new MySqlConnectionStringBuilder(connectionString);
-        using var connection = new MySqlConnection(connectionString);
-        connection.Open();
-
-        var schema = connection.GetSchema("Tables");
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (DataRow row in schema.Rows)
-        {
-            var schemaName = row["TABLE_SCHEMA"]?.ToString();
-            if (!string.Equals(schemaName, builder.Database, StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            var tableName = row["TABLE_NAME"]?.ToString();
-            if (!string.IsNullOrWhiteSpace(tableName))
-            {
-                names.Add(tableName);
-            }
-        }
-
-        return names;
-    }
+    private AlertingDbContext CreateContext() => _contextFactory.CreateContext();
 
     private void ImportLegacyJsonOnce(AlertingDbContext db)
     {
-        if (!_hasMetadataTable)
-        {
-            return;
-        }
-
-        if (db.AppMetadata.Any(item => item.MetadataKey == ImportMarker))
+        if (!_hasMetadataTable ||
+            db.AppMetadata.Any(item => item.MetadataKey == ImportMarker))
         {
             return;
         }
@@ -310,7 +178,9 @@ public sealed class MariaDbDataStore
 
         try
         {
-            return JsonSerializer.Deserialize<List<T>>(File.ReadAllText(path), JsonOptions) ?? [];
+            return JsonSerializer.Deserialize<List<T>>(
+                File.ReadAllText(path),
+                JsonOptions) ?? [];
         }
         catch (Exception exception) when (
             exception is IOException or UnauthorizedAccessException or JsonException)
