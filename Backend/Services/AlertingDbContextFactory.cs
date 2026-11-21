@@ -30,7 +30,7 @@ public sealed class AlertingDbContextFactory
                 _connectionString,
                 ChooseSimplifiedTable(tables, "incident_records", "Incidents"),
                 useSimplifiedHistoryTable: true,
-                ChooseSimplifiedTable(tables, "settings", "AppMetadata"));
+                useSimplifiedMetadataTable: ChooseSimplifiedTable(tables, "settings", "AppMetadata"));
 
             migrationContext.Database.Migrate();
             tables = ReadTableNames(
