@@ -13,10 +13,11 @@ public sealed class SecurityAuditLogger
     };
 
     private readonly string _pendingFilePath;
-    private MariaDbDataStore? _dataStore;
+    private readonly MariaDbDataStore _dataStore;
 
-    public SecurityAuditLogger()
+    public SecurityAuditLogger(MariaDbDataStore dataStore)
     {
+        _dataStore = dataStore;
         var directory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "AlertingSystem");
@@ -171,7 +172,7 @@ public sealed class SecurityAuditLogger
         FlushPendingEvents();
     }
 
-    private MariaDbDataStore GetDataStore() => _dataStore ??= new MariaDbDataStore();
+    private MariaDbDataStore GetDataStore() => _dataStore;
 
     private static void Persist(MariaDbDataStore dataStore, PendingSecurityAuditEvent item)
     {
