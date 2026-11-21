@@ -105,7 +105,7 @@ public sealed class MariaDbDataStore
                     db.Entry(stored).CurrentValues.SetValues(item);
                 }
             }
-            else
+            else if (item.Id == 0)
             {
                 db.CheckHistory.Add(item);
             }
