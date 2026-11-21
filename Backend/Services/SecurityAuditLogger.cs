@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using AlertingSystem.Backend.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AlertingSystem.Backend.Services;
 
@@ -13,11 +14,12 @@ public sealed class SecurityAuditLogger
     };
 
     private readonly string _pendingFilePath;
-    private readonly MariaDbDataStore _dataStore;
+    private readonly IServiceProvider _services;
+    private MariaDbDataStore? _dataStore;
 
-    public SecurityAuditLogger(MariaDbDataStore dataStore)
+    public SecurityAuditLogger(IServiceProvider services)
     {
-        _dataStore = dataStore;
+        _services = services;
         var directory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "AlertingSystem");
@@ -172,7 +174,8 @@ public sealed class SecurityAuditLogger
         FlushPendingEvents();
     }
 
-    private MariaDbDataStore GetDataStore() => _dataStore;
+    private MariaDbDataStore GetDataStore() =>
+        _dataStore ??= _services.GetRequiredService<MariaDbDataStore>();
 
     private static void Persist(MariaDbDataStore dataStore, PendingSecurityAuditEvent item)
     {
