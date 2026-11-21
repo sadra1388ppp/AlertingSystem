@@ -33,6 +33,7 @@ public sealed class AlertingDbContext : DbContext
     internal bool UsesSimplifiedHistoryTable => _useSimplifiedHistoryTable;
     internal bool UsesSimplifiedMetadataTable => _useSimplifiedMetadataTable;
 
+    public DbSet<AccountUser> Accounts => Set<AccountUser>();
     public DbSet<Incident> Incidents => Set<Incident>();
     public DbSet<CheckHistoryEntry> CheckHistory => Set<CheckHistoryEntry>();
     public DbSet<AppMetadata> AppMetadata => Set<AppMetadata>();
@@ -51,6 +52,36 @@ public sealed class AlertingDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AccountUser>(entity =>
+        {
+            entity.ToTable("Accounts");
+            entity.HasKey(item => item.Id);
+            entity.Property(item => item.Id).ValueGeneratedOnAdd();
+            entity.Property(item => item.DisplayName)
+                .HasMaxLength(100)
+                .HasColumnType("varchar(100)")
+                .IsRequired();
+            entity.Property(item => item.Username)
+                .HasMaxLength(32)
+                .HasColumnType("varchar(32)")
+                .IsRequired();
+            entity.Property(item => item.PasswordHash)
+                .HasMaxLength(255)
+                .HasColumnType("varchar(255)")
+                .IsRequired();
+            entity.Property(item => item.CreatedAt).HasColumnType("datetime(6)");
+            entity.Property(item => item.IsDeleted)
+                .HasColumnType("tinyint(1)")
+                .HasDefaultValue(false);
+            entity.Property(item => item.DeletedAt).HasColumnType("datetime(6)");
+            entity.HasIndex(item => item.Username)
+                .IsUnique()
+                .HasDatabaseName("UX_Accounts_Username");
+
+            entity.Ignore(item => item.StatusDisplay);
+            entity.Ignore(item => item.LifecycleDisplay);
+        });
+
         modelBuilder.Entity<Incident>(entity =>
         {
             entity.ToTable(_useSimplifiedIncidentTable ? "incident_records" : "Incidents");
