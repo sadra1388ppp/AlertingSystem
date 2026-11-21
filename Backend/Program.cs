@@ -78,7 +78,7 @@ app.MapPut("/api/incidents/item", (IncidentSaveRequest request, MariaDbDataStore
 
 app.MapPut("/api/history/item", (CheckHistoryEntryDto item, MariaDbDataStore store) =>
 {
-    var entry = FromDto(item);
+    var entry = FromHistoryDto(item);
     store.SaveCheckHistoryEntry(entry);
     return Results.Ok(new OperationResponse { Success = true, Id = entry.Id });
 });
