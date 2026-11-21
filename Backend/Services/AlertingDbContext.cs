@@ -1,10 +1,10 @@
 using System.Globalization;
-using AlertingSystem.Models;
+using AlertingSystem.Backend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace AlertingSystem.Services;
+namespace AlertingSystem.Backend.Services;
 
 public sealed class AlertingDbContext : DbContext
 {
@@ -78,8 +78,6 @@ public sealed class AlertingDbContext : DbContext
 
             entity.Ignore(item => item.SeverityDisplay);
             entity.Ignore(item => item.StatusDisplay);
-            entity.Ignore(item => item.SeverityBrush);
-            entity.Ignore(item => item.StatusBrush);
             entity.Ignore(item => item.ActivityDisplay);
         });
 
@@ -100,7 +98,6 @@ public sealed class AlertingDbContext : DbContext
 
             entity.Ignore(item => item.TimestampDisplay);
             entity.Ignore(item => item.ResponseTimeDisplay);
-            entity.Ignore(item => item.ResultBrush);
             entity.Ignore(item => item.DisplayText);
         });
 

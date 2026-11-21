@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Frontend", "Frontend\AlertingSystem.Frontend.csproj", "{BDF0A74C-5A91-4B0D-8D5C-2301D45B0031}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend", "Backend\AlertingSystem.Backend.csproj", "{B37BC213-8EB1-4D9D-A3E5-5BE08B68A6EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\AlertingSystem.Contracts.csproj", "{AF02C7E5-39C4-4781-85B0-95A7C134B0D7}"
+EndProject
+Global
+  GlobalSection(SolutionConfigurationPlatforms) = preSolution
+    Debug|Any CPU = Debug|Any CPU
+    Release|Any CPU = Release|Any CPU
+  EndGlobalSection
+  GlobalSection(ProjectConfigurationPlatforms) = postSolution
+    {BDF0A74C-5A91-4B0D-8D5C-2301D45B0031}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {BDF0A74C-5A91-4B0D-8D5C-2301D45B0031}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {BDF0A74C-5A91-4B0D-8D5C-2301D45B0031}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {BDF0A74C-5A91-4B0D-8D5C-2301D45B0031}.Release|Any CPU.Build.0 = Release|Any CPU
+    {B37BC213-8EB1-4D9D-A3E5-5BE08B68A6EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {B37BC213-8EB1-4D9D-A3E5-5BE08B68A6EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {B37BC213-8EB1-4D9D-A3E5-5BE08B68A6EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {B37BC213-8EB1-4D9D-A3E5-5BE08B68A6EE}.Release|Any CPU.Build.0 = Release|Any CPU
+    {AF02C7E5-39C4-4781-85B0-95A7C134B0D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {AF02C7E5-39C4-4781-85B0-95A7C134B0D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {AF02C7E5-39C4-4781-85B0-95A7C134B0D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {AF02C7E5-39C4-4781-85B0-95A7C134B0D7}.Release|Any CPU.Build.0 = Release|Any CPU
+  EndGlobalSection
+EndGlobal

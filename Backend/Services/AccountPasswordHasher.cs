@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Konscious.Security.Cryptography;
 
-namespace AlertingSystem.Services;
+namespace AlertingSystem.Backend.Services;
 
 internal static class AccountPasswordHasher
 {

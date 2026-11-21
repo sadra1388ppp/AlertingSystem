@@ -1,4 +1,4 @@
-name: Build WPF app
+name: Build AlertingSystem
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    name: Restore and build
+    name: Restore and build frontend, backend, and shared contracts
     runs-on: windows-latest
     steps:
       - name: Check out repository
@@ -23,8 +23,8 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Restore dependencies
-        run: dotnet restore .\AlertingSystem.csproj
+      - name: Restore solution
+        run: dotnet restore .\AlertingSystem.sln
 
-      - name: Build in Release mode
-        run: dotnet build .\AlertingSystem.csproj --configuration Release --no-restore
+      - name: Build solution in Release mode
+        run: dotnet build .\AlertingSystem.sln --configuration Release --no-restore

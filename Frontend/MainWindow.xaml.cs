@@ -1,4 +1,3 @@
-using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -28,11 +27,6 @@ public partial class MainWindow : Window
     {
         Close();
     }
-
-    private static readonly HttpClient HttpClient = new()
-    {
-        Timeout = TimeSpan.FromSeconds(10)
-    };
 
     private readonly MariaDbDataStore _dataStore = new();
     private readonly AccountStore _accountStore = new();

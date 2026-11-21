@@ -1,8 +1,8 @@
 using System.IO;
 using System.Text.Json;
-using AlertingSystem.Models;
+using AlertingSystem.Backend.Models;
 
-namespace AlertingSystem.Services;
+namespace AlertingSystem.Backend.Services;
 
 public sealed class SecurityAuditLogger
 {

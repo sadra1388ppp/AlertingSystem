@@ -1,11 +1,11 @@
 using System.IO;
 using System.Data;
 using System.Text.Json;
-using AlertingSystem.Models;
+using AlertingSystem.Backend.Models;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
-namespace AlertingSystem.Services;
+namespace AlertingSystem.Backend.Services;
 
 public sealed class MariaDbDataStore
 {

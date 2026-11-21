@@ -2,7 +2,7 @@ using System.IO;
 using System.Text.Json;
 using MySqlConnector;
 
-namespace AlertingSystem.Services;
+namespace AlertingSystem.Backend.Services;
 
 public sealed class DatabaseSettings
 {

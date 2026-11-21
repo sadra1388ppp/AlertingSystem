@@ -1,8 +1,8 @@
 using System.IO;
-using AlertingSystem.Models;
+using AlertingSystem.Backend.Models;
 using MySqlConnector;
 
-namespace AlertingSystem.Services;
+namespace AlertingSystem.Backend.Services;
 
 public sealed class AccountStore
 {

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
+using AlertingSystem.Services;
 
 namespace AlertingSystem;
 
@@ -18,6 +19,23 @@ public partial class App : Application
 
         try
         {
+            try
+            {
+                BackendApiClient.CheckHealth();
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(
+                    $"The AlertingSystem backend is not running or cannot be reached. Start it first with:\n\n" +
+                    "dotnet run --project Backend/AlertingSystem.Backend.csproj\n\n" +
+                    $"Details: {exception.Message}",
+                    "Backend unavailable",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                Shutdown(-1);
+                return;
+            }
+
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             var loginWindow = new LoginWindow();
             var loginResult = loginWindow.ShowDialog();

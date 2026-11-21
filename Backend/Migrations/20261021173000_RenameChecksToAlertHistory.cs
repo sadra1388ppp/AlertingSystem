@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace AlertingSystem.Migrations;
+namespace AlertingSystem.Backend.Migrations;
 
-[DbContext(typeof(AlertingSystem.Services.AlertingDbContext))]
+[DbContext(typeof(AlertingSystem.Backend.Services.AlertingDbContext))]
 [Migration("20261021173000_RenameChecksToAlertHistory")]
 public sealed class RenameChecksToAlertHistory : Migration
 {
