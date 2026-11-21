@@ -25,7 +25,7 @@ app.MapPost("/api/accounts/authenticate", (LoginRequest request, AccountStore st
     return Results.Ok(new AuthenticationResponse
     {
         Success = success,
-        User = user is null ? null : ToDto(user)
+        User = user is null ? null : ToAccountDto(user)
     });
 });
 
@@ -41,13 +41,13 @@ app.MapPost("/api/accounts", (CreateAccountRequest request, AccountStore store) 
     return Results.Ok(new CreateAccountResponse
     {
         Success = success,
-        User = user is null ? null : ToDto(user),
+        User = user is null ? null : ToAccountDto(user),
         Error = error
     });
 });
 
 app.MapGet("/api/accounts", (AccountStore store) =>
-    Results.Ok(store.GetAllAccounts().Select(ToDto).ToList()));
+    Results.Ok(store.GetAllAccounts().Select(ToAccountDto).ToList()));
 
 app.MapGet("/api/accounts/{id:int}/active", (int id, AccountStore store) =>
     Results.Ok(store.IsActiveAccount(id)));
@@ -59,20 +59,20 @@ app.MapPost("/api/accounts/{id:int}/delete", (int id, DeleteAccountRequest reque
 });
 
 app.MapGet("/api/incidents", (MariaDbDataStore store) =>
-    Results.Ok(store.LoadIncidents().Select(ToDto).ToList()));
+    Results.Ok(store.LoadIncidents().Select(ToIncidentDto).ToList()));
 
 app.MapGet("/api/history", (MariaDbDataStore store) =>
-    Results.Ok(store.LoadCheckHistory().Select(ToDto).ToList()));
+    Results.Ok(store.LoadCheckHistory().Select(ToHistoryDto).ToList()));
 
 app.MapPut("/api/incidents", (List<IncidentDto> items, MariaDbDataStore store) =>
 {
-    store.SaveIncidents(items.Select(FromDto));
+    store.SaveIncidents(items.Select(FromIncidentDto));
     return Results.Ok(new OperationResponse { Success = true });
 });
 
 app.MapPut("/api/incidents/item", (IncidentSaveRequest request, MariaDbDataStore store) =>
 {
-    var success = store.SaveIncident(FromDto(request.Incident), request.AllowInsert);
+    var success = store.SaveIncident(FromIncidentDto(request.Incident), request.AllowInsert);
     return Results.Ok(new OperationResponse { Success = success });
 });
 
@@ -152,7 +152,7 @@ static AccountUser RequireUser(AccountDto? user)
     };
 }
 
-static AccountDto ToDto(AccountUser user) => new()
+static AccountDto ToAccountDto(AccountUser user) => new()
 {
     Id = user.Id,
     DisplayName = user.DisplayName,
@@ -162,7 +162,7 @@ static AccountDto ToDto(AccountUser user) => new()
     DeletedAt = user.DeletedAt
 };
 
-static IncidentDto ToDto(Incident item) => new()
+static IncidentDto ToIncidentDto(Incident item) => new()
 {
     IncidentNumber = item.IncidentNumber,
     EndpointUrl = item.EndpointUrl,
@@ -178,7 +178,7 @@ static IncidentDto ToDto(Incident item) => new()
     OccurrenceCount = item.OccurrenceCount
 };
 
-static Incident FromDto(IncidentDto item) => new()
+static Incident FromIncidentDto(IncidentDto item) => new()
 {
     IncidentNumber = item.IncidentNumber,
     EndpointUrl = item.EndpointUrl,
@@ -196,7 +196,7 @@ static Incident FromDto(IncidentDto item) => new()
     OccurrenceCount = Math.Max(1, item.OccurrenceCount)
 };
 
-static CheckHistoryEntryDto ToDto(CheckHistoryEntry item) => new()
+static CheckHistoryEntryDto ToHistoryDto(CheckHistoryEntry item) => new()
 {
     Id = item.Id,
     Timestamp = item.Timestamp,
@@ -206,7 +206,7 @@ static CheckHistoryEntryDto ToDto(CheckHistoryEntry item) => new()
     ResponseTimeMs = item.ResponseTimeMs
 };
 
-static CheckHistoryEntry FromDto(CheckHistoryEntryDto item) => new()
+static CheckHistoryEntry FromHistoryDto(CheckHistoryEntryDto item) => new()
 {
     Id = item.Id,
     Timestamp = item.Timestamp,
