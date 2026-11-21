@@ -7,6 +7,7 @@ builder.WebHost.UseUrls(
     Environment.GetEnvironmentVariable("ALERTINGSYSTEM_API_LISTEN_URL")
     ?? "http://127.0.0.1:5078");
 
+builder.Services.AddSingleton<AlertingDbContextFactory>();
 builder.Services.AddSingleton<AccountStore>();
 builder.Services.AddSingleton<MariaDbDataStore>();
 builder.Services.AddSingleton<SecurityAuditLogger>();
