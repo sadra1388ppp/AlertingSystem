@@ -36,4 +36,4 @@ Security audit requests carry an account ID, not a client-authored account profi
 
 ## Database compatibility
 
-The MariaDB table naming compatibility, existing table-rename migration, legacy JSON import, Argon2id hashes, account soft-delete behavior, incidents, and alert history remain in the backend. Existing account, incident, and history records are not intentionally deleted or reset by the EF Core refactor. The backend retains at most the newest 200 history entries.
+The MariaDB table naming compatibility, existing table-rename migration, legacy JSON import, Argon2id hashes, account soft-delete behavior, incidents, and alert history remain in the backend. Existing account, incident, and history records are not intentionally deleted or reset by the EF Core refactor. The API returns the newest 200 history entries to the desktop view; older database rows remain stored.

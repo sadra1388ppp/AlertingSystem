@@ -14,7 +14,7 @@ The backend is a separate local process. By default it listens on **http://127.0
 - \`GET /health/ready\` verifies that the configured MariaDB database can be reached. The WPF app checks readiness before opening the login screen.
 - All application operations are under \`/api\`.
 - Security event requests identify an account by ID. The backend reloads the account from MariaDB instead of trusting profile details supplied by the desktop client.
-- Alert history is capped at the latest 200 entries by the backend.
+- The history API returns the latest 200 entries for the desktop view; older MariaDB rows remain stored.
 
 To support remote clients later, add real user/session authentication, authorization policies, HTTPS, secret management, and deployment-specific configuration before changing the loopback restriction.
 
