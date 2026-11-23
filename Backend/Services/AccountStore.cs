@@ -30,6 +30,13 @@ public sealed class AccountStore
             .ToList();
     }
 
+    public AccountUser? GetForAudit(int userId)
+    {
+        using var db = _contextFactory.CreateContext();
+        return db.Accounts.AsNoTracking()
+            .FirstOrDefault(account => account.Id == userId);
+    }
+
     public bool IsActiveAccount(int userId)
     {
         using var db = _contextFactory.CreateContext();

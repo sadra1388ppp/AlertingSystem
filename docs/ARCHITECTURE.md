@@ -22,10 +22,18 @@ All application database reads and writes go through AlertingDbContext and Entit
 
 Backend application services do not create ADO.NET commands or embed SQL statements. Pomelo translates EF Core operations to MariaDB commands through its provider implementation. The pinned MySqlConnector package is only the provider's low-level transport dependency and is not referenced from application service code.
 
-## Communication
+## Communication and trust boundary
 
-The desktop app calls the backend over HTTP/JSON. The default local endpoint is http://127.0.0.1:5078. The API binds to loopback by default and is intended to be run as a separate local process alongside the WPF frontend.
+The desktop app calls the backend over HTTP/JSON. The default API endpoint is http://127.0.0.1:5078. Both backend binding and frontend target validation enforce loopback-only access. The current API is a local desktop service, not a remotely deployable public API.
+
+The backend exposes liveness and readiness separately:
+- \`/health/live\` checks that the process responds;
+- \`/health/ready\` checks that the configured MariaDB database is reachable.
+
+The WPF app requires readiness before displaying the sign-in screen. Unhandled API exceptions are returned through Problem Details rather than exposing developer exception pages.
+
+Security audit requests carry an account ID, not a client-authored account profile. The backend looks up the persisted account and uses that authoritative record when writing the audit event. Deleted accounts remain available for recording the deletion and sign-out events, but cannot record a successful login.
 
 ## Database compatibility
 
-The MariaDB table naming compatibility, existing table-rename migration, legacy JSON import, Argon2id hashes, account soft-delete behavior, incidents, and alert history remain in the backend. Existing account, incident, and history records are not intentionally deleted or reset by the EF Core refactor.
+The MariaDB table naming compatibility, existing table-rename migration, legacy JSON import, Argon2id hashes, account soft-delete behavior, incidents, and alert history remain in the backend. Existing account, incident, and history records are not intentionally deleted or reset by the EF Core refactor. The backend retains at most the newest 200 history entries.

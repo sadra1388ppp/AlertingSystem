@@ -83,7 +83,7 @@ public sealed class IncidentSaveRequest
 public sealed class SecurityEventRequest
 {
     public string EventType { get; set; } = string.Empty;
-    public AccountDto? User { get; set; }
+    public int? UserId { get; set; }
     public string? Context { get; set; }
     public string? AttemptedUsername { get; set; }
     public string? Category { get; set; }

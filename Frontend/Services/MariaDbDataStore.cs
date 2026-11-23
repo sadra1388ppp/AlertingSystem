@@ -11,9 +11,15 @@ public sealed class MariaDbDataStore
     public List<CheckHistoryEntry> LoadCheckHistory() =>
         BackendApiClient.Get<List<CheckHistoryEntryDto>>("api/history").Select(FromDto).ToList();
 
-    public void SaveIncidents(IEnumerable<Incident> incidents) =>
-        BackendApiClient.Put<OperationResponse>(
+    public void SaveIncidents(IEnumerable<Incident> incidents)
+    {
+        var result = BackendApiClient.Put<OperationResponse>(
             "api/incidents", incidents.Select(ToDto).ToList());
+
+        if (!result.Success)
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(result.Error) ? "Incidents were not saved." : result.Error);
+    }
 
     public bool SaveIncident(Incident incident, bool allowInsert = false)
     {
@@ -32,6 +38,11 @@ public sealed class MariaDbDataStore
     public void SaveCheckHistoryEntry(CheckHistoryEntry entry)
     {
         var result = BackendApiClient.Put<OperationResponse>("api/history/item", ToDto(entry));
+
+        if (!result.Success)
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(result.Error) ? "The history entry was not saved." : result.Error);
+
         if (result.Id is long id)
             entry.Id = id;
     }

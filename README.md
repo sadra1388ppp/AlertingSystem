@@ -2,9 +2,21 @@
 
 AlertingSystem is split into three independent .NET projects:
 
-- **Frontend** — WPF desktop interface. It communicates only with the backend through HTTP/JSON.
+- **Frontend** — WPF desktop interface. It communicates with the backend only through HTTP/JSON.
 - **Backend** — ASP.NET Core Web API. It owns authentication, Argon2id password hashing, MariaDB access, incident/history persistence, security auditing, and endpoint checks.
-- **Shared** — API request/response contracts only. It contains no database, WPF, or business logic.
+- **Shared** — request/response contracts only. It contains no database, WPF, or business logic.
+
+## API and security boundary
+
+The backend is a separate local process. By default it listens on **http://127.0.0.1:5078** and accepts only loopback bind addresses. The WPF client also rejects non-loopback API URLs. This is intentional: the current desktop API has no remote-user authentication or TLS deployment configuration, so it must not be exposed to a LAN or the public internet.
+
+- \`GET /health\` and \`GET /health/live\` report process liveness.
+- \`GET /health/ready\` verifies that the configured MariaDB database can be reached. The WPF app checks readiness before opening the login screen.
+- All application operations are under \`/api\`.
+- Security event requests identify an account by ID. The backend reloads the account from MariaDB instead of trusting profile details supplied by the desktop client.
+- Alert history is capped at the latest 200 entries by the backend.
+
+To support remote clients later, add real user/session authentication, authorization policies, HTTPS, secret management, and deployment-specific configuration before changing the loopback restriction.
 
 ## Database persistence
 
@@ -19,22 +31,28 @@ The application source does not create MySqlCommand objects or contain hand-writ
 
 ## Run locally
 
-Use .NET 10 SDK and MariaDB.
+Use the .NET 10 SDK and MariaDB.
 
-1. Configure the database in %LOCALAPPDATA%\\AlertingSystem\\database-settings.json, or set ALERTINGSYSTEM_DB_CONNECTION_STRING.
+1. Configure the database in \`%LOCALAPPDATA%\\AlertingSystem\\database-settings.json\`, or set \`ALERTINGSYSTEM_DB_CONNECTION_STRING\`.
 2. Start the backend in one terminal:
 
+   \`\`\`powershell
    dotnet run --project Backend/AlertingSystem.Backend.csproj
+   \`\`\`
 
-   The API listens on http://127.0.0.1:5078 by default. Open http://127.0.0.1:5078/health to check it.
-3. Start the desktop application in a second terminal:
+3. Verify readiness at [http://127.0.0.1:5078/health/ready](http://127.0.0.1:5078/health/ready).
+4. Start the desktop application in a second terminal:
 
+   \`\`\`powershell
    dotnet run --project Frontend/AlertingSystem.Frontend.csproj
+   \`\`\`
 
-The frontend checks the backend health endpoint before showing the sign-in screen. To use a different API address, set ALERTINGSYSTEM_API_URL for the frontend process (for example, http://127.0.0.1:5078/). To change the backend listening address, set ALERTINGSYSTEM_API_LISTEN_URL.
+The backend listens on the loopback address by default. To change its local port or loopback address, set \`ALERTINGSYSTEM_API_LISTEN_URL\`. To change the WPF client's local API address, set \`ALERTINGSYSTEM_API_URL\`. Non-loopback addresses are rejected until remote authentication and HTTPS are implemented.
 
 ## Build
 
+\`\`\`powershell
 dotnet build AlertingSystem.sln --configuration Release
+\`\`\`
 
-The backend is a separate process. The WPF project has no reference to the backend project or to MariaDB/Entity Framework packages; its only project dependency is the shared HTTP contract assembly.
+The WPF project has no reference to the backend project or to MariaDB/Entity Framework packages; its only project dependency is the shared HTTP contract assembly.

@@ -44,15 +44,7 @@ public sealed class SecurityAuditLogger
         BackendApiClient.Post<OperationResponse>("api/security/events", new SecurityEventRequest
         {
             EventType = eventType,
-            User = new AccountDto
-            {
-                Id = user.Id,
-                DisplayName = user.DisplayName,
-                Username = user.Username,
-                CreatedAt = user.CreatedAt,
-                IsDeleted = user.IsDeleted,
-                DeletedAt = user.DeletedAt
-            },
+            UserId = user.Id,
             Context = context
         });
 }

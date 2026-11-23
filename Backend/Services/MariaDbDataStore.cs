@@ -112,9 +112,10 @@ public sealed class MariaDbDataStore
         }
 
         db.SaveChanges();
+        TrimHistory(db);
     }
 
-    public void SaveCheckHistoryEntry(CheckHistoryEntry entry)
+    public bool SaveCheckHistoryEntry(CheckHistoryEntry entry)
     {
         using var db = CreateContext();
 
@@ -123,7 +124,7 @@ public sealed class MariaDbDataStore
             var stored = db.CheckHistory.Find(entry.Id);
             if (stored is null)
             {
-                return;
+                return false;
             }
 
             db.Entry(stored).CurrentValues.SetValues(entry);
@@ -133,6 +134,23 @@ public sealed class MariaDbDataStore
             db.CheckHistory.Add(entry);
         }
 
+        db.SaveChanges();
+        TrimHistory(db);
+        return true;
+    }
+
+    private static void TrimHistory(AlertingDbContext db)
+    {
+        var oldEntries = db.CheckHistory
+            .OrderByDescending(entry => entry.Timestamp)
+            .ThenByDescending(entry => entry.Id)
+            .Skip(MaximumHistoryEntries)
+            .ToList();
+
+        if (oldEntries.Count == 0)
+            return;
+
+        db.CheckHistory.RemoveRange(oldEntries);
         db.SaveChanges();
     }
 

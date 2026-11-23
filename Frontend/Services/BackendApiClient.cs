@@ -16,6 +16,16 @@ public static class BackendApiClient
         var address = Environment.GetEnvironmentVariable("ALERTINGSYSTEM_API_URL")
             ?? "http://127.0.0.1:5078/";
 
+        if (!Uri.TryCreate(address, UriKind.Absolute, out var baseAddress) ||
+            !baseAddress.IsLoopback ||
+            (baseAddress.Scheme != Uri.UriSchemeHttp &&
+             baseAddress.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new InvalidOperationException(
+                "AlertingSystem currently accepts only a local loopback API URL. " +
+                "Remote API access must be configured with authentication and HTTPS first.");
+        }
+
         if (!address.EndsWith("/", StringComparison.Ordinal))
             address += "/";
 
@@ -26,7 +36,7 @@ public static class BackendApiClient
         };
     }
 
-    public static void CheckHealth() => Get<JsonElement>("health");
+    public static void CheckHealth() => Get<JsonElement>("health/ready");
 
     public static T Get<T>(string path)
     {
