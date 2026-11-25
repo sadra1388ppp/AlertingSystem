@@ -44,12 +44,14 @@ app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseStaticFiles();
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "AlertingSystem API v1");
         options.RoutePrefix = "swagger";
         options.DocumentTitle = "AlertingSystem API";
+        options.InjectStylesheet("/swagger-ui/alerting-theme.css?v=1");
     });
 }
 
