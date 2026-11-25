@@ -18,6 +18,17 @@ The backend is a separate local process. By default it listens on **http://127.0
 
 To support remote clients later, add real user/session authentication, authorization policies, HTTPS, secret management, and deployment-specific configuration before changing the loopback restriction.
 
+## API documentation (Swagger)
+
+The backend exposes interactive Swagger documentation when it runs in the **Development** environment:
+
+- Swagger UI: [http://127.0.0.1:5078/swagger](http://127.0.0.1:5078/swagger)
+- OpenAPI JSON: [http://127.0.0.1:5078/swagger/v1/swagger.json](http://127.0.0.1:5078/swagger/v1/swagger.json)
+
+The documentation is grouped into Health, Accounts, Incidents, History, Security, and Monitoring. Use **Try it out** to send requests to the local backend. Requests that create, update, or delete records can change the local MariaDB data; the monitoring check also sends an HTTP GET request to the address supplied in its request body.
+
+Swagger is intentionally disabled outside Development. The backend remains restricted to loopback addresses; do not expose this unauthenticated local API to a LAN or the public internet.
+
 ## Database persistence
 
 All application persistence is handled through **Entity Framework Core** in the backend:
